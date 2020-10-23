@@ -7,7 +7,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES basic.cpp overview_graphics.
 add_executable(basic basic.cpp)
 target_link_libraries(basic matrix graphics ${VTK_LIBRARIES})
 
-add_executable(overview_graphics overview.cpp)
+add_executable(overview_graphics overview_graphics.cpp)
 target_link_libraries(overview_graphics matrix graphics ${VTK_LIBRARIES})
 
 add_executable(nodal_values nodal_values.cpp)
