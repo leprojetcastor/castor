@@ -8,7 +8,7 @@ This library implements a lightweight class ``smatrix`` for the manipulation of 
 
 The ``smatrix`` class is installed automatically with the other headers of **castor** library.
 
-**This is work-in-progress! Some useful features, like the sparse-sparse matrix product, may not be implemented (yet). More details will also be added progressively.**
+**This is work-in-progress** 
 
 .. _label-examples-smatrix:
 
@@ -217,5 +217,3 @@ One last manipulation and we are good for this example.
               0            0            0            0  
               0            0            0            0  
        -3.14159            0            0            0
-
-**That's all for now!**
