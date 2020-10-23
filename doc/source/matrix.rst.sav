@@ -1,0 +1,22 @@
+.. _ref_class_matrix:
+
+Class matrix
+++++++++++++
+
+.. doxygenclass:: castor::matrix
+   :project: castor
+
+Constructeurs
+-------------
+.. doxygenfunction:: matrix()
+   :project: castor
+.. doxygenfunction:: matrix(T v)
+   :project: castor
+.. doxygenfunction:: matrix(std::initializer_list<T> const &v)
+   :project: castor
+.. doxygenfunction:: matrix(std::initializer_list<std::vector<T>> const &v)
+   :project: castor
+.. doxygenfunction:: matrix(std::size_t m, std::size_t n, T v = 0)
+   :project: castor
+.. doxygenfunction:: matrix(std::vector<S> const &v)
+   :project: castor

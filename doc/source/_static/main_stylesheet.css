@@ -1,0 +1,13 @@
+.wy-nav-content{
+    max-width: 1500px;
+    margin: auto;
+}
+
+.red{
+    color:red;
+}
+
+.warning{
+    font-weight: bold;
+    color:red;
+}

@@ -1,0 +1,40 @@
+image: gcc 
+
+build:
+  stage: build
+  before_script:
+    - apt-get update --yes
+    - apt-get install --yes cmake
+    - apt-get install --yes libopenblas-dev
+  script:
+    - mkdir build
+    - cd build
+    - cmake ..
+    - make
+  artifacts:
+    paths:
+      - build
+
+test:
+  stage: test
+  script: 
+    - ./build/test/test -o test_res.txt --use-colour no
+  artifacts:
+    when: always
+    paths:
+      - test_res.txt
+
+
+pages:
+  image: continuumio/miniconda3
+  script:
+    - conda env create -f doc/environment.yml
+    - source activate doc
+    - cd doc
+    - make html 
+    - mv build/html ../public
+  artifacts:
+    paths:
+      - public
+  only:
+    - master

@@ -1,0 +1,8 @@
+# Build directory
+build/
+xcode/
+xml/
+.vscode/
+
+# Desktop Services Store (macOS)
+.DS_Store
