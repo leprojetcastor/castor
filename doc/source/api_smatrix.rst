@@ -1,3 +1,4 @@
+.. _label-smatrix-API:
 
 API
 ===
