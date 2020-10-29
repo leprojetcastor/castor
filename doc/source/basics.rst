@@ -24,7 +24,9 @@ in the preamble of the ``.cpp`` file. A minimum ``main`` file would then look li
     return 0;
   }
 
-For some more advanced features, see the corresponding section :ref:`label-advanced`. The user may also refer to the examples in the ``demo/*`` subdirectories of the main directory of the **castor** project.
+For some more advanced features, see the corresponding section :ref:`label-advanced`. 
+
+**The user may also refer to the examples in the** ``demo/*`` **subdirectories of the main directory of the castor project.**
 
 
 Matrix creation (and destruction)
