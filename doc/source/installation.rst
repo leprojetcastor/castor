@@ -34,7 +34,7 @@ The linear algebra part and the visualization part of the library depend respect
 
 .. code::
 
-    $ cmake -DCMAKE_INSTALL_PREFIX=path/to/install/directory -DCMAKE_PREFIX_PATH=/path/to/optimized/blas;/path/to/vtk/ ..   
+    $ cmake -DCMAKE_INSTALL_PREFIX=path/to/install/directory -DCMAKE_PREFIX_PATH="/path/to/optimized/blas;/path/to/vtk/" ..   
 
 Installing the dependencies
 +++++++++++++++++++++++++++
@@ -73,7 +73,7 @@ On MacOS, it should be installed using Homebrew with the command
 
     brew install vtk@8.2
 
-Please note that ``brew install vtk`` will install a version from the ``9.x.x`` branch (or later) which is currently not compatible. The problem is that the path to VTK will not be found automatically by ``cmake``. Moreover, since the path too ``VTK 8.2`` will not be found automatically by ``cmake``, it should be given using the ``-DCMAKE_PREFIX_PATH=/path/to/vtk@8.2/`` flag as explained at the beginning of this page.
+Please note that ``brew install vtk`` (assuming ``Homebrew`` is up-to-date) will install a version from the ``9.x.x`` branch (or later) which is currently not compatible. Moreover, since the path to ``VTK 8.2`` will not be found automatically by ``cmake``, it should be given using the ``-DCMAKE_PREFIX_PATH=/path/to/vtk@8.2/`` flag as explained at the beginning of this page.
 
 On Ubuntu, VTK 8.2 must be built from source as the version available in the repositories is currently ``VTK 7.x.x``. The process is described below:
 
