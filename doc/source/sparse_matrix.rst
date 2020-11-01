@@ -32,7 +32,7 @@ In order to use a ``smatrix``, the corresponding header ``castor/smatrix.hpp`` n
 Building a smatrix
 ++++++++++++++++++
 
-A ``smatrix`` will mostly behave like a normal full ``matrix``. For example, let us create a ``4 x 4`` ``smatrix`` of ``double``.
+A ``smatrix`` will mostly behave like a normal dense ``matrix``. For example, let us create a ``4 x 4`` ``smatrix`` of ``double``.
 
 .. code:: c++
 
@@ -182,7 +182,7 @@ It is possible to get the value of any entry:
     Cs(1,2) = -0.5
     Cs(1,3) = 0
 
-Now, let us multiply ``Cs`` by a ``4 x 4`` full ``matrix``:
+Now, let us multiply ``Cs`` by a ``4 x 4`` dense ``matrix``:
 
 .. code:: c++
 
