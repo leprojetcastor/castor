@@ -9,7 +9,9 @@ Example
 .. code::
 
     #include <iostream>
-    #include "matrix/matrix.hpp"
+    #include "castor/matrix.hpp"
+
+    using namespace castor;
 
     int main (int argc, char* argv[])
     {
@@ -34,6 +36,9 @@ This example displays the sum of two matrices with implicit cast :
     5.00000      7.00000      7.00000      8.00000
     9.00000     10.00000     12.00000     12.00000
 
+
+.. _label-compilation:
+
 Compilation 
 -----------
 
@@ -44,9 +49,13 @@ The library **matrix** is a header-only library. That actually means to compile 
 
 .. code:: bash
 
-    g++ -I /path/to/matrix/headers main.cpp -o main
+    g++ -std=c++14 -I /path/to/castor/folder main.cpp -o main
 
 IDE
 +++
 
-Simply enter the path to the directory **matrix** in your favorite IDE (refer to your IDE documentation).
+Simply enter the path to the directory containing the ``castor`` folder in your favorite IDE [1]_ (refer to your IDE documentation).
+
+
+
+.. [1] Integrated Development Environment. There exists a *huge* variety of IDEs : VSCode, Xcode, Geany, CodeBlocks, VI, Emacs, etc. The best solution is to try some.

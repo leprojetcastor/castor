@@ -4,7 +4,7 @@
 Sparse matrix
 =============
 
-This library implements a lightweight class ``smatrix`` for the manipulation of sparse matrices, using solely the ``castor::matrix`` class without other external libraries. Many :ref:`label-builders-smatrix`, :ref:`label-functions-smatrix` and :ref:`label-operators-smatrix` are available in a similar fashion as for the :ref:`label-class-matrix` class. Most of the manipulations should be transparent to the user and the feeling should be really `Matlab-like <https://www.mathworks.com>`_. Basic examples are given in the corresponding :ref:`label-examples-smatrix` section.
+This library implements a lightweight class ``smatrix`` for the manipulation of sparse matrices, using solely the ``castor::matrix`` class without other external libraries. Many builders, functions and operators are available in a similar fashion as for the :ref:`label-class-matrix`, see the ``smatrix`` :ref:`label-smatrix-API`. Most of the manipulations should be transparent to the user and the feeling should be really `Matlab-like <https://www.mathworks.com>`_. Basic examples are given in the corresponding :ref:`label-examples-smatrix` section.
 
 The ``smatrix`` class is installed automatically with the other headers of **castor** library.
 
@@ -32,7 +32,7 @@ In order to use a ``smatrix``, the corresponding header ``castor/smatrix.hpp`` n
 Building a smatrix
 ++++++++++++++++++
 
-A ``smatrix`` will mostly behave like a normal full ``matrix``. For example, let us create a ``4 x 4`` ``smatrix`` of ``double``.
+A ``smatrix`` will mostly behave like a normal dense ``matrix``. For example, let us create a ``4 x 4`` ``smatrix`` of ``double``.
 
 .. code:: c++
 
@@ -103,7 +103,7 @@ A zero value is added. In order to clean a ``smatrix``, a simple call to ``check
     (2,1)  -0.333333
     (3,2)  3.14159
 
-Everything went back to normal! Now, let us use one of the :ref:`label-builders-smatrix` in order to create an identity sparse matrix. It is also possible to convert back to the *triplet* format.
+Everything went back to normal! Now, let us use one of the builders in order to create an identity sparse matrix. It is also possible to convert back to the *triplet* format.
 
 .. code:: c++
 
@@ -182,7 +182,7 @@ It is possible to get the value of any entry:
     Cs(1,2) = -0.5
     Cs(1,3) = 0
 
-Now, let us multiply ``Cs`` by a ``4 x 4`` full ``matrix``:
+Now, let us multiply ``Cs`` by a ``4 x 4`` dense ``matrix``:
 
 .. code:: c++
 

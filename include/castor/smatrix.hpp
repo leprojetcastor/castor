@@ -307,7 +307,7 @@ smatrix<T>::smatrix(std::size_t m, std::size_t n,
     (*this) = smatrix(m,n,L,V);
 }
 
-/// Builds a sparse matrix from full matrix.
+/// Builds a sparse matrix from dense matrix.
 /// \code{.cpp}
 ///    smatrix<> As = M_PI*eye(3,4);
 ///    disp(As);
@@ -1272,9 +1272,9 @@ auto find(smatrix<T>const& As)
 
 //==========================================================================
 // [full]
-/// Full conversion.
+/// Dense conversion.
 ///
-/// A = full(As) convert sparse matrix to full matrix.
+/// A = full(As) convert sparse matrix to dense matrix.
 ///
 /// \code{.cpp}
 ///    smatrix<> As = speye(3,4);
@@ -1476,10 +1476,10 @@ std::size_t length(smatrix<T>const& As)
 // [mtimes]
 /// Matrix multiply.
 ///
-/// mtimes(As,B) is the matrix product of As (sparse) and B (full),
+/// mtimes(As,B) is the matrix product of As (sparse) and B (dense),
 /// the number of columns of As must equal the number of rows of B.
 ///
-/// mtimes(A,Bs) is the matrix product of A (full) and Bs (sparse),
+/// mtimes(A,Bs) is the matrix product of A (dense) and Bs (sparse),
 /// the number of columns of A must equal the number of rows of Bs.
 ///
 /// mtimes(As,Bs) is the matrix product of A (sparse) and Bs (sparse),
@@ -1756,7 +1756,7 @@ std::size_t size(smatrix<T>const& As, int dim)
 // [sparse]
 /// Sparse conversion.
 ///
-/// As = sparse(A) convert full to sparse matrix.
+/// As = sparse(A) convert dense to sparse matrix.
 ///
 /// S = sparse(L,V,m,n) uses vectors L and V to generate an m-by-n sparse
 /// matrix S, such that S(L(k)) = V(k). Vectors L and V are all the

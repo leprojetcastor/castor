@@ -1460,7 +1460,7 @@ inline hmatrix<T> inv(hmatrix<T>const& Ah)
 /// Solve linear system Ah*X=B.
 ///
 /// mtimes(Ah,B) is the hierarchical matrix product of A and B, where Ah is
-/// H-Matrix and B full matrix. The number of columns of Ah must equal
+/// H-Matrix and B dense matrix. The number of columns of Ah must equal
 /// to the number of rows of B. Use Hierarchical LU factorization.
 template<typename T>
 inline matrix<T> linsolve(hmatrix<T>const& Ah, matrix<T>const& B)
@@ -1490,7 +1490,7 @@ inline auto lu(hmatrix<T>const& Ah, double tol=0)
 /// Hierarchical-matrix multiply.
 ///
 /// mtimes(A,B) is the hierarchical matrix product of A and B, where A and
-/// B are H-Matrix and/or full matrix. The number of columns of A must equal
+/// B are H-Matrix and/or dense matrix. The number of columns of A must equal
 /// the number of rows of B.
 template<typename T>
 inline matrix<T> mtimes(hmatrix<T>const& Ah, matrix<T>const& B)
