@@ -523,7 +523,7 @@ void figure::plot(matrix<T>const& X, matrix<T>const&Y, std::vector<std::string>c
         arrX->SetName("X");
         arrY = vtkSmartPointer<vtkDoubleArray>::New();
         if (i<label.size()) {arrY->SetName(label[i].c_str());}
-        else {arrY->SetName("undef");}
+        else {arrY->SetName("");}
         table = vtkSmartPointer<vtkTable>::New();
         table->AddColumn(arrX);
         table->AddColumn(arrY);
@@ -1073,7 +1073,7 @@ void mesh(figure& fig, matrix<T>const& M, std::string options="")
 // \see plot3
 template<typename T>
 inline void plot(figure& fig, matrix<T>const& X, matrix<T>const&Y, std::vector<std::string>const& style={""},
-                 std::vector<std::string>const& label={"undef"})
+                 std::vector<std::string>const& label={""})
 {
     fig.plot(X,Y,style,label);
 }

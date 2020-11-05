@@ -128,6 +128,15 @@ int main (int argc, char* argv[])
     disp("Values of the matrix :");
     disp(values(A));
     
+    disp("Reseach of NAN or INF values:");
+    V(0) = NAN;
+    V(1) = INFINITY;
+    V(2) = std::exp(800);
+    disp(V);
+    disp(isnan(V));
+    disp(isinf(V));
+    disp(isfinite(V));
+    
     disp("done !");
     return 0;
 }

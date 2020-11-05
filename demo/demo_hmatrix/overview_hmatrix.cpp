@@ -35,7 +35,7 @@ int main (int argc, char* argv[])
         "/usr/local/include/castor/matrix.hpp",
         "/usr/local/include/castor/hmatrix.hpp"
     };
-    help("");
+    help("linsolve");
     
     // Parameters
     std::size_t Nx  = 999;
@@ -61,8 +61,8 @@ int main (int argc, char* argv[])
     //    Y = 1 + Y;
     
     // Tree
-    binarytree<double> Xtree(X);
-    binarytree<double> Ytree(Y);
+    bintree<double> Xtree(X);
+    bintree<double> Ytree(Y);
     
     //===============================================================
     std::cout << "+==================+" << std::endl;
@@ -120,6 +120,11 @@ int main (int argc, char* argv[])
     V   = rand(Ny,2);
     ref = mtimes(M,V);
     sol = mtimes(Mh,V);
+    disp( norm(ref-sol,"inf")/norm(ref,"inf") );
+    
+    // RECOMPRESSION
+    ref = mtimes(M,V);
+    sol = mtimes(recompress(Mh,1e-1),V);
     disp( norm(ref-sol,"inf")/norm(ref,"inf") );
 
     // SCALAR: Add
@@ -224,16 +229,17 @@ int main (int argc, char* argv[])
     disp( norm(ref-sol,"inf")/norm(ref,"inf") );
 
     // HMATRIX: GMRES
-    tic();
     ref = gmres(M,V,tol,100);
-    toc();
-    tic();
     sol = gmres(Mh,V,tol,100);
-    toc();
+    disp( norm(ref-sol,"inf")/norm(ref,"inf") );
+    
+    ref = gmres(M,V,tol,100,inv(M));
+    sol = gmres(Mh,V,tol,100,Mhm1);
     disp( norm(ref-sol,"inf")/norm(ref,"inf") );
 
-    
-    
+    sol = gmres(Mh,V,tol,100,Lh,Uh);
+    disp( norm(ref-sol,"inf")/norm(ref,"inf") );
+
     disp("done !");
     return 0;
 }

@@ -224,6 +224,7 @@ public:
     };
     
     // ATTRIBUTS
+private:
     int                 m_typ;
     matrix<std::size_t> m_idx;
     matrix<std::size_t> m_jdx;
@@ -238,7 +239,6 @@ inline void disp(view<T>const& Av)
 {
     error(__FILE__, __LINE__, __FUNCTION__,"Use 'eval()' function to build the right hand side matrix from view. For example: \nA = eval(B(L)) \nA = eval(B(I,J))");
 }
-
 
 template<typename T>
 class cview
@@ -255,6 +255,7 @@ public:
         else if (m_typ==2) {A = get(m_mat,m_idx,m_jdx);}
         return A;
     };
+private:
     int                 m_typ;
     matrix<std::size_t> m_idx;
     matrix<std::size_t> m_jdx;
@@ -3132,12 +3133,13 @@ matrix<T> get(matrix<T>const& A, matrix<std::size_t>const& I, matrix<std::size_t
 /// X = gmres(A,B,TOL,MAXIT) specifies the maximum number of outer iterations.
 /// Default is 10;
 ///
-/// X = gmres(A,B,TOL,MAXIT,Am1FUN) use lambda function preconditioner
-/// Am1FUN(X) ~ inv(A)*X and effectively solve the system Am1*A*X = Am1*B
-/// for X.
-/// Default is Am1FUN(X) = X;
+/// X = gmres(A,B,TOL,MAXIT,AM1) use matrix AM1~=inv(A) as preconditioner
+/// and effectively solve the system AM1*A*X = AM1*B for X.
+/// Default is AM1 = ID;
+/// GMRES accepts a lambda function AM1FUN(X) = AM1*X instead of the explicit
+/// matrix AM1.
 ///
-/// X = gmres(A,B,TOL,MAXIT,AM1FUN,X0) specifies the first initial guess.
+/// X = gmres(A,B,TOL,MAXIT,AM1,X0) specifies the first initial guess.
 /// Default is zeros matrix.
 ///
 /// \code{.cpp}
@@ -3149,9 +3151,9 @@ matrix<T> get(matrix<T>const& A, matrix<std::size_t>const& I, matrix<std::size_t
 ///
 // \see mtimes, tgemm.
 template<typename T>
-matrix<T> gmres(std::function<matrix<T>(matrix<T> const&)>const& A, matrix<T>const& B,
+matrix<T> gmres(std::function<matrix<T>(matrix<T>const&)>const& A, matrix<T>const& B,
                 double tol = 1e-6, std::size_t maxit = 10,
-                std::function<matrix<T>(matrix<T> const&)>const& Am1 = matrix<T>(),
+                std::function<matrix<T>(matrix<T>const&)>const& Am1 = std::function<matrix<T>(matrix<T>const&)>(),
                 matrix<T>const& X0 = matrix<T>())
 {
     // Initialize
@@ -3211,31 +3213,40 @@ matrix<T> gmres(std::function<matrix<T>(matrix<T> const&)>const& A, matrix<T>con
     }
 
     // Infos
-    if (iter < maxit)
+    if (std::abs(err)<=tol)
     {
         std::cout << "GMRES converged at iteration " << iter <<
-        " to a solution with relative residual " << err << "." << std::endl;
+        " to a solution with relative residual " << err << std::endl;
+        std::cout << "and relative error " << max(abs(A(xk)-B))/max(abs(B)) << "." << std::endl;
     }
     else
     {
         std::cout << "GMRES stopped at iteration " << iter <<
         " without converging to the desired tolerance " << tol << std::endl;
         std::cout << "because the maximum number of iterations was reached. The iterate returned has" << std::endl;
-        std::cout << "relative residual " << err << "." << std::endl;
+        std::cout << "relative residual " << err;
+        std::cout << " and relative error " << max(abs(A(xk)-B))/max(abs(B)) << "." << std::endl;
     }
     return xk;
 }
 template<typename T>
 matrix<T> gmres(matrix<T>const& A, matrix<T>const& B,
                 double tol = 1e-6, std::size_t maxit = 10,
-                matrix<T>const& Am1 = matrix<T>(), matrix<T>const& X0 = matrix<T>())
+                std::function<matrix<T>(matrix<T>const&)>const& Am1 = std::function<matrix<T>(matrix<T>const&)>(),
+                matrix<T>const& X0 = matrix<T>())
 {
-    std::function<matrix<T>(matrix<T> const&)> Afct, Am1fct;
-    Afct = [&A](matrix<T> const& X) {return mtimes(A,X);};
-    if (!isempty(Am1))
-    {
-        Am1fct = [&Am1](matrix<T> const& X) {return mtimes(Am1,X);};
-    }
+    std::function<matrix<T>(matrix<T>const&)> Afct;
+    Afct = [&A](matrix<T>const& X) {return mtimes(A,X);};
+    return gmres(Afct,B,tol,maxit,Am1,X0);
+}
+
+template<typename T>
+matrix<T> gmres(matrix<T>const& A, matrix<T>const& B, double tol, std::size_t maxit,
+                matrix<T>const& Am1, matrix<T>const& X0 = matrix<T>())
+{
+    std::function<matrix<T>(matrix<T>const&)> Afct, Am1fct;
+    Afct   = [&A](matrix<T>const& X) {return mtimes(A,X);};
+    Am1fct = [&Am1](matrix<T>const& X) {return mtimes(Am1,X);};
     return gmres(Afct,B,tol,maxit,Am1fct,X0);
 }
 
@@ -3501,6 +3512,83 @@ inline bool isempty(matrix<T>const& X) {return numel(X)==0;}
 // \see isempty, isvector.
 template<typename R, typename S>
 inline bool isequal(matrix<R>const& A, matrix<S>const& B) {return prod(A==B);}
+
+//==========================================================================
+// [isfinite]
+/// True for finite element.
+///
+/// isfinite(A) returns an array B that contains 1's where the elements of A
+/// are finite and 0's where they are not.
+///
+/// \code{.cpp}
+///    matrix<> A = eye(2,3);
+///    A(0) = NAN;
+///    A(1) = INFINITY;
+///    A(2) = exp(800);
+///    disp(isfinite(A);
+/// \endcode
+///
+// \see isnan, isinf.
+template<typename T>
+matrix<logical> isfinite(matrix<T>const& A)
+{
+    matrix<logical> B(size(A,1),size(A,2));
+    for (std::size_t l=0; l<numel(A); ++l)
+    {
+        B(l) = std::isfinite(std::abs(A(l)));
+    }
+    return B;
+}
+
+//==========================================================================
+// [isinf]
+/// True for infinite element.
+///
+/// isinf(A) returns an array B that contains 1's where the elements of A
+/// are infinite and 0's where they are not.
+///
+/// \code{.cpp}
+///    matrix<> A = eye(2,3);
+///    A(0) = INFINITY;
+///    disp(isinf(A);
+/// \endcode
+///
+// \see isnan, isfinite.
+template<typename T>
+matrix<logical> isinf(matrix<T>const& A)
+{
+    matrix<logical> B(size(A,1),size(A,2));
+    for (std::size_t l=0; l<numel(A); ++l)
+    {
+        B(l) = std::isinf(std::abs(A(l)));
+    }
+    return B;
+}
+
+//==========================================================================
+// [isnan]
+/// True for Not-A-Number.
+///
+/// isnan(A) returns an array B that contains 1's where the elements of A
+/// are Not-A-Number's and 0's where they are not.
+///
+/// \code{.cpp}
+///    matrix<> A = eye(2,3);
+///    A(0) = NAN;
+///    disp(isnan(A);
+/// \endcode
+///
+// \see isinf, isfinite.
+template<typename T>
+matrix<logical> isnan(matrix<T>const& A)
+{
+    matrix<logical> B(size(A,1),size(A,2));
+    for (std::size_t l=0; l<numel(A); ++l)
+    {
+        B(l) = std::isnan(std::abs(A(l)));
+    }
+    return B;
+}
 
 //==========================================================================
 // [isvector]

@@ -444,17 +444,39 @@ int main()
     std::cout << "+===============+" << std::endl;
 
     // DOUBLE
+    bool flag;
     matrix<> Md = mtimes(rand(m,k),rand(k,n));
-    std::tie(Ad,Bd) = aca(Md,1e-3);
+    std::tie(Ad,Bd,flag) = aca(Md,1e-3);
     disp(size(Ad));
     disp(norm(Md-mtimes(Ad,Bd),"inf"));
 
+    // DOUBLE
+    matrix<std::size_t> I=range(0,m/2), J=range(0,n/2);
+    std::function<matrix<double>(matrix<std::size_t>,matrix<std::size_t>)> Fd;
+    Fd = [&Md](matrix<std::size_t> I, matrix<std::size_t> J)
+    {
+        return eval(Md(I,J));
+    };
+    std::tie(Ad,Bd,flag) = aca(I,J,Fd,1e-3);
+    disp(size(Ad));
+    disp(norm(eval(Md(I,J))-mtimes(Ad,Bd),"inf"));
+
     // COMPLEX DOUBLE
     matrix<std::complex<double>> Mz = mtimes(rand(m,k),rand(k,n))*M_1I;
-    std::tie(Az,Bz) = aca(Mz,1e-3);
+    std::tie(Az,Bz,flag) = aca(Mz,1e-3);
     disp(size(Az));
     disp(norm(Mz-mtimes(Az,Bz),"inf"));
-
+        
+    // COMPLEX DOUBLE
+    std::function<matrix<std::complex<double>>(matrix<std::size_t>,matrix<std::size_t>)> Fz;
+    Fz = [&Mz](matrix<std::size_t> I, matrix<std::size_t> J)
+    {
+        return eval(Mz(I,J));
+    };
+    std::tie(Az,Bz,flag) = aca(I,J,Fz,1e-3);
+    disp(size(Az));
+    disp(norm(eval(Mz(I,J))-mtimes(Az,Bz),"inf"));
+    
     //===============================================================
     std::cout << "+===============+" << std::endl;
     std::cout << "|     QRSVD     |" << std::endl;

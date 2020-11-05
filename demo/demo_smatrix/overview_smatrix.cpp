@@ -122,9 +122,10 @@ int main (int argc, char* argv[])
     // Complex
     smatrix<std::complex<double>> Zs = ones(2,3) + M_1I*ones(2,3);
     Zs(1) = 0;
+    check(Zs);
     disp(Zs);
 
-        //===============================================================
+    //===============================================================
     std::cout << "+=====================+" << std::endl;
     std::cout << "|       EXTERNAL      |" << std::endl;
     std::cout << "+=====================+" << std::endl;
@@ -134,6 +135,14 @@ int main (int argc, char* argv[])
     disp(spones(3,4));
     disp(sprand(3,4));
     disp(spzeros(3,4));
+    
+    // Dimensions
+    disp(size(speye(3,4)));
+    disp(size(speye(3,4),1));
+    disp(size(speye(3,4),2));
+    disp(numel(speye(3,4)));
+    disp(length(speye(3,4)));
+    disp(nnz(speye(3,4)));
 
     // Transformation
     disp(full(speye(3,4)));
@@ -174,26 +183,86 @@ int main (int argc, char* argv[])
     Ms = speye(3);
     disp(values(Ms));
     disp(index(Ms));
-    matrix<std::size_t> I, J;
     matrix<> V;
     As = speye(3,4);
     As(2,3) = 1;
+    matrix<std::size_t> I, J;
     std::tie(I,J,V) = find(As);
     disp(full(sparse(I,J,V)));
     
     // Gmres
-    As = rand(5);
-    B  = rand(5,2);
-    matrix<> X = gmres(As,B,1e-6,10,speye(5),B);
+    As = speye(100) + 1e-3*rand(100);
+    B  = rand(100,4);
+    matrix<> X = gmres(As,B);
     disp(norm(mtimes(As,X)-B,"inf"));
+    smatrix<> Asm1 = gmres(As,eye(100));
+    X = gmres(As,B,1e-3,10,Asm1,X);
+    disp(norm(mtimes(As,X)-B,"inf"));
+
+    //===============================================================
+    std::cout << "+=================+" << std::endl;
+    std::cout << "|       VIEW      |" << std::endl;
+    std::cout << "+=================+" << std::endl;
     
-    // Perfo
+    matrix<std::size_t> L;
+    I = {0,1,0,1};
+    J = {1,2,2,1,0};
+    L = {{5,2,0},{5,4,5}};
+    
+    As = matrix<>({{0,1,2},{3,4,5}});
+    disp(full(As));
+
+    Bs = get(As,L);
+    disp(full(Bs));
+
+    Bs = get(As,I,J);
+    disp(full(Bs));
+    
+    As = spones(2,3);
+    L  = all(As);
+    set(As,L,2*speye(1,6));
+    disp(full(As));
+
+    As = spones(2,3);
+    I  = row(As);
+    J  = col(As);
+    set(As,I,J,2*speye(2,3));
+    disp(full(As));
+
+    As = spones(2,3);
+    Bs = 2*speye(2,3);
+    disp(eval(Bs(L)));
+    disp(eval(Bs(I,J)));
+
+    As    = spones(2,3);
+    As(L) = eval(Bs(L));
+    disp(As);
+
+    As      = spones(2,3);
+    As(I,J) = eval(Bs(I,J));
+    disp(As);
+    
+    smatrix<>const Gs = 2*speye(2,3);
+    disp(eval(Gs(L)));
+    disp(eval(Gs(I,J)));
+    
+    As = ones(4,4);
+    As({3,1,2},{3,1,2}) = smatrix<>(diag<double>({1,2,3}));
+    disp(full(As));
+    disp(full(eval(As({3,1,2},{3,1,2}))));
+    
+    //===============================================================
+    std::cout << "+=================+" << std::endl;
+    std::cout << "|      PERFO      |" << std::endl;
+    std::cout << "+=================+" << std::endl;
+    
     As = eye(1e2);
     Bs = rand(1e2);
     tic();
     smatrix<> Ds = mtimes(As,Bs);
     toc();
     disp(norm(full(Ds)-full(Bs),"inf"));
+    
     
     disp("done !");
     return 0;

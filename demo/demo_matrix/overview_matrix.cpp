@@ -377,6 +377,14 @@ int main (int argc, char* argv[])
     disp(transpose(A));
     disp(vertcat(A,eye<int>(3,4)));
     disp(values(A));
+    B = eye(2,3);
+    B(0) = NAN;
+    B(1) = INFINITY;
+    B(2) = std::exp(800);
+    disp(B);
+    disp(isnan(B));
+    disp(isinf(B));
+    disp(isfinite(B));
 
     //================================================== ALGORITHMS
     std::cout << "+=====================+" << std::endl;

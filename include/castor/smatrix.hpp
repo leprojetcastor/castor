@@ -26,6 +26,13 @@ namespace castor
 template<typename T>
 static const T M_ZERO=0;
 
+template<typename T>
+class sview;
+
+template<typename T>
+class scview;
+
+
 //==========================================================================//
 //                             MASTER CLASS                                 //
 //==========================================================================//
@@ -73,9 +80,13 @@ public:
     smatrix<T>& operator*=(smatrix<T>const& A);                 // A *= B;
     smatrix<T>& operator/=(smatrix<T>const& A);                 // A /= B;
     const T&    operator()(std::size_t l) const;                // A(l)
-    T&          operator()(std::size_t l);                      // A(l)
+    T&          operator()(std::size_t l);                          // A(l)
+    const scview<T> operator()(matrix<std::size_t>const& L) const;  // A(L)
+    sview<T>        operator()(matrix<std::size_t>const& L);        // A(L)
     const T&    operator()(std::size_t i, std::size_t j) const; // A(i,j)
     T&          operator()(std::size_t i, std::size_t j);       // A(i,j)
+    const scview<T> operator()(matrix<std::size_t>const& I, matrix<std::size_t>const& J) const; // A(I,J)
+    sview<T>        operator()(matrix<std::size_t>const& I, matrix<std::size_t>const& J); // A(I,J)
     
     // TOOLS
     void                           check();
@@ -109,6 +120,81 @@ std::size_t numel(smatrix<T>const& As);
 
 template<typename T>
 std::size_t size(smatrix<T>const& As, int dim);
+
+
+//==========================================================================//
+//                                VIEW CLASS                                //
+//==========================================================================//
+// [sview]
+///
+template<typename T>
+class sview
+{
+public:
+    sview(smatrix<T>& As, matrix<std::size_t>const& L):
+    m_typ{1}, m_idx{L}, m_mat{As} {};
+    sview(smatrix<T>& As, matrix<std::size_t>const& I, matrix<std::size_t>const& J):
+    m_typ{2}, m_idx{I}, m_jdx{J}, m_mat{As} {};
+    template<typename S>
+    smatrix<T>& operator=(smatrix<S>const& As) const
+    {
+        if (m_typ==1) {set(m_mat,m_idx,smatrix<T>(As));}
+        else if (m_typ==2) {set(m_mat,m_idx,m_jdx,smatrix<T>(As));}
+        return m_mat;
+    };
+    smatrix<T> eval() const
+    {
+        smatrix<T> As;
+        if (m_typ==1) {As = get(m_mat,m_idx);}
+        else if (m_typ==2) {As = get(m_mat,m_idx,m_jdx);}
+        return As;
+    };
+private:
+    int                 m_typ;
+    matrix<std::size_t> m_idx;
+    matrix<std::size_t> m_jdx;
+    smatrix<T>&         m_mat;
+};
+template<typename T>
+inline std::ostream& operator<<(std::ostream& flux, sview<T>const& As) {disp(As); return flux;}
+template<typename T>
+inline smatrix<T> eval(sview<T>const& Av) {return Av.eval();}
+template<typename T>
+inline void disp(sview<T>const& Av)
+{
+    error(__FILE__, __LINE__, __FUNCTION__,"Use 'eval()' function to build the right hand side matrix from sparse view. For example: \nAs = eval(Bs(L)) \nAs = eval(Bs(I,J))");
+}
+
+template<typename T>
+class scview
+{
+public:
+    scview(smatrix<T>const& As, matrix<std::size_t>const& L):
+    m_typ{1}, m_idx{L}, m_mat{As} {};
+    scview(smatrix<T>const& As, matrix<std::size_t>const& I, matrix<std::size_t>const& J):
+    m_typ{2}, m_idx{I}, m_jdx{J}, m_mat{As} {};
+    smatrix<T> eval() const
+    {
+        smatrix<T> As;
+        if (m_typ==1) {As = get(m_mat,m_idx);}
+        else if (m_typ==2) {As = get(m_mat,m_idx,m_jdx);}
+        return As;
+    };
+private:
+    int                 m_typ;
+    matrix<std::size_t> m_idx;
+    matrix<std::size_t> m_jdx;
+    smatrix<T>const&    m_mat;
+};
+template<typename T>
+inline std::ostream& operator<<(std::ostream& flux, scview<T>const& As) {disp(As); return flux;}
+template<typename T>
+inline smatrix<T> eval(scview<T>const& Av) {return Av.eval();}
+template<typename T>
+inline void disp(scview<T>const& Av)
+{
+    error(__FILE__, __LINE__, __FUNCTION__,"Use 'eval()' function to build the right hand side matrix from sparse view. For example: \nAs = eval(Bs(L)) \nAs = eval(Bs(I,J))");
+}
 
 
 //=========================================================================//
@@ -425,13 +511,14 @@ smatrix<T>& smatrix<T>::operator/=(smatrix<T>const& As)
 /// Remark : sparse matrix values are stored in matrix<T> object, associated
 /// to matrix<std:size_t> both for row and column indexing.
 ///
-/// WARNING : Sparse indexing is relatively slow, please prefer builders or
-/// constructors instead.
 /// \code{.cpp}
 ///    smatrix<float> As = speye(3,4);
 ///    float coef = A(11);
 ///    disp(coef);
 /// \endcode
+///
+/// WARNING : Sparse indexing is relatively slow, please prefer builders or
+/// constructors instead.
 template<typename T>
 const T& smatrix<T>::operator()(std::size_t l) const
 {
@@ -463,14 +550,15 @@ const T& smatrix<T>::operator()(std::size_t l) const
 /// Remark : sparse matrix values are stored in matrix<T> object, associated
 /// to matrix<std:size_t> both for row and column indexing.
 ///
-/// WARNING : Sparse indexing is relatively slow, please prefer builders or
-/// constructors instead.
 /// \code{.cpp}
 ///    smatrix<float> As = speye(3,4);
 ///    // access to last element
 ///    As(11) = 10;
 ///    disp(As(11));
 /// \endcode
+///
+/// WARNING : Sparse indexing is relatively slow, please prefer builders or
+/// constructors instead.
 template<typename T>
 T& smatrix<T>::operator()(std::size_t l)
 {
@@ -517,18 +605,45 @@ T& smatrix<T>::operator()(std::size_t l)
     return m_val[k];
 }
 
+/// Returns a reference to a submatrix corresponding to linear indexing L (const accessor).
+/// \code{.cpp}
+///    const smatrix<float> As = speye(3,4);
+///    // access to element equal to 1
+///    auto Bs = As({0,5,10});
+///    disp(eval(B));
+/// \endcode
+template<typename T>
+const scview<T> smatrix<T>::operator()(matrix<std::size_t>const& L) const
+{
+    return scview<T>(*this,L);
+}
+
+/// Returns a reference to a submatrix corresponding to linear indexing L (non-const accessor).
+/// \code{.cpp}
+///    smatrix<float> As = speye(3,4);
+///    // access to element equal to 1
+///    auto Bs = As({0,5,10});
+///    disp(eval(Bs));
+/// \endcode
+template<typename T>
+sview<T> smatrix<T>::operator()(matrix<std::size_t>const& L)
+{
+    return sview<T>(*this,L);
+}
+
 /// Returns an element of the sparse matrix by giving the bi-linear indexing of
 /// element (const accessor).
 ///
-/// WARNING : Sparse indexing is relatively slow, please prefer builders or
-/// constructors instead.
 /// \code{.cpp}
 ///    const smatrix<int> As = speye(3,4);
 ///    int coef = As(2,3);
 ///    disp(coef);
 /// \endcode
+///
+/// WARNING : Sparse indexing is relatively slow, please prefer builders or
+/// constructors instead.
 template<typename T>
-const T&  smatrix<T>::operator()(std::size_t i, std::size_t j) const
+const T& smatrix<T>::operator()(std::size_t i, std::size_t j) const
 {
     if (i>=m_row || j>=m_col)
     {
@@ -540,13 +655,14 @@ const T&  smatrix<T>::operator()(std::size_t i, std::size_t j) const
 /// Returns an element of the sparse matrix by giving the bi-linear indexing
 /// of element (non-const accessor).
 ///
-/// WARNING : Sparse indexing is relatively slow, please prefer builders or
-/// constructors instead.
 /// \code{.cpp}
 ///    smatrix<int> As = speye(3,4);
 ///    As(2,3) = 5;
 ///    disp(As(2,3));
 /// \endcode
+///
+/// WARNING : Sparse indexing is relatively slow, please prefer builders or
+/// constructors instead.
 template<typename T>
 T& smatrix<T>::operator()(std::size_t i, std::size_t j)
 {
@@ -555,6 +671,32 @@ T& smatrix<T>::operator()(std::size_t i, std::size_t j)
         error(__FILE__, __LINE__, __FUNCTION__,"Indices exceed array bounds.");
     }
     return (*this)(i*m_col+j);
+}
+
+/// Returns a reference to a submatrix corresponding to bilinear indexing
+/// I for rows and J for columns (const accessor).
+/// \code{.cpp}
+///    smatrix<float> As = speye(3,4);
+///    auto Bs = As({0,2}, {0,2});
+///    disp(eval(Bs));
+/// \endcode
+template<typename T>
+const scview<T> smatrix<T>::operator()(matrix<std::size_t>const& I, matrix<std::size_t>const& J) const
+{
+    return scview<T>(*this,I,J);
+}
+
+/// Return a reference to a submatrix corresponding to bilinear indexing
+/// I for rows and J for columns (non-const accessor).
+/// \code{.cpp}
+///    smatrix<float> As = speye(3,4);
+///    auto Bs = As({0,2}, {0,2});
+///    disp(eval(Bs));
+/// \endcode
+template<typename T>
+sview<T> smatrix<T>::operator()(matrix<std::size_t>const& I, matrix<std::size_t>const& J)
+{
+    return sview<T>(*this,I,J);
 }
 
 
@@ -576,10 +718,10 @@ template<typename T>
 void smatrix<T>::check()
 {
     std::size_t k=0, nz=nnz();
-    auto zero = std::abs(M_EPS(T));
+    T zero = 0;
     while (k<nz)
     {
-        if (std::abs(m_val[k])<=zero)
+        if (m_val[k]==zero)
         {
             m_ind.erase(m_ind.begin()+k);
             m_val.erase(m_val.begin()+k);
@@ -959,6 +1101,26 @@ inline auto operator/(smatrix<R>const& As, matrix<S>const& Bs) {return full(As)/
 //                           EXTERNAL TOOLS                                 //
 //==========================================================================//
 //==========================================================================
+// [all]
+/// Linear indexing of all elements.
+///
+/// all(As) return row matrix with all indices of As in linear indexing.
+///
+/// \code{.cpp}
+///    smatrix<> A = eye(3,4);
+///    matrix<std::size_t> L = all(A);
+///    smatrix<> B = eval(As(L));
+///    disp(B);
+/// \endcode
+///
+// \see row, col, get, set, sview, scview.
+template<typename T>
+matrix<std::size_t> all(smatrix<T>const& As)
+{
+    return range(0,numel(As));
+}
+
+//==========================================================================
 // [check]
 /// Check sparse matrix data.
 ///
@@ -999,6 +1161,26 @@ template<typename T>
 void clear(smatrix<T>& As)
 {
     As.clear();
+}
+
+//==========================================================================
+// [col]
+/// Bi-linear indexing of column elements.
+///
+/// col(As) return row matrix with column indices of As in bi-linear indexing.
+///
+/// \code{.cpp}
+///    smatrix<> A = eye(3,4);
+///    matrix<std::size_t> J = col(A);
+///    smatrix<> B = eval(A(0,J));
+///    disp(B);
+/// \endcode
+///
+// \see row, all, get, set, sview, scview.
+template<typename T>
+matrix<std::size_t> col(smatrix<T>const& As)
+{
+    return range(0,size(As,2));
 }
 
 //==========================================================================
@@ -1115,6 +1297,101 @@ template<typename T>
 inline matrix<T>const& full(matrix<T>const& A) {return A;}
 
 //==========================================================================
+// [get]
+/// Get sub-sparse matrix.
+///
+/// get(As,L) return sparse matrix As(L) with elements taken from As
+/// corresponding to linear indexing L.
+///
+/// \code{.cpp}
+///    smatrix<> As = {{1,2,3},{4,5,6}};
+///    smatrix<> Bs = get(As,{0,2,4});
+///    disp(Bs);
+/// \endcode
+///
+/// get(As,I,J) return sparse matrix As(I,J) with elements taken from As
+/// corresponding to bilinear indexing I for rows and J for columns.
+///
+/// \code{.cpp}
+///    smatrix<> As = {{1,2,3},{4,5,6}};
+///    smatrix<> Bs = get(As,{0,1},{1,2});
+///    disp(Bs);
+/// \endcode
+///
+// \see set, all, row, col, sview, scview.
+template<typename T>
+smatrix<T> get(smatrix<T>const& As, matrix<std::size_t>const& L)
+{
+    std::vector<std::size_t> ind;
+    std::vector<T> val;
+    T tmp, zero=0;
+    for (std::size_t l=0; l<numel(L); ++l)
+    {
+        tmp = As(L(l));
+        if (tmp!=zero)
+        {
+            ind.push_back(l);
+            val.push_back(tmp);
+        }
+    }
+    return smatrix<T>(size(L,1),size(L,2),ind,val);
+}
+template<typename T>
+smatrix<T> get(smatrix<T>const& As, matrix<std::size_t>const& I, matrix<std::size_t>const& J)
+{
+    if (std::min(size(I,1),size(I,2))!=1 || std::min(size(J,1),size(J,2))!=1)
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Array indices must be vectors.");
+    }
+    std::vector<std::size_t> ind;
+    std::vector<T> val;
+    T tmp, zero=0;
+    if (numel(I)*numel(J)*std::log2((float)nnz(As)) < numel(I)+numel(J)+nnz(As))
+    {
+        for (std::size_t i=0; i<numel(I); ++i)
+        {
+            for (std::size_t j=0; j<numel(J); ++j)
+            {
+                tmp = As(I(i),J(j));
+                if (tmp!=zero)
+                {
+                    ind.push_back(i*numel(J)+j);
+                    val.push_back(tmp);
+                }
+            }
+        }
+    }
+    else
+    {
+        std::vector<std::vector<std::size_t>> Ib(size(As,1),std::vector<std::size_t>());
+        for (std::size_t i=0; i<numel(I); ++i)
+        {
+            Ib[I(i)].push_back(i);
+        }
+        std::vector<std::vector<std::size_t>> Jb(size(As,2),std::vector<std::size_t>());
+        for (std::size_t j=0; j<numel(J); ++j)
+        {
+            Jb[J(j)].push_back(j);
+        }
+        std::size_t i, j, n=size(As,2), nz=nnz(As), nn=numel(J);
+        for (std::size_t k=0; k<nz; ++k)
+        {
+            i = As.ind(k)/n;
+            j = As.ind(k)%n;
+            for (std::size_t ii=0; ii<Ib[i].size(); ++ii)
+            {
+                for (std::size_t jj=0; jj<Jb[j].size(); ++jj)
+                {
+                    ind.push_back(Ib[i][ii]*nn+Jb[j][jj]);
+                    val.push_back(As.val(k));
+                }
+            }
+        }
+    }
+    return smatrix<T>(numel(I),numel(J),ind,val);
+}
+
+//==========================================================================
 // [gmres]
 /// Generalized Minimum Residual Method.
 ///
@@ -1138,14 +1415,20 @@ inline matrix<T>const& full(matrix<T>const& A) {return A;}
 template<typename T>
 matrix<T> gmres(smatrix<T>const& As, matrix<T>const& B,
                 double tol = 1e-6, std::size_t maxit = 10,
-                smatrix<T>const& Asm1 = smatrix<T>(), matrix<T>const& X0 = matrix<T>())
+                std::function<matrix<T>(matrix<T>const&)>const& Am1 = std::function<matrix<T>(matrix<T>const&)>(),
+                matrix<T>const& X0 = matrix<T>())
 {
-    std::function<matrix<T>(matrix<T> const&)> Afct, Am1fct;
+    std::function<matrix<T>(matrix<T>const&)> Afct;
     Afct = [&As](matrix<T>const& X) {return mtimes(As,X);};
-    if (numel(Asm1)>0)
-    {
-        Am1fct = [&Asm1](matrix<T>const& X) {return mtimes(Asm1,X);};
-    }
+    return gmres(Afct,B,tol,maxit,Am1,X0);
+}
+template<typename T>
+matrix<T> gmres(smatrix<T>const& As, matrix<T>const& B, double tol, std::size_t maxit,
+                smatrix<T>const& Asm1, matrix<T>const& X0 = matrix<T>())
+{
+    std::function<matrix<T>(matrix<T>const&)> Afct, Am1fct;
+    Afct   = [&As](matrix<T>const& X) {return mtimes(As,X);};
+    Am1fct = [&Asm1](matrix<T>const& X) {return mtimes(Asm1,X);};
     return gmres(Afct,B,tol,maxit,Am1fct,X0);
 }
 
@@ -1166,6 +1449,27 @@ template<typename T>
 matrix<std::size_t> index(smatrix<T>const& As)
 {
     return matrix<std::size_t>(As.ind());
+}
+
+//==========================================================================
+// [length]
+/// Length of sparse vector.
+///
+/// length(Vs) returns the length of sparse vector V. For sparse matrix A,
+/// it is equivalent to max(size(A)).
+///
+/// \code{.cpp}
+///    smatrix<> As = spones(1,3);
+///    smatrix<> Bs = spones(4,3);
+///    disp(length(As));
+///    disp(length(Bs));
+/// \endcode
+///
+// \see numel, size.
+template<typename T>
+std::size_t length(smatrix<T>const& As)
+{
+    return std::max(size(As,1),size(As,2));
 }
 
 //==========================================================================
@@ -1266,10 +1570,10 @@ std::size_t nnz(smatrix<T>const& As)
 
 //==========================================================================
 // [numel]
-/// Number of elements in a sparse matrix.
+/// Number of elements in a sparse array (including zeros).
 ///
-/// N = numel(As) returns the number of elements, N, in sparse matrix As,
-/// equivalent to prod(size(As)).
+/// N = numel(As) returns the number of elements N of sparse array As
+/// (including zeros), equivalent to prod(size(As)).
 ///
 /// \code{.cpp}
 ///    smatrix<>   As = speye(3,4);
@@ -1304,6 +1608,120 @@ smatrix<T> reshape(smatrix<T>const& As, std::size_t m, std::size_t n)
     smatrix<T> Bs = As;
     Bs.reshape(m,n);
     return Bs;
+}
+
+//==========================================================================
+// [row]
+/// Bi-linear indexing of row elements.
+///
+/// row(As) return row matrix with row indices of As in bi-linear indexing.
+///
+/// \code{.cpp}
+///    smatrix<> A = eye(3,4);
+///    matrix<std::size_t> I = row(A);
+///    smatrix<> B = eval(A(I,0));
+///    disp(B);
+/// \endcode
+///
+// \see all, col, get, set, sview, scview.
+template<typename T>
+matrix<std::size_t> row(smatrix<T>const& As)
+{
+    return range(0,size(As,1));
+}
+
+//==========================================================================
+// [set]
+/// Set sub-sparse matrix.
+///
+/// set(As,L,Bs) modify As with elements taken from Bs corresponding to
+/// linear indexing L, as As(L) = Bs.
+///
+/// \code{.cpp}
+///    smatrix<> As = {{1,2,3},{4,5,6}};
+///    set(As,{0,2,4},-spones(1,3));
+///    disp(As);
+/// \endcode
+///
+/// set(As,I,J,Bs) modify As with elements taken from Bs corresponding to
+/// bilinear indexing I for rows and J for columns, as As(I,J) = Bs.
+///
+/// \code{.cpp}
+///    smatrix<> As = {{1,2,3},{4,5,6}};
+///    set(As,{0,1},{1,2},speye(2));
+///    disp(As);
+/// \endcode
+///
+// \see get, all, row, col, sview, scview.
+template<typename T, typename U>
+void set(smatrix<T>& As, matrix<std::size_t>const& L, smatrix<U>const& Bs)
+{
+    if (size(L,1)!=size(Bs,1) || size(L,2)!=size(Bs,2))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions for indices and values must agree.");
+    }
+    U tmp;
+    for (std::size_t l=0; l<numel(L); ++l)
+    {
+        tmp = Bs(l);
+        if (tmp!=(U)0.)
+        {
+            As(L(l)) = tmp;
+        }
+        else if (As(L(l))!=(T)0.)
+        {
+            As(L(l)) = 0.;
+        }
+    }
+    check(As);
+}
+template<typename T, typename U>
+void set(smatrix<T>& As, matrix<std::size_t>const& I, matrix<std::size_t>const& J, smatrix<U>const& Bs)
+{
+    if (std::min(size(I,1),size(I,2))!=1 || std::min(size(J,1),size(J,2))!=1)
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Subscript indices must be vectors.");
+    }
+    if (numel(I)!=size(Bs,1) || numel(J)!=size(Bs,2))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions for indices and values must agree.");
+    }
+    if (numel(I)*numel(J) < numel(I)+numel(J)+nnz(As)+nnz(Bs))
+    {
+        for (std::size_t i=0; i<numel(I); ++i)
+        {
+            for (std::size_t j=0; j<numel(J); ++j)
+            {
+                if (Bs(i,j)!=(U)0.)
+                {
+                    As(I(i),J(j)) = Bs(i,j);
+                }
+                else if (As(I(i),J(j))!=(T)0.)
+                {
+                    As(I(i),J(j)) = 0.;
+                }
+            }
+        }
+    }
+    else
+    {
+        matrix<logical> Il(size(As,1),1); Il(I) = true;
+        matrix<logical> Jl(1,size(As,2)); Jl(J) = true;
+        std::size_t i, j;
+        for (std::size_t k=0; k<nnz(As); ++k)
+        {
+            i = As.ind(k)/size(As,2);
+            j = As.ind(k)%size(As,2);
+            if (Il(i) && Jl(j)) {As.val(k)=(T)0.;}
+        }
+        for (std::size_t k=0; k<nnz(Bs); ++k)
+        {
+            i = Bs.ind(k)/size(Bs,2);
+            j = Bs.ind(k)%size(Bs,2);
+            As(I(i),J(j)) = Bs.val(k);
+        }
+    }
+    check(As);
 }
 
 //==========================================================================

@@ -118,6 +118,12 @@ void dgesv_(int* N, int* NRHS, double* A, int* LDA, int* IPIV, double* B, int* L
 void cgesv_(int* N, int* NRHS, clpk* A, int* LDA, int* IPIV, clpk* B, int* LDB, int* INFO);
 void zgesv_(int* N, int* NRHS, zlpk* A, int* LDA, int* IPIV, zlpk* B, int* LDB, int* INFO);
 
+// S/D/C/ZGESVD
+void sgesvd_(char* JOBU, char* JOBVT, int *M, int *N, float *A, int *LDA, float *S, float *U, int *LDU, float *VT, int *LDVT, float *WORK, int *LWORK, int *INFO);
+void dgesvd_(char* JOBU, char* JOBVT, int *M, int *N, double *A, int *LDA, double *S, double *U, int *LDU, double *VT, int *LDVT, double *WORK, int *LWORK, int *INFO);
+void cgesvd_(char* JOBU, char* JOBVT, int *M, int *N, clpk *A, int *LDA, float *S, clpk *U, int *LDU, clpk *VT, int *LDVT, clpk *WORK, int *LWORK, float *RWORK, int *INFO);
+void zgesvd_(char* JOBU, char* JOBVT, int *M, int *N, zlpk *A, int *LDA, double *S, zlpk *U, int *LDU, zlpk *VT, int *LDVT, zlpk *WORK, int *LWORK, double *RWORK, int *INFO);
+
 // S/D/C/ZGESDD
 void sgesdd_(char* JOBZ, int *M, int *N, float *A, int *LDA, float *S, float *U, int *LDU, float *VT, int *LDVT, float *WORK, int *LWORK, int *IWORK, int *INFO);
 void dgesdd_(char* JOBZ, int *M, int *N, double *A, int *LDA, double *S, double *U, int *LDU, double *VT, int *LDVT, double *WORK, int *LWORK, int *IWORK, int *INFO);
@@ -481,8 +487,9 @@ void xgesdd(char& job, int&m, int& n, int& l, std::vector<clpk>& A,
             clpk& wkopt, int& lwork, std::vector<int>& iwork, int& info)
 {
     std::vector<float> rwork;
-    if (job=='N') {rwork.resize(7*l);}
-    else {rwork.resize(5*l*l+5*l);}
+    int mn=std::min<int>(m,n), mx=std::max<int>(m,n);
+    if (job=='N') {rwork.resize(7*mn);}
+    else {rwork.resize(std::max(5*mn*mn+5*mn,2*mx*mn+2*mn*mn+mn));}
     cgesdd_(&job, &m, &n, &A[0], &m, &S[0], &U[0], &m, &V[0], &l, &wkopt, &lwork, &rwork[0], &iwork[0], &info);
     lwork = (int)wkopt.r;
     std::vector<clpk> work(lwork);
@@ -493,8 +500,9 @@ void xgesdd(char& job, int&m, int& n, int& l, std::vector<zlpk>& A,
             zlpk& wkopt, int& lwork, std::vector<int>& iwork, int& info)
 {
     std::vector<double> rwork;
-    if (job=='N') {rwork.resize(7*l);}
-    else {rwork.resize(5*l*l+5*l);}
+    int mn=std::min<int>(m,n), mx=std::max<int>(m,n);
+    if (job=='N') {rwork.resize(7*mn);}
+    else {rwork.resize(std::max(5*mn*mn+5*mn,2*mx*mn+2*mn*mn+mn));}
     zgesdd_(&job, &m, &n, &A[0], &m, &S[0], &U[0], &m, &V[0], &l, &wkopt, &lwork, &rwork[0], &iwork[0], &info);
     lwork = (int)wkopt.r;
     std::vector<zlpk> work(lwork);
@@ -672,13 +680,18 @@ void tgetrf(int& m, int& n, std::vector<T>& A, std::vector<T>& P, matrix<S>& U)
 //==========================================================================//
 //==========================================================================
 // [aca]
-/// ACA compression with total pivoting.
+/// ACA compression with total or partial pivoting.
 ///
-/// [A,Bt] = aca(M,TOL) perform Adaptive Cross Approximation on
+/// [A,Bt] = aca(M,TOL,RMAX) perform Adaptive Cross Approximation on
 /// rectangular m-by-n matrix M, representing M as a low-rank product :
 ///    M = A * B^t,
 /// where A and Bt are low-rank matrices respectively m-by-rank(M)
 /// and rank(M)-by-n.
+/// Matrix M can be evaluated on the fly by a function FCT(i,j)=M(i,j),
+/// associated to row I and column J indices.
+/// Default accuracy is TOL=1e-6 and maximum rank is RMAX=1e6.
+///
+/// Only works for double and std::complex<double> type.
 ///
 /// \code{.cpp}
 ///    matrix<> M = mtimes(rand(5,3),rand(3,6));
@@ -688,8 +701,45 @@ void tgetrf(int& m, int& n, std::vector<T>& A, std::vector<T>& P, matrix<S>& U)
 /// \endcode
 ///
 // \see svd, rank.
-auto aca(matrix<double>const& M, double tol);
-auto aca(matrix<std::complex<double>>const& M, double tol);
+auto aca(matrix<std::size_t> I, matrix<std::size_t> J,
+         std::function<matrix<double>(matrix<std::size_t>,matrix<std::size_t>)>const& fct,
+         double tol=1e-6, std::size_t rmax=1e6);
+auto aca(matrix<std::size_t> I, matrix<std::size_t> J,
+         std::function<matrix<std::complex<double>>(matrix<std::size_t>,matrix<std::size_t>)>const& fct,
+         double tol=1e-6, std::size_t rmax=1e6);
+template<typename T>
+auto aca(matrix<T>const& M, double tol=1e-6, std::size_t rmax=1e6)
+{
+    matrix<std::size_t> I=range(0,size(M,1)), J=range(0,size(M,2));
+    std::function<matrix<T>(matrix<std::size_t>,matrix<std::size_t>)> fct;
+    fct = [&M](matrix<std::size_t> I, matrix<std::size_t> J)
+    {
+        return eval(M(I,J));
+    };
+    return aca(I,J,fct,tol,rmax);
+}
+template<typename T>
+auto aca(matrix<T>const& A, matrix<T>const& B, double tol=1e-6, std::size_t rmax=1e6)
+{
+    matrix<std::size_t> I=range(0,size(A,1)), J=range(0,size(B,2));
+    std::function<matrix<T>(matrix<std::size_t>,matrix<std::size_t>)> fct;
+    fct = [&A,&B](matrix<std::size_t> I, matrix<std::size_t> J)
+    {
+        matrix<T> C(numel(I),numel(J),0);
+        for (std::size_t i=0; i<numel(I); ++i)
+        {
+            for (std::size_t j=0; j<numel(J); ++j)
+            {
+                for (std::size_t k=0; k<size(A,2); ++k)
+                {
+                    C(i,j) += A(I(i),k)*B(k,J(j));
+                }
+            }
+        }
+        return C;
+    };
+    return aca(I,J,fct,tol,rmax);
+}
 
 //==========================================================================
 // [eig]
@@ -728,7 +778,6 @@ auto eig(matrix<float>const& A, std::string typ)
     if (Vlpk.size()>0) {V = lpk2mat<std::complex<float>>(Vlpk,n,n);}
     return std::make_tuple(real(E),real(V));
 }
-
 auto eig(matrix<double>const& A, std::string typ)
 {
     int n = (int)size(A,1);
@@ -739,7 +788,6 @@ auto eig(matrix<double>const& A, std::string typ)
     if (Vlpk.size()>0) {V = lpk2mat<std::complex<double>>(Vlpk,n,n);}
     return std::make_tuple(real(E),real(V));
 }
-
 auto eig(matrix<std::complex<float>>const& A, std::string typ)
 {
     int n = (int)size(A,1);
@@ -750,7 +798,6 @@ auto eig(matrix<std::complex<float>>const& A, std::string typ)
     if (Vlpk.size()>0) {V = lpk2mat<std::complex<float>>(Vlpk,n,n);}
     return std::make_tuple(E,V);
 }
-
 auto eig(matrix<std::complex<double>>const& A, std::string typ)
 {
     int n = (int)size(A,1);
@@ -761,7 +808,6 @@ auto eig(matrix<std::complex<double>>const& A, std::string typ)
     if (Vlpk.size()>0) {V = lpk2mat<std::complex<double>>(Vlpk,n,n);}
     return std::make_tuple(E,V);
 }
-
 template<typename T>
 matrix<T> eig(matrix<T>const& A)
 {
@@ -1046,8 +1092,9 @@ template<typename T>
 std::size_t rank(matrix<T>const& A, float tol=0)
 {
     using S = decltype(std::abs(A(0)));
-    if (tol==0) {tol = std::max(size(A,1),size(A,2)) * M_EPS(S);}
     matrix<S> s = svd(A);
+    if (tol==0) {tol = std::max(size(A,1),size(A,2)) * M_EPS(S);}
+    else {tol *= s(0);}
     return sum(s>tol);
 }
 
@@ -1143,10 +1190,14 @@ auto svd(matrix<T>const& A)
 //                         DETAILLED ROUTINES                               //
 //==========================================================================//
 //========================================================================
-auto aca(matrix<double>const& M, double tol)
+auto aca(matrix<std::size_t> I, matrix<std::size_t> J,
+         std::function<matrix<double>(matrix<std::size_t>,matrix<std::size_t>)>const& fct,
+         double tol, std::size_t rmax)
 {
     // Declarations
-    std::size_t Nr=size(M,1), Nc=size(M,2), r, c, n, k;
+    auto row = [&fct,&I,&J](std::size_t i) {return fct(I(i),J);};
+    auto col = [&fct,&I,&J](std::size_t j) {return fct(I,J(j));};
+    std::size_t Nr=numel(I), Nc=numel(J), r, c, n, k;
     std::vector<std::size_t> Ir(Nr), Ic(Nc);
     double alpha, beta, aa, ab, bb, res, err, tmp;
     std::vector<double> a(Nr), b(Nc), anp1(Nr), bnp1(Nc), u(10), v(10);
@@ -1159,7 +1210,7 @@ auto aca(matrix<double>const& M, double tol)
     
     // First row (first matrix row)
     r = 0;
-    for(std::size_t l=0; l<Nc; ++l) {b[l] = M(r,l);}
+    b = row(r).val(); //for(std::size_t l=0; l<Nc; ++l) {b[l] = M(r,l);}
     Ir.erase(Ir.begin()+r);
     
     // Row pivot
@@ -1171,7 +1222,7 @@ auto aca(matrix<double>const& M, double tol)
     }
     
     // First column
-    for(std::size_t l=0; l<Nr; ++l) {a[l] = M(l,c)/beta;}
+    a = (col(c)/beta).val(); //for(std::size_t l=0; l<Nr; ++l) {a[l] = M(l,c)/beta;}
     Ic.erase(Ic.begin()+c);
     
     // Frobenius residue to compute error
@@ -1190,9 +1241,8 @@ auto aca(matrix<double>const& M, double tol)
     while (err > tol)
     {
         // Compression failed
-        if (n*(Nr+Nc) > Nr*Nc)
+        if (n*(Nr+Nc) > Nr*Nc || n>=rmax)
         {
-            error(__FILE__, __LINE__, __FUNCTION__,"ACA compression failed.");
             flag = false;
             break;
         }
@@ -1213,8 +1263,8 @@ auto aca(matrix<double>const& M, double tol)
         Ir.erase(Ir.begin()+k);
         
         // New row
-        for(std::size_t l=0; l<n; ++l)  {u[l]    = a[l*Nr+r];}
-        for(std::size_t l=0; l<Nc; ++l) {bnp1[l] = M(r,l);}
+        for(std::size_t l=0; l<n; ++l)  {u[l] = a[l*Nr+r];}
+        bnp1 = row(r).val();//for(std::size_t l=0; l<Nc; ++l) {bnp1[l] = M(r,l);}
         cblas_dgemv(CblasRowMajor, CblasTrans, (int) n, (int) Nc,
                     -1., &b[0], (int) Nc, &u[0], 1, 1., &bnp1[0], 1);
         
@@ -1231,7 +1281,7 @@ auto aca(matrix<double>const& M, double tol)
         
         // New column
         for(std::size_t l=0; l<n; ++l)  {v[l]    = b[l*Nc+c];}
-        for(std::size_t l=0; l<Nr; ++l) {anp1[l] = M(l,c);}
+        anp1 = col(c).val();//for(std::size_t l=0; l<Nr; ++l) {anp1[l] = M(l,c);}
         cblas_dgemv(CblasRowMajor, CblasTrans, (int) n, (int) Nr,
                     -1., &a[0], (int) Nr, &v[0], 1, 1., &anp1[0], 1);
         for(std::size_t l=0; l<Nr; ++l) {anp1[l] /= beta;}
@@ -1261,30 +1311,26 @@ auto aca(matrix<double>const& M, double tol)
         
         // Incrementation
         ++n;
-        
-        // Infos
-        //        std::cout << matriX<std::size_t>(Ir);
-        //        std::cout << reshape(matriX<double>(b),n,Nc);
-        //        std::cout << matriX<std::size_t>(Ic);
-        //        std::cout << reshape(matriX<double>(a),n,Nr);
-        //        std::cout << n << " error : " << err << std::endl;
     }
     
     // Matrix format (A,Bt)
-    if (flag)
-    {
-        A  = a;
-        A.reshape(n,Nr);
-        A  = transpose(A);
-        Bt = b;
-        Bt.reshape(n,Nc);
-    }
-    return std::make_tuple(A,Bt);
+    A  = a;
+    A.reshape(n,Nr);
+    A  = transpose(A);
+    Bt = b;
+    Bt.reshape(n,Nc);
+    return std::make_tuple(A,Bt,flag);
 }
-auto aca(matrix<std::complex<double>>const& M, double tol)
+
+//========================================================================
+auto aca(matrix<std::size_t> I, matrix<std::size_t> J,
+         std::function<matrix<std::complex<double>>(matrix<std::size_t>,matrix<std::size_t>)>const& fct,
+         double tol, std::size_t rmax)
 {
     // Declarations
-    std::size_t Nr=size(M,1), Nc=size(M,2), r, c, n, k;
+    auto row = [&fct,&I,&J](std::size_t i) {return fct(I(i),J);};
+    auto col = [&fct,&I,&J](std::size_t j) {return fct(I,J(j));};
+    std::size_t Nr=numel(I), Nc=numel(J), r, c, n, k;
     std::vector<std::size_t> Ir(Nr), Ic(Nc);
     std::complex<double> alpha, beta, aa, ab, bb, res, err, tmp;
     std::vector<std::complex<double>> a(Nr), b(Nc), anp1(Nr), bnp1(Nc), u(10), v(10);
@@ -1300,7 +1346,7 @@ auto aca(matrix<std::complex<double>>const& M, double tol)
     
     // First row (first matrix row)
     r = 0;
-    for(std::size_t l=0; l<Nc; ++l) {b[l] = M(r,l);}
+    b = row(r).val(); //for(std::size_t l=0; l<Nc; ++l) {b[l] = M(r,l);}
     Ir.erase(Ir.begin()+r);
     
     // Row pivot
@@ -1312,7 +1358,7 @@ auto aca(matrix<std::complex<double>>const& M, double tol)
     }
     
     // First column
-    for(std::size_t l=0; l<Nr; ++l) {a[l] = M(l,c)/beta;}
+    a = (col(c)/beta).val(); //for(std::size_t l=0; l<Nr; ++l) {a[l] = M(l,c)/beta;}
     Ic.erase(Ic.begin()+c);
     
     // Frobenius residue to compute error
@@ -1331,13 +1377,12 @@ auto aca(matrix<std::complex<double>>const& M, double tol)
     while (err.real() > tol)
     {
         // Compression failed
-        if (n*(Nr+Nc) > Nr*Nc)
+        if (n*(Nr+Nc) > Nr*Nc || n>=rmax)
         {
-            error(__FILE__, __LINE__, __FUNCTION__,"ACA compression failed.");
             flag = false;
             break;
         }
-        
+
         // Resize
         u.resize(n);
         v.resize(n);
@@ -1355,7 +1400,7 @@ auto aca(matrix<std::complex<double>>const& M, double tol)
         
         // New row
         for(std::size_t l=0; l<n; ++l)  {u[l]    = a[l*Nr+r];}
-        for(std::size_t l=0; l<Nc; ++l) {bnp1[l] = M(r,l);}
+        bnp1 = row(r).val(); //for(std::size_t l=0; l<Nc; ++l) {bnp1[l] = M(r,l);}
         cblas_zgemv(CblasRowMajor, CblasTrans, (int) n, (int) Nc,
                     &cb_mun, &b[0], (int) Nc, &u[0], 1, &cb_un, &bnp1[0], 1);
         
@@ -1372,7 +1417,7 @@ auto aca(matrix<std::complex<double>>const& M, double tol)
         
         // New column
         for(std::size_t l=0; l<n; ++l)  {v[l]    = b[l*Nc+c];}
-        for(std::size_t l=0; l<Nr; ++l) {anp1[l] = M(l,c);}
+        anp1 = col(c).val(); //for(std::size_t l=0; l<Nr; ++l) {anp1[l] = M(l,c);}
         cblas_zgemv(CblasRowMajor, CblasTrans, (int) n, (int) Nr,
                     &cb_mun, &a[0], (int) Nr, &v[0], 1, &cb_un, &anp1[0], 1);
         for(std::size_t l=0; l<Nr; ++l) {anp1[l] /= beta;}
@@ -1404,16 +1449,13 @@ auto aca(matrix<std::complex<double>>const& M, double tol)
         ++n;
     }
     
-    // Matrix format (A * Bt)
-    if (flag)
-    {
-        A  = a;
-        A.reshape(n,Nr);
-        A  = transpose(A);
-        Bt = b;
-        Bt.reshape(n,Nc);
-    }
-    return std::make_tuple(A,Bt);
+    // Matrix format (A,Bt)
+    A  = a;
+    A.reshape(n,Nr);
+    A  = transpose(A);
+    Bt = b;
+    Bt.reshape(n,Nc);
+    return std::make_tuple(A,Bt,flag);
 }
 
 }

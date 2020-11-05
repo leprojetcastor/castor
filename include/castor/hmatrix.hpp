@@ -16,23 +16,23 @@
 #pragma once
 #define CASTOR_HMATRIX_HPP
 #include <castor/matrix.hpp>
+#include <castor/linalg.hpp>
 
 namespace castor
 {
 
-
 //==========================================================================//
 //                         BINARY TREE CLASS                                //
 //==========================================================================//
-// [binarytree]
+// [bintree]
 ///
 template<typename T>
-class binarytree
+class bintree
 {
 public:
     // CONSTRUCTOR
-    binarytree(){};
-    binarytree(matrix<T>const& X, std::size_t n=100);
+    bintree(){};
+    bintree(matrix<T>const& X, std::size_t n=100);
     
     // FUNCTIONS
     matrix<T> leaf() const;
@@ -43,24 +43,24 @@ public:
     matrix<T>const&           ctr()      const {return m_ctr;};
     matrix<T>const&           edg()      const {return m_edg;};
     matrix<std::size_t>const& ind(int i) const {return m_ind[i];};
-    binarytree<T>const&       sub(int i) const {return m_sub[i];};
+    bintree<T>const&          sub(int i) const {return m_sub[i];};
     
 private:
-    bool                       m_isleaf; // TRUE IF LEAF
-    matrix<T>                  m_crd;    // POINTS COORDINATES
-    matrix<T>                  m_min;    // MINIMUM
-    matrix<T>                  m_max;    // MAXIMUM
-    matrix<T>                  m_ctr;    // CENTER
-    matrix<T>                  m_edg;    // EDGE LENGTH
-    matrix<std::size_t>        m_ind[2]; // CHILDREN INDICES
-    std::vector<binarytree<T>> m_sub;    // CHILDREN (RECURSION)
+    bool                    m_isleaf; // TRUE IF LEAF
+    matrix<T>               m_crd;    // POINTS COORDINATES
+    matrix<T>               m_min;    // MINIMUM
+    matrix<T>               m_max;    // MAXIMUM
+    matrix<T>               m_ctr;    // CENTER
+    matrix<T>               m_edg;    // EDGE LENGTH
+    matrix<std::size_t>     m_ind[2]; // CHILDREN INDICES
+    std::vector<bintree<T>> m_sub;    // CHILDREN (RECURSION)
 };
 
 //==========================================================================
 //
 ///
 template<typename T>
-binarytree<T>::binarytree(matrix<T>const& X, std::size_t n)
+bintree<T>::bintree(matrix<T>const& X, std::size_t n)
 {
     // Initialize
     std::size_t N = size(X,1);
@@ -80,8 +80,8 @@ binarytree<T>::binarytree(matrix<T>const& X, std::size_t n)
         matrix<std::size_t> iloc = argsort(eval(X(range(0,N),dim)));
         m_ind[0] = eval(iloc(range(0,N/2)));
         m_ind[1] = eval(iloc(range(N/2,N)));
-        m_sub.push_back(binarytree(eval(X(m_ind[0],col(X))),n));
-        m_sub.push_back(binarytree(eval(X(m_ind[1],col(X))),n));
+        m_sub.push_back(bintree(eval(X(m_ind[0],col(X))),n));
+        m_sub.push_back(bintree(eval(X(m_ind[1],col(X))),n));
     }
 }
 
@@ -89,7 +89,7 @@ binarytree<T>::binarytree(matrix<T>const& X, std::size_t n)
 //
 ///
 template<typename T>
-matrix<T> binarytree<T>::leaf() const
+matrix<T> bintree<T>::leaf() const
 {
     matrix<T> v(1,size(m_crd,1));
     if (m_sub.size()==2)
@@ -118,7 +118,7 @@ public:
     hmatrix(){};
     hmatrix(std::size_t m, std::size_t n, double tol, T v=0);
     template<typename S>
-    hmatrix(binarytree<S>const& X, binarytree<S>const& Y, double tol,
+    hmatrix(bintree<S>const& X, bintree<S>const& Y, double tol,
             matrix<std::size_t> I={}, matrix<std::size_t> J={});
     template<typename S>
     hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol);
@@ -146,6 +146,7 @@ public:
     void leafptr(std::vector<hmatrix<T>*>& ptr,
                  std::vector<matrix<std::size_t>>& idx, std::vector<matrix<std::size_t>>& jdx,
                  matrix<std::size_t> I={}, matrix<std::size_t> J={});
+    void recompress(double tol);
     void spy(matrix<T>& M, matrix<std::size_t> I={}, matrix<std::size_t> J={}) const;
     void stat(matrix<std::size_t>& info) const;
     void tgeabhm(T alpha, matrix<T>const& A, matrix<T>const& B, T beta, matrix<std::size_t> I={}, matrix<std::size_t> J={});
@@ -204,7 +205,7 @@ hmatrix<T>::hmatrix(std::size_t m, std::size_t n, double tol, T v)
 ///
 template<typename T>
 template<typename S>
-hmatrix<T>::hmatrix(binarytree<S>const& X, binarytree<S>const& Y, double tol,
+hmatrix<T>::hmatrix(bintree<S>const& X, bintree<S>const& Y, double tol,
                     matrix<std::size_t> I, matrix<std::size_t> J)
 {
     // Global Indices
@@ -249,8 +250,8 @@ template<typename T>
 template<typename S>
 hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol)
 {
-    binarytree<S> Xtree(X);
-    binarytree<S> Ytree(Y);
+    bintree<S> Xtree(X);
+    bintree<S> Ytree(Y);
     (*this) = hmatrix<T>(Xtree,Ytree, tol);
 }
 
@@ -261,39 +262,11 @@ template<typename T>
 template<typename S>
 hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol, matrix<T>const& M)
 {
-    // Build tree and block interactions
-    (*this) = hmatrix<T>(X,Y,tol);
-    
-    // Get leaves references
-    std::vector<hmatrix<T>*> ptr;
-    std::vector<matrix<std::size_t>> idx;
-    std::vector<matrix<std::size_t>> jdx;
-    leafptr(ptr,idx,jdx);
-    
-    // Leaf data with total pivoting
-    for (std::size_t l=0; l<ptr.size(); ++l)
+    auto fct = [&M](matrix<std::size_t> Ix,matrix<std::size_t> Iy)
     {
-        if (ptr[l]->m_siz(0)!=numel(idx[l]) || ptr[l]->m_siz(1)!=numel(jdx[l]))
-        {
-            error(__FILE__, __LINE__, __FUNCTION__,"Dimensions must agree.");
-        }
-        if (ptr[l]->m_typ==1)
-        {
-            std::tie(ptr[l]->m_dat[0],ptr[l]->m_dat[1]) = aca(eval(M(idx[l],jdx[l])),tol);
-        }
-        else if (ptr[l]->m_typ==2)
-        {
-            ptr[l]->m_dat[0] = eval(M(idx[l],jdx[l]));
-            ptr[l]->full2lowrank();
-        }
-        else
-        {
-            error(__FILE__, __LINE__, __FUNCTION__,"Unavailable case.");
-        }
-    }
-    
-    // Check and Fusion
-    check();
+        return eval(M(Ix,Iy));
+    };
+    (*this) = hmatrix(X,Y,tol,fct);
 }
 
 //==========================================================================
@@ -312,8 +285,10 @@ hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol,
     std::vector<matrix<std::size_t>> idx;
     std::vector<matrix<std::size_t>> jdx;
     leafptr(ptr,idx,jdx);
+    bool flag;
     
     // Build leaf data with partial pivoting
+#pragma omp parallel for
     for (std::size_t l=0; l<ptr.size(); ++l)
     {
         if (ptr[l]->m_siz(0)!=numel(idx[l]) || ptr[l]->m_siz(1)!=numel(jdx[l]))
@@ -322,7 +297,11 @@ hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol,
         }
         if (ptr[l]->m_typ==1)
         {
-            std::tie(ptr[l]->m_dat[0],ptr[l]->m_dat[1]) = aca(idx[l],jdx[l],fct,tol);
+            std::tie(ptr[l]->m_dat[0],ptr[l]->m_dat[1],flag) = aca(idx[l],jdx[l],fct,tol);
+            if (!flag)
+            {
+                error(__FILE__, __LINE__, __FUNCTION__,"ACA compression failed.");
+            }
         }
         else if (ptr[l]->m_typ==2)
         {
@@ -389,11 +368,18 @@ void hmatrix<T>::full2lowrank()
 {
     if (m_typ==2)
     {
-        std::size_t rk = rank2(m_dat[0],m_tol/10);
-        if (rk>0 && rk<length(m_dat[0])/4)
+        std::size_t rk = rank(m_dat[0]);
+        if (rk<min(size(m_dat[0]))-1)
         {
-            std::tie(m_dat[0],m_dat[1]) = aca(m_dat[0],m_tol);
-            m_typ = 1;
+            matrix<T> A, B;
+            bool flag;
+            std::tie(A,B,flag) = aca(m_dat[0],m_tol,min(size(m_dat[0]))/4);
+            if (flag)
+            {
+                m_dat[0] = A;
+                m_dat[1] = B;
+                m_typ    = 1;
+            }
         }
     }
 }
@@ -406,7 +392,7 @@ void hmatrix<T>::fusion()
 {
     if (m_typ==0)
     {
-        // Low-rank leaves
+        // Leaves
         matrix<int> leaf(1,4);
         for (int h=0; h<4; ++h)
         {
@@ -430,8 +416,10 @@ void hmatrix<T>::fusion()
                 B(range(l,l+r(h)),m_col[h]) = m_chd[h].m_dat[1];
                 l += r(h);
             }
-            std::tie(A,B) = qrsvd(A,B,m_tol);
-            if (numel(A)+numel(B)<n)
+            bool flag;
+            std::size_t rmax = (n/(m_siz(0)+m_siz(1)))+1;
+            std::tie(A,B,flag) = aca(A,B,m_tol,rmax);
+            if (flag)
             {
                 m_typ    = 1;
                 m_dat[0] = A;
@@ -913,6 +901,35 @@ void hmatrix<T>::leafptr(std::vector<hmatrix<T>*>& ptr,
 }
 
 //==========================================================================
+// [.recompress]
+///
+template<typename T>
+void hmatrix<T>::recompress(double tol)
+{
+    m_tol = std::max(tol,m_tol);
+    if (m_typ==0)
+    {
+        for (int h=0; h<4; ++h)
+        {
+            m_chd[h].recompress(tol);
+        }
+        fusion();
+    }
+    else if (m_typ==1)
+    {
+        std::tie(m_dat[0],m_dat[1]) = qrsvd(m_dat[0],m_dat[1],m_tol);
+    }
+    else if (m_typ==2)
+    {
+        full2lowrank();
+    }
+    else
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Unavailable case.");
+    }
+}
+
+//==========================================================================
 // [.spy]
 ///
 template<typename T>
@@ -1379,18 +1396,8 @@ std::ostream& operator<<(std::ostream& flux, hmatrix<T> const& Ah)
 //                       MATLAB-LIKE FUNCTION                               //
 //==========================================================================//
 //==========================================================================
-// [aca]
-///
-auto aca(matrix<std::size_t> I, matrix<std::size_t> J,
-         std::function<matrix<double>(matrix<std::size_t>,matrix<std::size_t>)>const& fct,
-         double tol);
-auto aca(matrix<std::size_t> I, matrix<std::size_t> J,
-         std::function<matrix<std::complex<double>>(matrix<std::size_t>,matrix<std::size_t>)>const& fct,
-         double tol);
-
-//==========================================================================
 // [full]
-///
+/// Hierarchical to dense conversion.
 template<typename T>
 inline matrix<T> full(hmatrix<T>const& Ah)
 {
@@ -1401,24 +1408,45 @@ inline matrix<T> full(hmatrix<T>const& Ah)
 
 //==========================================================================
 // [gmres]
-///
+/// Iterative solver.
 template<typename T>
 matrix<T> gmres(hmatrix<T>const& Ah, matrix<T>const& B,
                 double tol = 1e-6, std::size_t maxit = 10,
-                hmatrix<T>const& Ahm1 = hmatrix<T>(), matrix<T>const& X0 = matrix<T>())
+                std::function<matrix<T>(matrix<T>const&)>const& Am1 = std::function<matrix<T>(matrix<T>const&)>(),
+                matrix<T>const& X0 = matrix<T>())
 {
-    std::function<matrix<T>(matrix<T> const&)> Afct, Am1fct;
+    std::function<matrix<T>(matrix<T>const&)> Afct;
     Afct = [&Ah](matrix<T>const& X) {return mtimes(Ah,X);};
-    if (size(Ahm1,1)>0 && size(Ahm1,2)>0)
+    return gmres(Afct,B,tol,maxit,Am1,X0);
+}
+template<typename T>
+matrix<T> gmres(hmatrix<T>const& Ah, matrix<T>const& B, double tol, std::size_t maxit,
+                hmatrix<T>const& Ahm1, matrix<T>const& X0 = matrix<T>())
+{
+    std::function<matrix<T>(matrix<T>const&)> Afct, Am1fct;
+    Afct   = [&Ah](matrix<T>const& X) {return mtimes(Ah,X);};
+    Am1fct = [&Ahm1](matrix<T>const& X) {return mtimes(Ahm1,X);};
+    return gmres(Afct,B,tol,maxit,Am1fct,X0);
+}
+template<typename T>
+matrix<T> gmres(hmatrix<T>const& Ah, matrix<T>const& B, double tol, std::size_t maxit,
+                hmatrix<T>const& Lh, hmatrix<T>const& Uh, matrix<T>const& X0 = matrix<T>())
+{
+    std::function<matrix<T>(matrix<T>const&)> Afct, Am1fct;
+    Afct   = [&Ah](matrix<T>const& X) {return mtimes(Ah,X);};
+    Am1fct = [&Lh,&Uh](matrix<T>const& B)
     {
-        Am1fct = [&Ahm1](matrix<T>const& X) {return mtimes(Ahm1,X);};
-    }
+        matrix<T> X = B;
+        Lh.hllowsolve(X);
+        Uh.hlupsolve(X);
+        return X;
+    };
     return gmres(Afct,B,tol,maxit,Am1fct,X0);
 }
 
 //==========================================================================
 // [inv]
-///
+/// Hierarchical matrix inverse.
 template<typename T>
 inline hmatrix<T> inv(hmatrix<T>const& Ah)
 {
@@ -1429,11 +1457,11 @@ inline hmatrix<T> inv(hmatrix<T>const& Ah)
 
 //==========================================================================
 // [linsolve]
-/// Solve linear system A*X=B.
+/// Solve linear system Ah*X=B.
 ///
-/// mtimes(A,B) is the hierarchical matrix product of A and B, where A and
-/// B are H-Matrix and/or full matrix. The number of columns of A must equal
-/// the number of rows of B. Use HLU factorization.
+/// mtimes(Ah,B) is the hierarchical matrix product of A and B, where Ah is
+/// H-Matrix and B full matrix. The number of columns of Ah must equal
+/// to the number of rows of B. Use Hierarchical LU factorization.
 template<typename T>
 inline matrix<T> linsolve(hmatrix<T>const& Ah, matrix<T>const& B)
 {
@@ -1447,11 +1475,12 @@ inline matrix<T> linsolve(hmatrix<T>const& Ah, matrix<T>const& B)
 
 //==========================================================================
 // [lu]
-///
+/// Hierarchical lower/upper factorization.
 template<typename T>
-inline auto lu(hmatrix<T>const& Ah)
+inline auto lu(hmatrix<T>const& Ah, double tol=0)
 {
     hmatrix<T> Lh=Ah, Uh;
+    if (tol>0) {Lh.recompress(tol);}
     Lh.hlu(Uh);
     return std::make_tuple(Lh,Uh);
 }
@@ -1485,20 +1514,15 @@ inline hmatrix<T> mtimes(hmatrix<T>const& Ah, hmatrix<T>const& Bh)
     return Ch;
 }
 
-//========================================================================
-// [rank2]
-/// Normalized matrix rank.
-///
-/// If array A is rank deficient, r = rank2(A,TOL) is the number of
-/// normalized singular values of A that are larger than TOL. Else,
-/// rank is equal to maximum of matrix size.
+//==========================================================================
+// [recompress]
+/// Leaves recompression with new tolerance.
 template<typename T>
-inline std::size_t rank2(matrix<T>const& A, double tol)
+inline hmatrix<T> recompress(hmatrix<T>const& Ah, double tol)
 {
-    using S = decltype(std::abs(A(0)));
-    matrix<S> s = svd(A);
-    std::size_t rk = sum(s>max(size(A)) * M_EPS(S));
-    return (rk<min(size(A)))? (sum(s>tol*s(0))) : (max(size(A)));
+    hmatrix<T> Bh = Ah;
+    Bh.recompress(tol);
+    return Bh;
 }
 
 //==========================================================================
@@ -1524,7 +1548,7 @@ inline std::size_t size(hmatrix<T>const& Ah, int dim)
 
 //==========================================================================
 // [spy]
-///
+/// Spy hierarchical structure.
 template<typename T>
 inline matrix<T> spy(hmatrix<T>const& Ah)
 {
@@ -1550,7 +1574,7 @@ inline matrix<T> spy(hmatrix<T>const& Ah)
 /// where alpha, beta are scalars and A, B are matrices with compatible size
 /// and Ch is H-Matrix.
 template<typename T>
-inline hmatrix<T>& tgeabm(T alpha, matrix<T>const& A, matrix<T>const& B, T beta, hmatrix<T>& Ch)
+inline void tgeabm(T alpha, matrix<T>const& A, matrix<T>const& B, T beta, hmatrix<T>& Ch)
 {
     Ch.tgeabhm(alpha,A,B,beta);
     return Ch;
@@ -1564,7 +1588,7 @@ inline hmatrix<T>& tgeabm(T alpha, matrix<T>const& A, matrix<T>const& B, T beta,
 ///    C = alpha*Ah*Bh + beta*Ch,
 /// where alpha, beta are scalars and Ah, Bh, Ch are hmatrices with compatible size.
 template<typename T>
-inline hmatrix<T>& tgemm(T alpha, hmatrix<T>const& Ah, hmatrix<T>const& Bh, T beta, hmatrix<T>& Ch)
+inline void tgemm(T alpha, hmatrix<T>const& Ah, hmatrix<T>const& Bh, T beta, hmatrix<T>& Ch)
 {
     Ch.tgehmhm(alpha,Ah,Bh,beta);
     return Ch;
@@ -1583,282 +1607,23 @@ inline hmatrix<T> transpose(hmatrix<T>const& Ah)
     return Aht;
 }
 
-
-//==========================================================================//
-//                        DETAILLED ROUTINES                                //
-//==========================================================================//
-auto aca(matrix<std::size_t> I, matrix<std::size_t> J,
-         std::function<matrix<double>(matrix<std::size_t>,matrix<std::size_t>)>const& fct,
-         double tol)
-{
-    // Declarations
-    auto row = [&fct,&I,&J](std::size_t i) {return fct(I(i),J);};
-    auto col = [&fct,&I,&J](std::size_t j) {return fct(I,J(j));};
-    std::size_t Nr=numel(I), Nc=numel(J), r, c, n, k;
-    std::vector<std::size_t> Ir(Nr), Ic(Nc);
-    double alpha, beta, aa, ab, bb, res, err, tmp;
-    std::vector<double> a(Nr), b(Nc), anp1(Nr), bnp1(Nc), u(10), v(10);
-    bool flag = true;
-    matrix<double> A, Bt;
-    
-    // Initialize indices for row and columns pivots
-    for(std::size_t l=0; l<Nr; ++l) {Ir[l] = l;}
-    for(std::size_t l=0; l<Nc; ++l) {Ic[l] = l;}
-    
-    // First row (first matrix row)
-    r = 0;
-    b = row(r).val(); //for(std::size_t l=0; l<Nc; ++l) {b[l] = M(r,l);}
-    Ir.erase(Ir.begin()+r);
-    
-    // Row pivot
-    c    = 0;
-    beta = 1e-12;
-    for(std::size_t l=0; l<Nc; ++l)
-    {
-        if(std::abs(b[l])>std::abs(beta)) {beta=b[l]; c=l;}
-    }
-    
-    // First column
-    a = (col(c)/beta).val(); //for(std::size_t l=0; l<Nr; ++l) {a[l] = M(l,c)/beta;}
-    Ic.erase(Ic.begin()+c);
-    
-    // Frobenius residue to compute error
-    aa=0; bb=0;
-    for(std::size_t l=0; l<Nr; ++l) {aa += a[l]*a[l];}
-    for(std::size_t l=0; l<Nc; ++l) {bb += b[l]*b[l];}
-    res = aa*bb;
-    err = std::sqrt(aa)*std::sqrt(bb)/std::sqrt(res);
-    
-    // Initialization for recurisive loop
-    anp1 = a;
-    bnp1 = b;
-    n    = 1;
-    
-    // Iterative construction using recursive frobenius error
-    while (err > tol)
-    {
-        // Compression failed
-        if (n*(Nr+Nc) > Nr*Nc)
-        {
-            error(__FILE__, __LINE__, __FUNCTION__,"ACA compression failed.");
-            flag = false;
-            break;
-        }
-        
-        // Resize
-        u.resize(n);
-        v.resize(n);
-        
-        // Column pivot with previous last column
-        k     = 0;
-        alpha = 1e-12;
-        for(std::size_t l=0; l<Ir.size(); ++l)
-        {
-            tmp = anp1[Ir[l]];
-            if(std::abs(tmp)>std::abs(alpha)) {alpha=tmp; k=l;}
-        }
-        r = Ir[k];
-        Ir.erase(Ir.begin()+k);
-        
-        // New row
-        for(std::size_t l=0; l<n; ++l)  {u[l]    = a[l*Nr+r];}
-        bnp1 = row(r).val();//for(std::size_t l=0; l<Nc; ++l) {bnp1[l] = M(r,l);}
-        cblas_dgemv(CblasRowMajor, CblasTrans, (int) n, (int) Nc,
-                    -1., &b[0], (int) Nc, &u[0], 1, 1., &bnp1[0], 1);
-        
-        // Row pivot
-        k    = 0;
-        beta = 1e-12;
-        for(std::size_t l=0; l<Ic.size(); ++l)
-        {
-            tmp = bnp1[Ic[l]];
-            if(std::abs(tmp)>std::abs(beta)) {beta=tmp; k=l;}
-        }
-        c = Ic[k];
-        Ic.erase(Ic.begin()+k);
-        
-        // New column
-        for(std::size_t l=0; l<n; ++l)  {v[l]    = b[l*Nc+c];}
-        anp1 = col(c).val();//for(std::size_t l=0; l<Nr; ++l) {anp1[l] = M(l,c);}
-        cblas_dgemv(CblasRowMajor, CblasTrans, (int) n, (int) Nr,
-                    -1., &a[0], (int) Nr, &v[0], 1, 1., &anp1[0], 1);
-        for(std::size_t l=0; l<Nr; ++l) {anp1[l] /= beta;}
-        
-        // Dot product
-        aa=0; bb=0;
-        for(std::size_t l=0; l<Nr; ++l) {aa += anp1[l]*anp1[l];}
-        for(std::size_t l=0; l<Nc; ++l) {bb += bnp1[l]*bnp1[l];}
-        
-        // Matrix product
-        ab=0;
-        cblas_dgemv(CblasRowMajor, CblasNoTrans, (int) n, (int) Nr,
-                    1., &a[0], (int) Nr, &anp1[0], 1, 0., &u[0], 1);
-        cblas_dgemv(CblasRowMajor, CblasNoTrans, (int) n, (int) Nc,
-                    1., &b[0], (int) Nc, &bnp1[0], 1, 0., &v[0], 1);
-        for(std::size_t k=0; k<n; ++k) {ab += u[k]*v[k];}
-        
-        // Relative error (block Frobenius)
-        res += 2*ab + aa*bb;
-        err = std::sqrt(aa)*std::sqrt(bb)/std::sqrt(res);
-        
-        // Update matrix
-        a.resize(a.size()+Nr);
-        b.resize(b.size()+Nc);
-        for(std::size_t l=0; l<Nr; ++l) {a[n*Nr+l] = anp1[l];}
-        for(std::size_t l=0; l<Nc; ++l) {b[n*Nc+l] = bnp1[l];}
-        
-        // Incrementation
-        ++n;
-    }
-    
-    // Matrix format (A,Bt)
-    if (flag)
-    {
-        A  = a;
-        A.reshape(n,Nr);
-        A  = transpose(A);
-        Bt = b;
-        Bt.reshape(n,Nc);
-    }
-    return std::make_tuple(A,Bt);
-}
-auto aca(matrix<std::size_t> I, matrix<std::size_t> J,
-         std::function<matrix<std::complex<double>>(matrix<std::size_t>,matrix<std::size_t>)>const& fct,
-         double tol)
-{
-    // Declarations
-    auto row = [&fct,&I,&J](std::size_t i) {return fct(I(i),J);};
-    auto col = [&fct,&I,&J](std::size_t j) {return fct(I,J(j));};
-    std::size_t Nr=numel(I), Nc=numel(J), r, c, n, k;
-    std::vector<std::size_t> Ir(Nr), Ic(Nc);
-    std::complex<double> alpha, beta, aa, ab, bb, res, err, tmp;
-    std::vector<std::complex<double>> a(Nr), b(Nc), anp1(Nr), bnp1(Nc), u(10), v(10);
-    bool flag = true;
-    matrix<std::complex<double>> A, Bt;
-    
-    // cblas_zgemv constantes
-    std::complex<double> cb_un(1,0), cb_mun(-1,0), cb_z(0,0);
-    
-    // Initialize indices for row and columns pivots
-    for(std::size_t l=0; l<Nr; ++l) {Ir[l] = l;}
-    for(std::size_t l=0; l<Nc; ++l) {Ic[l] = l;}
-    
-    // First row (first matrix row)
-    r = 0;
-    b = row(r).val(); //for(std::size_t l=0; l<Nc; ++l) {b[l] = M(r,l);}
-    Ir.erase(Ir.begin()+r);
-    
-    // Row pivot
-    c    = 0;
-    beta = 1e-12;
-    for(std::size_t l=0; l<Nc; ++l)
-    {
-        if(std::abs(b[l])>std::abs(beta)) {beta=b[l]; c=l;}
-    }
-    
-    // First column
-    a = (col(c)/beta).val(); //for(std::size_t l=0; l<Nr; ++l) {a[l] = M(l,c)/beta;}
-    Ic.erase(Ic.begin()+c);
-    
-    // Frobenius residue to compute error
-    aa=0; bb=0;
-    for(std::size_t l=0; l<Nr; ++l) {aa += conj(a[l])*a[l];}
-    for(std::size_t l=0; l<Nc; ++l) {bb += conj(b[l])*b[l];}
-    res = aa*bb;
-    err = sqrt(aa)*sqrt(bb)/sqrt(res);
-    
-    // Initialization for recurisive loop
-    anp1 = a;
-    bnp1 = b;
-    n    = 1;
-    
-    // Iterative construction using recursive frobenius error
-    while (err.real() > tol)
-    {
-        // Compression failed
-        if (n*(Nr+Nc) > Nr*Nc)
-        {
-            error(__FILE__, __LINE__, __FUNCTION__,"ACA compression failed.");
-            flag = false;
-            break;
-        }
-        
-        // Resize
-        u.resize(n);
-        v.resize(n);
-        
-        // Column pivot with previous last column
-        k     = 0;
-        alpha = 1e-12;
-        for(std::size_t l=0; l<Ir.size(); ++l)
-        {
-            tmp = anp1[Ir[l]];
-            if(std::abs(tmp)>std::abs(alpha)) {alpha=tmp; k=l;}
-        }
-        r = Ir[k];
-        Ir.erase(Ir.begin()+k);
-        
-        // New row
-        for(std::size_t l=0; l<n; ++l)  {u[l]    = a[l*Nr+r];}
-        bnp1 = row(r).val(); //for(std::size_t l=0; l<Nc; ++l) {bnp1[l] = M(r,l);}
-        cblas_zgemv(CblasRowMajor, CblasTrans, (int) n, (int) Nc,
-                    &cb_mun, &b[0], (int) Nc, &u[0], 1, &cb_un, &bnp1[0], 1);
-        
-        // Row pivot
-        k    = 0;
-        beta = 1e-12;
-        for(std::size_t l=0; l<Ic.size(); ++l)
-        {
-            tmp = bnp1[Ic[l]];
-            if(std::abs(tmp)>std::abs(beta)) {beta=tmp; k=l;}
-        }
-        c = Ic[k];
-        Ic.erase(Ic.begin()+k);
-        
-        // New column
-        for(std::size_t l=0; l<n; ++l)  {v[l]    = b[l*Nc+c];}
-        anp1 = col(c).val(); //for(std::size_t l=0; l<Nr; ++l) {anp1[l] = M(l,c);}
-        cblas_zgemv(CblasRowMajor, CblasTrans, (int) n, (int) Nr,
-                    &cb_mun, &a[0], (int) Nr, &v[0], 1, &cb_un, &anp1[0], 1);
-        for(std::size_t l=0; l<Nr; ++l) {anp1[l] /= beta;}
-        
-        // Dot product
-        aa=0; bb=0;
-        for(std::size_t l=0; l<Nr; ++l) {aa += conj(anp1[l])*anp1[l];}
-        for(std::size_t l=0; l<Nc; ++l) {bb += conj(bnp1[l])*bnp1[l];}
-        
-        // Matrix product
-        ab=0;
-        cblas_zgemv(CblasRowMajor, CblasNoTrans, (int) n, (int) Nr,
-                    &cb_mun, &a[0], (int) Nr, &anp1[0], 1, &cb_z, &u[0], 1);
-        cblas_zgemv(CblasRowMajor, CblasNoTrans, (int) n, (int) Nc,
-                    &cb_mun, &b[0], (int) Nc, &bnp1[0], 1, &cb_z, &v[0], 1);
-        for(std::size_t k=0; k<n; ++k) {ab += u[k]*v[k];}
-        
-        // Relative error (block Frobenius)
-        res += 2*ab.real() + aa*bb;
-        err = sqrt(aa)*sqrt(bb)/sqrt(res);
-        
-        // Update matrix
-        a.resize(a.size()+Nr);
-        b.resize(b.size()+Nc);
-        for(std::size_t l=0; l<Nr; ++l) {a[n*Nr+l] = anp1[l];}
-        for(std::size_t l=0; l<Nc; ++l) {b[n*Nc+l] = bnp1[l];}
-        
-        // Incrementation
-        ++n;
-    }
-    
-    // Matrix format (A * Bt)
-    if (flag)
-    {
-        A  = a;
-        A.reshape(n,Nr);
-        A  = transpose(A);
-        Bt = b;
-        Bt.reshape(n,Nc);
-    }
-    return std::make_tuple(A,Bt);
 }
 
-}
+
+
+
+
+//==========================================================================
+//        using T2 = decltype(std::abs(m_dat[0](0)));
+//        matrix<T2> S;
+//        matrix<T> U, Vt;
+//        std::size_t rk;
+//        std::tie(S,U,Vt) = svd(m_dat[0],"vect");
+//        rk = sum(S>=S(0)*m_tol);
+//        if (S(numel(S)-1)<max(size(m_dat[0]))*M_EPS(T2) && rk<min(size(m_dat[0]))/4)
+//        {
+//            matrix<std::size_t> R = range(0,rk);
+//            m_dat[0] = mtimes( eval(U(row(U),R)) , diag(eval(S(R))) );
+//            m_dat[1] = eval(Vt(R,col(Vt)));
+//            m_typ    = 1;
+//        }

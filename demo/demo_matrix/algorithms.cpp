@@ -336,10 +336,16 @@ int main (int argc, char* argv[])
     disp("+--------------------+");
     disp("|       GMRES        |");
     disp("+--------------------+");
-    A = rand(5);
-    B = rand(5,4);
-    C = gmres(A,B,1e-3,10,eye(5,5),B);
+    A = eye(100) + 1e-1*rand(100);
+    B = rand(100,1);
+    C = gmres(A,B);
     disp( norm(mtimes(A,C)-B,"inf") );
+    C = gmres(A,B,1e-3,10);
+    disp( norm(mtimes(A,C)-B,"inf") );
+    matrix<> Am1 = gmres(A,eye(100));
+    C = gmres(A,B,1e-3,10,Am1,C);
+    disp( norm(mtimes(A,C)-B,"inf") );
+    
     
     disp("done !");
     return 0;
