@@ -153,22 +153,34 @@ int main (int argc, char* argv[])
     clear(Ms);
     disp(Ms);
 
-    // Operator term-by-term
+    // Operator+
     disp(1+speye(2,3));
     disp(speye(2,3)+1);
     disp(speye(2,3)+ones(2,3));
     disp(ones(2,3)+speye(2,3));
     disp(speye(2,3)+spones(2,3));
+
+    // Operator-
     disp(-speye(2,3));
     disp(1-speye(2,3));
     disp(speye(2,3)-1);
+    disp(speye(2,3)-ones(2,3));
+    disp(ones(2,3)-speye(2,3));
     disp(speye(2,3)-spones(2,3));
+
+    // Operator*
     disp(2*speye(2,3));
     disp(speye(2,3)*2);
-    disp(speye(2,3)*(2*spones(2,3)));
+    disp(speye(2,3)*(2*ones(2,3)));
+    disp((2*ones(2,3))*speye(2,3));
+    disp(speye(2,3)*(2*speye(2,3)));
+
+    // Operator/
     disp(2/speye(2,3));
     disp(speye(2,3)/2);
-    disp(speye(2,3)/(2*spones(2,3)));
+    disp(speye(2,3)/(2*ones(2,3)));
+    disp((2*ones(2,3))/speye(2,3));
+    disp(speye(2,3)/(2*speye(2,3)));
 
     // Sparse Full product
     matrix<> A=rand(4,3), B=rand(3,4);

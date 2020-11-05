@@ -127,6 +127,10 @@ public:
     template<typename S>
     hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol,
             std::function<matrix<T>(matrix<std::size_t>,matrix<std::size_t>)>const& fct);
+    template<typename S>
+    hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol,
+            std::function<matrix<T>(matrix<std::size_t>,matrix<std::size_t>)>const& fct,
+            matrix<T>const& V, matrix<T>& MV);
     
     // FUNCTIONS
     void check();
@@ -295,7 +299,7 @@ hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol,
         {
             error(__FILE__, __LINE__, __FUNCTION__,"Dimensions must agree.");
         }
-        if (ptr[l]->m_typ==1)
+        if (ptr[l]->m_typ==1 && tol>0)
         {
             std::tie(ptr[l]->m_dat[0],ptr[l]->m_dat[1],flag) = aca(idx[l],jdx[l],fct,tol);
             if (!flag)
@@ -303,9 +307,10 @@ hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol,
                 error(__FILE__, __LINE__, __FUNCTION__,"ACA compression failed.");
             }
         }
-        else if (ptr[l]->m_typ==2)
+        else if (ptr[l]->m_typ==2 || tol<=0)
         {
             ptr[l]->m_dat[0] = fct(idx[l],jdx[l]);
+            ptr[l]->m_typ = 2;
             ptr[l]->full2lowrank();
         }
         else
@@ -316,6 +321,63 @@ hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol,
     
     // Check and fusion
     check();
+}
+
+//==========================================================================
+// [.hmatrix]
+///
+template<typename T>
+template<typename S>
+hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol,
+                    std::function<matrix<T>(matrix<std::size_t>,matrix<std::size_t>)>const& fct,
+                    matrix<T>const& V, matrix<T>& MV)
+{
+    if (size(V,1)!=size(Y,1) || size(MV,1)!=size(X,1) || size(V,2)!=size(MV,2))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Dimensions must agree.");
+    }
+    
+    // Build tree and block interactions
+    (*this) = hmatrix<T>(X,Y,tol);
+    
+    // Get leaves references
+    std::vector<hmatrix<T>*> ptr;
+    std::vector<matrix<std::size_t>> idx;
+    std::vector<matrix<std::size_t>> jdx;
+    leafptr(ptr,idx,jdx);
+    
+    // Temporary data
+    matrix<std::size_t> C = col(V);
+    matrix<T> A, B, M;
+    bool flag;
+    
+    // Build leaf data with partial pivoting
+#pragma omp parallel for
+    for (std::size_t l=0; l<ptr.size(); ++l)
+    {
+        if (ptr[l]->m_siz(0)!=numel(idx[l]) || ptr[l]->m_siz(1)!=numel(jdx[l]))
+        {
+            error(__FILE__, __LINE__, __FUNCTION__,"Dimensions must agree.");
+        }
+        if (ptr[l]->m_typ==1 && tol>0)
+        {
+            std::tie(A,B,flag) = aca(idx[l],jdx[l],fct,tol);
+            if (!flag)
+            {
+                error(__FILE__, __LINE__, __FUNCTION__,"ACA compression failed.");
+            }
+            MV(idx[l],C) = eval(MV(idx[l],C)) + mtimes(A,mtimes(B,eval(V(jdx[l],C))));
+        }
+        else if (ptr[l]->m_typ==2 || tol<=0)
+        {
+            M = fct(idx[l],jdx[l]);
+            MV(idx[l],C) = eval(MV(idx[l],C)) + mtimes(M,eval(V(jdx[l],C)));
+        }
+        else
+        {
+            error(__FILE__, __LINE__, __FUNCTION__,"Unavailable case.");
+        }
+    }
 }
 
 
@@ -366,7 +428,7 @@ void hmatrix<T>::check()
 template<typename T>
 void hmatrix<T>::full2lowrank()
 {
-    if (m_typ==2)
+    if (m_typ==2 && m_tol>0)
     {
         std::size_t rk = rank(m_dat[0]);
         if (rk<min(size(m_dat[0]))-1)
@@ -1577,7 +1639,6 @@ template<typename T>
 inline void tgeabm(T alpha, matrix<T>const& A, matrix<T>const& B, T beta, hmatrix<T>& Ch)
 {
     Ch.tgeabhm(alpha,A,B,beta);
-    return Ch;
 }
 
 //==========================================================================
@@ -1591,7 +1652,6 @@ template<typename T>
 inline void tgemm(T alpha, hmatrix<T>const& Ah, hmatrix<T>const& Bh, T beta, hmatrix<T>& Ch)
 {
     Ch.tgehmhm(alpha,Ah,Bh,beta);
-    return Ch;
 }
 
 //==========================================================================

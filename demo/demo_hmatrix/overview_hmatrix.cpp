@@ -98,7 +98,17 @@ int main (int argc, char* argv[])
     toc();
     disp(Mh2);
     disp( norm(M-full(Mh2),"inf")/norm(M,"inf") );
-
+    
+    // Matrix-vector product
+    matrix<double> V   = rand(Ny,2);
+    matrix<double> ref = mtimes(M,V);
+    matrix<double> sol(Nx,2);
+    tic();
+    hmatrix<double> MhV(X,Y,tol,fct,V,sol);
+    toc();
+    disp(MhV);
+    disp( norm(ref-sol,"inf")/norm(ref,"inf") );
+    
     //===============================================================
     std::cout << "+=================+" << std::endl;
     std::cout << "|     ALGEBRA     |" << std::endl;
@@ -111,9 +121,9 @@ int main (int argc, char* argv[])
     disp( norm(M-full(Mh),"inf")/norm(M,"inf") );
 
     // FULL: Left product
-    matrix<double> V   = rand(2,Nx);
-    matrix<double> ref = mtimes(V,M);
-    matrix<double> sol = mtimes(V,Mh);
+    V   = rand(2,Nx);
+    ref = mtimes(V,M);
+    sol = mtimes(V,Mh);
     disp( norm(ref-sol,"inf")/norm(ref,"inf") );
 
     // FULL: Right product

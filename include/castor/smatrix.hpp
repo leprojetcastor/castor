@@ -326,7 +326,7 @@ smatrix<T>::smatrix(matrix<S>const& A)
     check();
 }
 
-/// Builds a sparse matrix from another matrix.
+/// Builds a sparse matrix from another sparse matrix.
 /// \code{.cpp}
 ///    smatrix<int> As = eye(3,4);
 ///    smatrix<> Bs(As);
@@ -496,7 +496,7 @@ smatrix<T>& smatrix<T>::operator/=(smatrix<T>const& As)
     }
     else if (m_row==As.size(1) && m_col==As.size(2))
     {
-        for (std::size_t k=0; k<nnz(); ++k) {m_val[k] /= As(m_ind[k]);}
+        (*this) = sparse(full(*this)/full(As));
     }
     else
     {
@@ -947,13 +947,45 @@ auto operator+(smatrix<R>const& As, smatrix<S>const& Bs)
     return Cs;
 }
 template<typename R, typename S>
-inline auto operator+(R As, smatrix<S>const& Bs) {return smatrix<R>(As)+Bs;}
+auto operator+(matrix<R>const& A, smatrix<S>const& Bs)
+{
+    if (size(A,1)!=size(Bs,1) || size(A,2)!=size(Bs,2))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
+    using T = decltype(A(0)+Bs(0));
+    matrix<T> C = A;
+    for (std::size_t k=0; k<nnz(Bs); ++k) {C(Bs.ind(k)) += Bs.val(k);}
+    return C;
+}
 template<typename R, typename S>
-inline auto operator+(smatrix<R>const& As, S Bs) {return As+smatrix<S>(Bs);}
+auto operator+(smatrix<R>const& As, matrix<S>const& B)
+{
+    if (size(As,1)!=size(B,1) || size(As,2)!=size(B,2))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
+    using T = decltype(As(0)+B(0));
+    matrix<T> C = B;
+    for (std::size_t k=0; k<nnz(As); ++k) {C(As.ind(k)) += As.val(k);}
+    return C;
+}
 template<typename R, typename S>
-inline auto operator+(matrix<R>const& As, smatrix<S>const& Bs) {return As+full(Bs);}
+auto operator+(R a, smatrix<S>const& Bs)
+{
+    using T = decltype(a+Bs(0));
+    matrix<T> C(size(Bs,1),size(Bs,2),a);
+    for (std::size_t k=0; k<nnz(Bs); ++k) {C(Bs.ind(k)) += Bs.val(k);}
+    return C;
+}
 template<typename R, typename S>
-inline auto operator+(smatrix<R>const& As, matrix<S>const& Bs) {return full(As)+Bs;}
+auto operator+(smatrix<R>const& As, S b)
+{
+    using T = decltype(As(0)+b);
+    matrix<T> C(size(As,1),size(As,2),b);
+    for (std::size_t k=0; k<nnz(As); ++k) {C(As.ind(k)) += As.val(k);}
+    return C;
+}
 
 //==========================================================================
 // [-]
@@ -1007,13 +1039,45 @@ auto operator-(smatrix<R>const& As, smatrix<S>const& Bs)
     return Cs;
 }
 template<typename R, typename S>
-inline auto operator-(R As, smatrix<S>const& Bs) {return smatrix<R>(As)-Bs;}
+auto operator-(matrix<R>const& A, smatrix<S>const& Bs)
+{
+    if (size(A,1)!=size(Bs,1) || size(A,2)!=size(Bs,2))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
+    using T = decltype(A(0)-Bs(0));
+    matrix<T> C = A;
+    for (std::size_t k=0; k<nnz(Bs); ++k) {C(Bs.ind(k)) -= Bs.val(k);}
+    return C;
+}
 template<typename R, typename S>
-inline auto operator-(smatrix<R>const& As, S Bs) {return As-smatrix<S>(Bs);}
+auto operator-(smatrix<R>const& As, matrix<S>const& B)
+{
+    if (size(As,1)!=size(B,1) || size(As,2)!=size(B,2))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
+    using T = decltype(As(0)-B(0));
+    matrix<T> C = -B;
+    for (std::size_t k=0; k<nnz(As); ++k) {C(As.ind(k)) += As.val(k);}
+    return C;
+}
 template<typename R, typename S>
-inline auto operator-(matrix<R>const& As, smatrix<S>const& Bs) {return As-full(Bs);}
+auto operator-(R a, smatrix<S>const& Bs)
+{
+    using T = decltype(a-Bs(0));
+    matrix<T> C(size(Bs,1),size(Bs,2),a);
+    for (std::size_t k=0; k<nnz(Bs); ++k) {C(Bs.ind(k)) -= Bs.val(k);}
+    return C;
+}
 template<typename R, typename S>
-inline auto operator-(smatrix<R>const& As, matrix<S>const& Bs) {return full(As)-Bs;}
+auto operator-(smatrix<R>const& As, S b)
+{
+    using T = decltype(As(0)-b);
+    matrix<T> C(size(As,1),size(As,2),-b);
+    for (std::size_t k=0; k<nnz(As); ++k) {C(As.ind(k)) += As.val(k);}
+    return C;
+}
 
 //==========================================================================
 // [*]
@@ -1052,13 +1116,33 @@ auto operator*(smatrix<R>const& As, smatrix<S>const& Bs)
     return Cs;
 }
 template<typename R, typename S>
+auto operator*(matrix<R>const& A, smatrix<S>const& Bs)
+{
+    if (size(A,1)!=size(Bs,1) || size(A,2)!=size(Bs,2))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
+    using T = decltype(A(0)*Bs(0));
+    smatrix<T> Cs = Bs;
+    for (std::size_t k=0; k<nnz(Bs); ++k) {Cs.val(k) *= A(Cs.ind(k));}
+    return Cs;
+}
+template<typename R, typename S>
+auto operator*(smatrix<R>const& As, matrix<S>const& B)
+{
+    if (size(As,1)!=size(B,1) || size(As,2)!=size(B,2))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
+    using T = decltype(As(0)*B(0));
+    smatrix<T> Cs = As;
+    for (std::size_t k=0; k<nnz(As); ++k) {Cs.val(k) *= B(Cs.ind(k));}
+    return Cs;
+}
+template<typename R, typename S>
 inline auto operator*(R As, smatrix<S>const& Bs) {return smatrix<R>(As)*Bs;}
 template<typename R, typename S>
 inline auto operator*(smatrix<R>const& As, S Bs) {return As*smatrix<S>(Bs);}
-template<typename R, typename S>
-inline auto operator*(matrix<R>const& As, smatrix<S>const& Bs) {return As*full(Bs);}
-template<typename R, typename S>
-inline auto operator*(smatrix<R>const& As, matrix<S>const& Bs) {return full(As)*Bs;}
 
 //==========================================================================
 // [/]
@@ -1083,18 +1167,26 @@ template<typename R, typename S>
 auto operator/(smatrix<R>const& As, smatrix<S>const& Bs)
 {
     using T = decltype(As(0)+Bs(0));
-    smatrix<T> Cs = As;
-    Cs /= Bs;
+    smatrix<T> Cs;
+    if (numel(As)==1)
+    {
+        Cs = sparse(matrix<T>(size(Bs,1),size(Bs,2),As(0))/full(Bs));
+    }
+    else
+    {
+        Cs = As;
+        Cs /= Bs;
+    }
     return Cs;
 }
-template<typename R, typename S>
-inline auto operator/(R As, smatrix<S>const& Bs) {return (smatrix<R>(size(Bs,1),size(Bs,2))+As)/Bs;}
-template<typename R, typename S>
-inline auto operator/(smatrix<R>const& As, S Bs) {return As/smatrix<S>(Bs);}
 template<typename R, typename S>
 inline auto operator/(matrix<R>const& As, smatrix<S>const& Bs) {return As/full(Bs);}
 template<typename R, typename S>
 inline auto operator/(smatrix<R>const& As, matrix<S>const& Bs) {return full(As)/Bs;}
+template<typename R, typename S>
+inline auto operator/(R As, smatrix<S>const& Bs) {return matrix<R>(size(Bs,1),size(Bs,2),As)/Bs;}
+template<typename R, typename S>
+inline auto operator/(smatrix<R>const& As, S Bs) {return As/smatrix<S>(Bs);}
 
 
 //==========================================================================//
