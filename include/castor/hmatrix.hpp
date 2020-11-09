@@ -275,6 +275,7 @@ hmatrix<T>::hmatrix(bintree<S>const& X, bintree<S>const& Y, double tol, smatrix<
     {
         m_typ = 2;
         m_dat[0] = full(Ms);
+        full2lowrank();
     }
     // Recursion
     else
@@ -326,6 +327,7 @@ hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol, smatrix<T>
     bintree<S> Xtree(X);
     bintree<S> Ytree(Y);
     (*this) = hmatrix<T>(Xtree,Ytree, tol, Ms);
+    check();
 }
 
 //==========================================================================
@@ -485,17 +487,21 @@ void hmatrix<T>::full2lowrank()
 {
     if (m_typ==2 && m_tol>0)
     {
-        std::size_t rk = rank(m_dat[0]);
-        if (rk<min(size(m_dat[0]))-1)
+        using T2 = decltype(std::abs(m_dat[0](0)));
+        matrix<T2> S;
+        matrix<T> U, Vt;
+        std::size_t rk;
+        std::tie(S,U,Vt) = svd(m_dat[0],"vect");
+        rk = sum(S>=S(0)*m_tol);
+        if (S(numel(S)-1)<max(size(m_dat[0]))*M_EPS(T2) && rk<min(size(m_dat[0]))/4)
         {
-            matrix<T> A, B;
-            bool flag;
-            std::tie(A,B,flag) = aca(m_dat[0],m_tol,min(size(m_dat[0]))/4);
-            if (flag)
+            m_typ    = 1;
+            m_dat[0] = zeros<T>(size(U,1),rk);
+            m_dat[1] = zeros<T>(rk,size(Vt,2));
+            for (std::size_t r=0; r<rk; ++r)
             {
-                m_dat[0] = A;
-                m_dat[1] = B;
-                m_typ    = 1;
+                for (std::size_t i=0; i<size(U,1); ++i)  {m_dat[0](i,r) = U(i,r)*S(r);}
+                for (std::size_t j=0; j<size(Vt,2); ++j) {m_dat[1](r,j) = Vt(r,j);}
             }
         }
     }
@@ -533,10 +539,8 @@ void hmatrix<T>::fusion()
                 B(range(l,l+r(h)),m_col[h]) = m_chd[h].m_dat[1];
                 l += r(h);
             }
-            bool flag;
-            std::size_t rmax = (n/(m_siz(0)+m_siz(1)))+1;
-            std::tie(A,B,flag) = aca(A,B,m_tol,rmax);
-            if (flag)
+            std::tie(A,B) = qrsvd(A,B,m_tol);
+            if (numel(A)+numel(B)<n)
             {
                 m_typ    = 1;
                 m_dat[0] = A;
@@ -593,26 +597,26 @@ void hmatrix<T>::hinv()
     {
         // Am1 -> M11
         m_chd[0].hinv();
-
+        
         // Usefull data
         hmatrix<T> Am1B = mtimes(m_chd[0],m_chd[1]);
         hmatrix<T> CAm1 = mtimes(m_chd[2],m_chd[0]);
-
+        
         // S = D - C * Am1 * B -> M22
         m_chd[3].tgehmhm((T)-1,m_chd[2],Am1B,(T)1);
-
+        
         // Sm1 -> M22
         m_chd[3].hinv();
-
+        
         // - Am1 * B * Sm1 -> M12
         m_chd[1].tgehmhm((T)-1,Am1B,m_chd[3],(T)0);
-
+        
         // Am1 + Am1 * B * Sm1 * C * Am1 -> M11
         m_chd[0].tgehmhm((T)-1,m_chd[1],CAm1,(T)1);
-
+        
         // - Sm1 * C * Am1 -> M21
         m_chd[2].tgehmhm((T)-1,m_chd[3],CAm1,(T)0);
-
+        
         // Leaf fusion
         fusion();
     }
@@ -641,18 +645,18 @@ void hmatrix<T>::hllowsolve(hmatrix<T>const& Lh)
     {
         // X11 -> L11 \ B11
         m_chd[0].hllowsolve(Lh.getChildren(0));
-
+        
         // X12 -> L11 \ B12
         m_chd[1].hllowsolve(Lh.getChildren(0));
-
+        
         // X21 -> L22 \ (B21 - L21*X11)
         m_chd[2].tgehmhm((T)-1,Lh.getChildren(2),m_chd[0],(T)1);
         m_chd[2].hllowsolve(Lh.getChildren(3));
-
+        
         // X22 -> L22 \ (B22 - L21 * X12)
         m_chd[3].tgehmhm((T)-1,Lh.getChildren(2),m_chd[1],(T)1);
         m_chd[3].hllowsolve(Lh.getChildren(3));
-
+        
         // Fusion
         fusion();
     }
@@ -689,7 +693,7 @@ void hmatrix<T>::hllowsolve(matrix<T>& B, matrix<std::size_t> I) const
         // X1 -> L11 \ B1
         matrix<std::size_t> I1 = eval(I(m_row[0]));
         m_chd[0].hllowsolve(B,I1);
-
+        
         // X2 -> L22 \ (B2 - L21*X1)
         matrix<std::size_t> I2 = eval(I(m_row[2]));
         B(I2,J) = eval(B(I2,J)) - mtimes(m_chd[2],eval(B(I1,J)));
@@ -722,7 +726,7 @@ void hmatrix<T>::hlupsolve(matrix<T>& B, matrix<std::size_t> I) const
         // X2 -> U22 \ B2
         matrix<std::size_t> I2 = eval(I(m_row[2]));
         m_chd[3].hlupsolve(B,I2);
-
+        
         // X1 -> U11 \ (B1 - U12*X2)
         matrix<std::size_t> I1 = eval(I(m_row[0]));
         B(I1,J) = eval(B(I1,J)) - mtimes(m_chd[1],eval(B(I2,J)));
@@ -798,7 +802,7 @@ void hmatrix<T>::hlu(hmatrix<T>& Uh)
         
         // [L11,U11] -> M11
         m_chd[0].hlu(Uh.setChildren(0));
-
+        
         // U12 -> L11 \ M12   &&   L12 -> 0
         Uh.setChildren(1) = std::move(m_chd[1]);
         Uh.setChildren(1).hllowsolve(m_chd[0]);
@@ -807,13 +811,13 @@ void hmatrix<T>::hlu(hmatrix<T>& Uh)
         // L21 -> M21 / U11   &&   U21 -> 0
         m_chd[2].hrupsolve(Uh.getChildren(0));
         Uh.setChildren(2) = hmatrix<T>(numel(m_row[2]),numel(m_col[2]),m_tol);
-
+        
         // M22 -> M22 - L21*U12
         m_chd[3].tgehmhm((T)-1,m_chd[2],Uh.getChildren(1),(T)1);
-
+        
         // [L22,U22] -> M22
         m_chd[3].hlu(Uh.setChildren(3));
-
+        
         // Fusion
         fusion();
         Uh.fusion();
@@ -879,18 +883,18 @@ void hmatrix<T>::hrupsolve(hmatrix<T>const& Uh)
     {
         // X11 -> B11 / U11
         m_chd[0].hrupsolve(Uh.getChildren(0));
-
+        
         // X21 -> B21 / U11
         m_chd[2].hrupsolve(Uh.getChildren(0));
         
         // X12 -> (B12 - X11*U12) / U22
         m_chd[1].tgehmhm((T)-1,m_chd[0],Uh.getChildren(1),(T)1);
         m_chd[1].hrupsolve(Uh.getChildren(3));
-
+        
         // X22 -> (B22 - X21*U12) / U22
         m_chd[3].tgehmhm((T)-1,m_chd[2],Uh.getChildren(1),(T)1);
         m_chd[3].hrupsolve(Uh.getChildren(3));
-
+        
         // Fusion
         fusion();
     }
@@ -938,7 +942,7 @@ void hmatrix<T>::hrupsolve(matrix<T>& B, matrix<std::size_t> J) const
         // X1 -> B1 / U11
         matrix<std::size_t> J1 = eval(J(m_col[0]));
         m_chd[0].hrupsolve(B,J1);
-
+        
         // X2 -> (B2 - X1*U12) / U22
         matrix<std::size_t> J2 = eval(J(m_col[1]));
         B(I,J2) = eval(B(I,J2)) - mtimes(eval(B(I,J1)),m_chd[1]);
@@ -1151,7 +1155,7 @@ void hmatrix<T>::tgehmhm(T alpha, hmatrix<T>const& Ah, hmatrix<T>const& Bh, T be
     // alpha * hmatrix * hmatrix + beta * hmatrix -> hmatrix
     if (Ah.getType()==0 && Bh.getType()==0 && m_typ==0)
     {
-//        std::cout << " H1 ";
+        //        std::cout << " H1 ";
         // alpha * (A11*B11 + A12*B21) + beta C11 -> C11
         m_chd[0].tgehmhm(alpha,Ah.getChildren(0),Bh.getChildren(0),beta);
         m_chd[0].tgehmhm(alpha,Ah.getChildren(1),Bh.getChildren(2),(T)1);
@@ -1167,26 +1171,26 @@ void hmatrix<T>::tgehmhm(T alpha, hmatrix<T>const& Ah, hmatrix<T>const& Bh, T be
         // alpha * (A21*B12 + A22*B22) + beta C22 -> C223
         m_chd[3].tgehmhm(alpha,Ah.getChildren(2),Bh.getChildren(1),beta);
         m_chd[3].tgehmhm(alpha,Ah.getChildren(3),Bh.getChildren(3),(T)1);
-
+        
         // Fusion
         fusion();
     }
     // alpha * compr * hmatrix + beta * hmatrix -> hmatrix
     else if (Ah.getType()==1 && Bh.getType()==0 && m_typ==0)
     {
-//        std::cout << " H2 ";
+        //        std::cout << " H2 ";
         (*this).tgeabhm(alpha,Ah.getData(0),mtimes(Ah.getData(1),Bh),beta);
     }
     // alpha * hmatrix * compr + beta * hmatrix -> hmatrix
     else if (Ah.getType()==0 && Bh.getType()==1 && m_typ==0)
     {
-//        std::cout << " H3 ";
+        //        std::cout << " H3 ";
         (*this).tgeabhm(alpha,mtimes(Ah,Bh.getData(0)),Bh.getData(1),beta);
     }
     // alpha * compr * compr + beta * hmatrix -> hmatrix
     else if (Ah.getType()==1 && Bh.getType()==1 && m_typ==0)
     {
-//        std::cout << " H4 ";
+        //        std::cout << " H4 ";
         (*this).tgeabhm(alpha,mtimes(Ah.getData(0),mtimes(Ah.getData(1),Bh.getData(0))),Bh.getData(1),beta);
     }
     
@@ -1194,7 +1198,7 @@ void hmatrix<T>::tgehmhm(T alpha, hmatrix<T>const& Ah, hmatrix<T>const& Bh, T be
     // alpha * hmatrix * hmatrix + beta * compr -> compr
     else if (Ah.getType()==0 && Bh.getType()==0 && m_typ==1)
     {
-//        std::cout << " C1 ";
+        //        std::cout << " C1 ";
         m_typ = 0;
         m_chd.resize(4,hmatrix<T>());
         for (int h=0; h<4; ++h)
@@ -1208,42 +1212,42 @@ void hmatrix<T>::tgehmhm(T alpha, hmatrix<T>const& Ah, hmatrix<T>const& Bh, T be
         m_dat[0].clear();
         m_dat[1].clear();
         (*this).tgehmhm(alpha,Ah,Bh,beta);
-//        (*this).tgeabhm(alpha,full(Ah),full(Bh),beta);
+        //        (*this).tgeabhm(alpha,full(Ah),full(Bh),beta);
     }
     // alpha * compr * hmatrix + beta * compr -> compr
     else if (Ah.getType()==1 && Bh.getType()==0 && m_typ==1)
     {
-//        std::cout << " C2 ";
+        //        std::cout << " C2 ";
         (*this).tgeabhm(alpha,Ah.getData(0),mtimes(Ah.getData(1),Bh),beta);
     }
     // alpha * hmatrix * compr + beta * compr -> compr
     else if (Ah.getType()==0 && Bh.getType()==1 && m_typ==1)
     {
-//        std::cout << " C3 ";
+        //        std::cout << " C3 ";
         (*this).tgeabhm(alpha,mtimes(Ah,Bh.getData(0)),Bh.getData(1),beta);
     }
     // alpha * compr * compr + beta * compr -> compr
     else if (Ah.getType()==1 && Bh.getType()==1 && m_typ==1)
     {
-//        std::cout << " C4 ";
+        //        std::cout << " C4 ";
         (*this).tgeabhm(alpha,mtimes(Ah.getData(0),mtimes(Ah.getData(1),Bh.getData(0))),Bh.getData(1),beta);
     }
     // alpha * full * compr + beta * compr -> compr
     else if (Ah.getType()==2 && Bh.getType()==1 && m_typ==1)
     {
-//        std::cout << " C5 ";
+        //        std::cout << " C5 ";
         (*this).tgeabhm(alpha,mtimes(Ah.getData(0),Bh.getData(0)),Bh.getData(1),beta);
     }
     // alpha * compr * full + beta * compr -> compr
     else if (Ah.getType()==1 && Bh.getType()==2 && m_typ==1)
     {
-//        std::cout << " C6 ";
+        //        std::cout << " C6 ";
         (*this).tgeabhm(alpha,Ah.getData(0),mtimes(Ah.getData(1),Bh.getData(0)),beta);
     }
     // alpha * full * full + beta * compr -> full or compr
     else if (Ah.getType()==2 && Bh.getType()==2 && m_typ==1)
     {
-//        std::cout << " C7 ";
+        //        std::cout << " C7 ";
         m_typ = 2;
         m_dat[0] = mtimes(m_dat[0],m_dat[1]);
         tgemm(alpha,Ah.getData(0),Bh.getData(0),beta,m_dat[0]);
@@ -1255,7 +1259,7 @@ void hmatrix<T>::tgehmhm(T alpha, hmatrix<T>const& Ah, hmatrix<T>const& Bh, T be
     // alpha * compr * compr + beta * full -> full
     else if (Ah.getType()==1 && Bh.getType()==1 && m_typ==2)
     {
-//        std::cout << " F1 ";
+        //        std::cout << " F1 ";
         matrix<T> tmp = mtimes(Ah.getData(0),mtimes(Ah.getData(1),Bh.getData(0)));
         tgemm(alpha,tmp,Bh.getData(1),beta,m_dat[0]);
         full2lowrank();
@@ -1263,7 +1267,7 @@ void hmatrix<T>::tgehmhm(T alpha, hmatrix<T>const& Ah, hmatrix<T>const& Bh, T be
     // alpha * full * compr + beta * full -> full
     else if (Ah.getType()==2 && Bh.getType()==1 && m_typ==2)
     {
-//        std::cout << " F2 ";
+        //        std::cout << " F2 ";
         matrix<T> tmp = mtimes(Ah.getData(0),Bh.getData(0));
         tgemm(alpha,tmp,Bh.getData(1),beta,m_dat[0]);
         full2lowrank();
@@ -1271,7 +1275,7 @@ void hmatrix<T>::tgehmhm(T alpha, hmatrix<T>const& Ah, hmatrix<T>const& Bh, T be
     // alpha * compr * full + beta * full -> full
     else if (Ah.getType()==1 && Bh.getType()==2 && m_typ==2)
     {
-//        std::cout << " F3 ";
+        //        std::cout << " F3 ";
         matrix<T> tmp = mtimes(Ah.getData(1),Bh.getData(0));
         tgemm(alpha,Ah.getData(0),tmp,beta,m_dat[0]);
         full2lowrank();
@@ -1279,7 +1283,7 @@ void hmatrix<T>::tgehmhm(T alpha, hmatrix<T>const& Ah, hmatrix<T>const& Bh, T be
     // alpha * full * full + beta * full -> full
     else if (Ah.getType()==2 && Bh.getType()==2 && m_typ==2)
     {
-//        std::cout << " F4 ";
+        //        std::cout << " F4 ";
         tgemm(alpha,Ah.getData(0),Bh.getData(0),beta,m_dat[0]);
     }
     // Unavailable cases
@@ -1723,22 +1727,3 @@ inline hmatrix<T> transpose(hmatrix<T>const& Ah)
 }
 
 }
-
-
-
-
-
-//==========================================================================
-//        using T2 = decltype(std::abs(m_dat[0](0)));
-//        matrix<T2> S;
-//        matrix<T> U, Vt;
-//        std::size_t rk;
-//        std::tie(S,U,Vt) = svd(m_dat[0],"vect");
-//        rk = sum(S>=S(0)*m_tol);
-//        if (S(numel(S)-1)<max(size(m_dat[0]))*M_EPS(T2) && rk<min(size(m_dat[0]))/4)
-//        {
-//            matrix<std::size_t> R = range(0,rk);
-//            m_dat[0] = mtimes( eval(U(row(U),R)) , diag(eval(S(R))) );
-//            m_dat[1] = eval(Vt(R,col(Vt)));
-//            m_typ    = 1;
-//        }
