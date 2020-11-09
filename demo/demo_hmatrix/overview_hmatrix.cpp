@@ -15,6 +15,7 @@
 
 #include "castor/matrix.hpp"
 #include "castor/linalg.hpp"
+#include "castor/smatrix.hpp"
 #include "castor/hmatrix.hpp"
 
 using namespace castor;
@@ -66,24 +67,34 @@ int main (int argc, char* argv[])
     
     //===============================================================
     std::cout << "+==================+" << std::endl;
-    std::cout << "|  TOTAL PIVOTING  |" << std::endl;
+    std::cout << "|    FULL MATRIX   |" << std::endl;
     std::cout << "+==================+" << std::endl;
     
-    // Full matrix
     tic();
     matrix<double> M = Gxy<double>(X,Y);
     toc();
-    
-    // H-Matrix with total pivoting
     tic();
     hmatrix<double> Mh(X,Y,tol,M);
     toc();
     disp(Mh);
     disp( norm(M-full(Mh),"inf")/norm(M,"inf") );
-    
+
+    //===============================================================
+    std::cout << "+==================+" << std::endl;
+    std::cout << "|  SPARSE MATRIX   |" << std::endl;
+    std::cout << "+==================+" << std::endl;
+
+    tic();
+    smatrix<double> S = speye(Nx,Nx);
+    toc();
+    tic();
+    hmatrix<double> MhS(X,X,tol,S);
+    toc();
+    disp( norm(full(S)-full(MhS),"inf")/norm(full(S),"inf") );
+        
     //===============================================================
     std::cout << "+====================+" << std::endl;
-    std::cout << "|  PARTIAL PIVOTING  |" << std::endl;
+    std::cout << "|  LAMBDA FUNCTIONS  |" << std::endl;
     std::cout << "+====================+" << std::endl;
 
     // Define kernel function as lambda function
@@ -94,10 +105,10 @@ int main (int argc, char* argv[])
 
     // H-Matrix with partial pivoting
     tic();
-    hmatrix<double> Mh2(X,Y,tol,fct);
+    hmatrix<double> MhF(X,Y,tol,fct);
     toc();
-    disp(Mh2);
-    disp( norm(M-full(Mh2),"inf")/norm(M,"inf") );
+    disp(MhF);
+    disp( norm(M-full(MhF),"inf")/norm(M,"inf") );
     
     // Matrix-vector product
     matrix<double> V   = rand(Ny,2);

@@ -17,6 +17,7 @@
 #define CASTOR_HMATRIX_HPP
 #include <castor/matrix.hpp>
 #include <castor/linalg.hpp>
+#include <castor/smatrix.hpp>
 
 namespace castor
 {
@@ -121,9 +122,13 @@ public:
     hmatrix(bintree<S>const& X, bintree<S>const& Y, double tol,
             matrix<std::size_t> I={}, matrix<std::size_t> J={});
     template<typename S>
+    hmatrix(bintree<S>const& X, bintree<S>const& Y, double tol, smatrix<T>const& Ms);
+    template<typename S>
     hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol);
     template<typename S>
     hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol, matrix<T>const& M);
+    template<typename S>
+    hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol, smatrix<T>const& Ms);
     template<typename S>
     hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol,
             std::function<matrix<T>(matrix<std::size_t>,matrix<std::size_t>)>const& fct);
@@ -252,6 +257,44 @@ hmatrix<T>::hmatrix(bintree<S>const& X, bintree<S>const& Y, double tol,
 ///
 template<typename T>
 template<typename S>
+hmatrix<T>::hmatrix(bintree<S>const& X, bintree<S>const& Y, double tol, smatrix<T>const& Ms)
+{
+    // Global data
+    m_siz = size(Ms);
+    m_tol = tol;
+    
+    // Empty leaf
+    if (nnz(Ms)==0)
+    {
+        m_typ = 1;
+        m_dat[0] = zeros<T>(m_siz(0),1);
+        m_dat[1] = zeros<T>(1,m_siz(1));
+    }
+    // Full leaf
+    else if (X.isleaf() || Y.isleaf())
+    {
+        m_typ = 2;
+        m_dat[0] = full(Ms);
+    }
+    // Recursion
+    else
+    {
+        m_typ = 0;
+        m_chd.resize(4,hmatrix<T>());
+        for (int h=0; h<4; ++h)
+        {
+            m_row[h] = X.ind(h/2);
+            m_col[h] = Y.ind(h%2);
+            m_chd[h] = hmatrix<T>(X.sub(h/2),Y.sub(h%2),tol,eval(Ms(m_row[h],m_col[h])));
+        }
+    }
+}
+
+//==========================================================================
+// [.hmatrix]
+///
+template<typename T>
+template<typename S>
 hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol)
 {
     bintree<S> Xtree(X);
@@ -271,6 +314,18 @@ hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol, matrix<T>c
         return eval(M(Ix,Iy));
     };
     (*this) = hmatrix(X,Y,tol,fct);
+}
+
+//==========================================================================
+// [.hmatrix]
+///
+template<typename T>
+template<typename S>
+hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol, smatrix<T>const& Ms)
+{
+    bintree<S> Xtree(X);
+    bintree<S> Ytree(Y);
+    (*this) = hmatrix<T>(Xtree,Ytree, tol, Ms);
 }
 
 //==========================================================================
