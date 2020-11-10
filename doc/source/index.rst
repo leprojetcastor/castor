@@ -104,6 +104,7 @@ This program is free software, distributed in the hope that it will be useful, b
    :maxdepth: 1
 
    bembuilder
+   analyticalscattering
 
 .. toctree::
    :caption: Contacts
