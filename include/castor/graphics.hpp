@@ -995,13 +995,14 @@ inline void drawnow(figure& fig)
 /// of all the nodes which must be displayed and \e edg is the list of the
 /// elements. The color on the edges is obtained by setting \e val which
 /// must contain a list of vertex-values.
+///
+// \see vermesh, trimesh, tetmesh.
 template<typename T>
 inline void edgmesh(figure& fig, matrix<std::size_t>const& edg, matrix<T>const& vtx,
                     matrix<T>const& val={})
 {
     fig.edgmesh(edg,vtx,val);
 }
-
 
 //==========================================================================
 // [imagesc]
@@ -1020,7 +1021,6 @@ inline void imagesc(figure& fig, matrix<T>const& M)
 ///     matrix<> X,Y;
 ///     std::tie(X,Y) = meshgrid(linspace(-M_PI,M_PI,100));
 ///     auto Z = 2*sin(X)/X * sin(Y)/Y;
-///     
 ///     figure fig;
 ///     mesh(fig,X,Y,Z);
 ///     drawnow(fig);
@@ -1107,7 +1107,8 @@ inline void plot3(figure& fig, matrix<T>const& X, matrix<T>const& Y, matrix<T>co
 ///     quiver(fig,vtx,dir);
 ///     drawnow(fig);
 /// \endcode
-//
+///
+// \see plot, plot3.
 template<typename T>
 inline void quiver(figure& fig, matrix<T>const& vtx, matrix<T>const& dir, matrix<T>const& val={})
 {
@@ -1130,7 +1131,7 @@ inline void quiver(figure& fig, matrix<T>const& vtx, matrix<T>const& dir, matrix
 ///     std::tie(belt,bvtx) = tetboundary(elt,vtx);
 /// \endcode
 ///
-// \see tetdelaunay
+// \see tetdelaunay, tetmesh, trimesh.
 template<typename T>
 auto tetboundary(matrix<std::size_t>const& tet, matrix<T>const& vtx)
 {
@@ -1212,7 +1213,7 @@ auto tetboundary(matrix<std::size_t>const& tet, matrix<T>const& vtx)
 ///     std::tie(elt,vtx) = tetdelaunay(X,Y,Z);
 /// \endcode
 ///
-// \see tetboundary
+// \see tetmesh, tetboundary.
 template<typename T>
 auto tetdelaunay(matrix<T>const& X, matrix<T>const& Y, matrix<T>const& Z)
 {
@@ -1285,7 +1286,7 @@ auto tetdelaunay(matrix<T>const& X, matrix<T>const& Y, matrix<T>const& Z)
 ///     drawnow(fig);
 /// \endcode
 ///
-// \see tetdelaunay
+// \see tetdelaunay, vermesh, edgmesh, trimesh.
 template<typename T>
 inline void tetmesh(figure& fig, matrix<std::size_t>const& tet, matrix<T>const& vtx, matrix<T>const& val={})
 {
@@ -1296,7 +1297,7 @@ inline void tetmesh(figure& fig, matrix<std::size_t>const& tet, matrix<T>const& 
 // [tridelaunay]
 /// Computes a Delaunay triangulation from a set of nodes.
 ///
-// \see tetdelaunay
+// \see trimesh, tetdelaunay.
 template<typename T>
 auto tridelaunay(matrix<T>const& X, matrix<T>const& Y, matrix<T>const& Z={})
 {
@@ -1356,7 +1357,7 @@ auto tridelaunay(matrix<T>const& X, matrix<T>const& Y, matrix<T>const& Z={})
 // [trimesh]
 /// Plots a triangular mesh colored using vertex values.
 ///
-// \see tetmesh
+// \see tridelaunay, vermesh, edgmesh, tetmesh.
 template<typename T>
 inline void trimesh(figure& fig, matrix<std::size_t>const& tri, matrix<T>const& vtx, matrix<T>const& val={})
 {
@@ -1367,7 +1368,7 @@ inline void trimesh(figure& fig, matrix<std::size_t>const& tri, matrix<T>const& 
 // [triread]
 /// Reads a triangular mesh file in \e .ply or \e .vtk format.
 ///
-// \see triwrite
+// \see triwrite, trimesh.
 template<typename T=double>
 auto triread(std::string const& path, std::string const& name)
 {
@@ -1426,6 +1427,8 @@ auto triread(std::string const& path, std::string const& name)
 //==========================================================================
 // [triwrite]
 /// Writes a triangular mesh file in \e .ply or \e .vtk format.
+///
+// \see triread, trimesh.
 template<typename T>
 void triwrite(std::string const& path, std::string const& name,
               matrix<std::size_t>const& tri, matrix<T>const& vtx, matrix<T>const& val={})
@@ -1518,6 +1521,8 @@ void triwrite(std::string const& path, std::string const& name,
 ///     vermesh(fig,elt,vtx,eval(vtx(row(vtx),0)));
 ///     drawnow(fig);
 /// \endcode
+///
+// \see edgmesh, trimesh, tetmesh.
 template<typename T>
 inline void vermesh(figure& fig, matrix<std::size_t>const& ver, matrix<T>const& vtx, matrix<T>const& val={})
 {

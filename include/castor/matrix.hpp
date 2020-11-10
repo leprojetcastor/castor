@@ -3271,7 +3271,7 @@ matrix<T> gmres(matrix<T>const& A, matrix<T>const& B, double tol, std::size_t ma
 ///    help("help",{"path1/file1.hpp", "path2/file2.hpp", ...});
 /// \endcode
 ///
-/// The documentation offered here is based on that of the Matlab software:
+/// The documentation offered here is inspired by that of the Matlab software:
 /// https://fr.mathworks.com/help/matlab/
 ///
 // \see disp, error, warning.
@@ -3299,7 +3299,7 @@ inline void help(std::string name, std::vector<std::string> filename)
                         }
                         if (line.find("\\see")!=std::string::npos)
                         {
-                            line.replace(line.find("\\see "),5,"See also:\n   ");
+                            line.replace(line.find("\\see "),5,"/See also: \n");
                         }
                         if (line.find("\\n")!=std::string::npos)
                         {
@@ -4568,7 +4568,7 @@ matrix<T> rand(matrix<std::size_t>const& S, bool seed=false)
 ///    disp(A);
 /// \endcode
 ///
-/// \see colon, get, set, view.
+// \see colon, get, set, view.
 inline matrix<std::size_t> range(std::size_t j, std::size_t k)
 {
     return colon(j,1,k-1);

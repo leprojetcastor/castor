@@ -26,7 +26,12 @@ namespace castor
 //                         BINARY TREE CLASS                                //
 //==========================================================================//
 // [bintree]
+/// Binary tree
 ///
+/// bitree(X,N) is a recursive tree with a binary structure. Each branch is divided
+/// into two new ones, with a median distribution of the M tri-dimensional nodes X,
+/// stored in a M-by-3 matrix. Leaves are reached when there are less than N nodes
+/// in a branch (default is N=100).
 template<typename T>
 class bintree
 {
@@ -59,7 +64,8 @@ private:
 
 //==========================================================================
 //
-///
+/// Constructor of binary tree. Nodes coordinates are stored in a M-by-3 matrix
+/// and maximum leaf size is fixed by N (default is 100).
 template<typename T>
 bintree<T>::bintree(matrix<T>const& X, std::size_t n)
 {
@@ -88,7 +94,8 @@ bintree<T>::bintree(matrix<T>const& X, std::size_t n)
 
 //==========================================================================
 //
-///
+/// .leaf() gives a vector of random values, same for each leaf. Usefull to
+/// visualize tree leaves.
 template<typename T>
 matrix<T> bintree<T>::leaf() const
 {
@@ -110,7 +117,15 @@ matrix<T> bintree<T>::leaf() const
 //                           H-MATRIX CLASS                                 //
 //==========================================================================//
 // [hmatrix]
+/// Array with element of type T, constructed using X and Y nodes of type S,
+/// stored in hierarchical format using rank default compression.
 ///
+/// Values are stored in matrix<T>, associated to hierarchical indices in
+/// matrix<std::size_t> of the same dimensions of the values. Recursion
+/// is constructed using std::vector<hmatrix<T>> object.
+///
+/// hmatrix<T> can be constructed using dense matrix, sparse matrix or
+/// lambda function defining block matrix values.
 template<typename T>
 class hmatrix
 {
@@ -119,10 +134,11 @@ public:
     hmatrix(){};
     hmatrix(std::size_t m, std::size_t n, double tol, T v=0);
     template<typename S>
-    hmatrix(bintree<S>const& X, bintree<S>const& Y, double tol,
-            matrix<std::size_t> I={}, matrix<std::size_t> J={});
+    hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, double tol);
     template<typename S>
-    hmatrix(bintree<S>const& X, bintree<S>const& Y, double tol, smatrix<T>const& Ms);
+    hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, double tol, matrix<T>const& M);
+    template<typename S>
+    hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, double tol, smatrix<T>const& Ms);
     template<typename S>
     hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol);
     template<typename S>
@@ -198,7 +214,7 @@ private:
 //==========================================================================//
 //==========================================================================
 // [.hmatrix]
-///
+/// Single value constructor, fill leaf with low-rank. No tree is needed.
 template<typename T>
 hmatrix<T>::hmatrix(std::size_t m, std::size_t n, double tol, T v)
 {
@@ -207,25 +223,24 @@ hmatrix<T>::hmatrix(std::size_t m, std::size_t n, double tol, T v)
     m_tol    = tol;
     m_dat[0] = matrix<T>(m,1,v);
     m_dat[1] = matrix<T>(1,n,1.);
+    check();
 }
 
 //==========================================================================
 // [.hmatrix]
-///
+/// Empty contructor using tree, define far leaves as compressed and close
+/// leaves as dense, fill with nothing.
 template<typename T>
 template<typename S>
-hmatrix<T>::hmatrix(bintree<S>const& X, bintree<S>const& Y, double tol,
-                    matrix<std::size_t> I, matrix<std::size_t> J)
+hmatrix<T>::hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, double tol)
 {
     // Global Indices
-    if (isempty(I)) {I = range(0,size(X.crd(),1));}
-    if (isempty(J)) {J = range(0,size(Y.crd(),1));}
-    m_siz = {numel(I),numel(J)};
+    m_siz = {size(Xb.crd(),1),size(Yb.crd(),1)};
     m_tol = tol;
     
     // Far test
-    matrix<S> XYctr = abs(X.ctr()-Y.ctr());
-    matrix<S> XYedg = X.edg()+Y.edg();
+    matrix<S> XYctr = abs(Xb.ctr()-Yb.ctr());
+    matrix<S> XYedg = Xb.edg()+Yb.edg();
     bool isfar = max( (XYctr>=0.75*XYedg) && (XYctr>=0.75*mean(XYedg)) );
     
     // Far leaf
@@ -234,7 +249,7 @@ hmatrix<T>::hmatrix(bintree<S>const& X, bintree<S>const& Y, double tol,
         m_typ = 1;
     }
     // Full leaf
-    else if (X.isleaf() || Y.isleaf())
+    else if (Xb.isleaf() || Yb.isleaf())
     {
         m_typ = 2;
     }
@@ -245,20 +260,66 @@ hmatrix<T>::hmatrix(bintree<S>const& X, bintree<S>const& Y, double tol,
         m_chd.resize(4,hmatrix<T>());
         for (int h=0; h<4; ++h)
         {
-            m_row[h] = X.ind(h/2);
-            m_col[h] = Y.ind(h%2);
-            m_chd[h] = hmatrix<T>(X.sub(h/2),Y.sub(h%2),tol,eval(I(m_row[h])),eval(J(m_col[h])));
+            m_row[h] = Xb.ind(h/2);
+            m_col[h] = Yb.ind(h%2);
+            m_chd[h] = hmatrix<T>(Xb.sub(h/2),Yb.sub(h%2),tol);
         }
     }
 }
 
 //==========================================================================
 // [.hmatrix]
-///
+/// Dense matrix contructor using tree, fill all leaves with full matrix
+/// and try to recompress if low-rank representation is available.
 template<typename T>
 template<typename S>
-hmatrix<T>::hmatrix(bintree<S>const& X, bintree<S>const& Y, double tol, smatrix<T>const& Ms)
+hmatrix<T>::hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, double tol, matrix<T>const& M)
 {
+    // Dimensions compatibility
+    if (size(Xb.crd(),1)!=size(M,1) || size(Yb.crd(),1)!=size(M,2))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Dimensions must agree.");
+    }
+    
+    // Global data
+    m_siz = size(M);
+    m_tol = tol;
+    
+    // Empty leaf
+    if (Xb.isleaf() || Yb.isleaf())
+    {
+        m_typ = 2;
+        m_dat[0] = M;
+        full2lowrank();
+    }
+    // Recursion
+    else
+    {
+        m_typ = 0;
+        m_chd.resize(4,hmatrix<T>());
+        for (int h=0; h<4; ++h)
+        {
+            m_row[h] = Xb.ind(h/2);
+            m_col[h] = Yb.ind(h%2);
+            m_chd[h] = hmatrix<T>(Xb.sub(h/2),Yb.sub(h%2),tol,eval(M(m_row[h],m_col[h])));
+        }
+    }
+}
+
+//==========================================================================
+// [.hmatrix]
+/// Sparse matrix contructor using tree, fill non-zeros leaves with full
+/// matrix and empty leaves with low-rank representation of a zeros block.
+template<typename T>
+template<typename S>
+hmatrix<T>::hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, double tol, smatrix<T>const& Ms)
+{
+    // Dimensions compatibility
+    if (size(Xb.crd(),1)!=size(Ms,1) || size(Yb.crd(),1)!=size(Ms,2))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Dimensions must agree.");
+    }
+    
     // Global data
     m_siz = size(Ms);
     m_tol = tol;
@@ -271,7 +332,7 @@ hmatrix<T>::hmatrix(bintree<S>const& X, bintree<S>const& Y, double tol, smatrix<
         m_dat[1] = zeros<T>(1,m_siz(1));
     }
     // Full leaf
-    else if (X.isleaf() || Y.isleaf())
+    else if (Xb.isleaf() || Yb.isleaf())
     {
         m_typ = 2;
         m_dat[0] = full(Ms);
@@ -284,62 +345,60 @@ hmatrix<T>::hmatrix(bintree<S>const& X, bintree<S>const& Y, double tol, smatrix<
         m_chd.resize(4,hmatrix<T>());
         for (int h=0; h<4; ++h)
         {
-            m_row[h] = X.ind(h/2);
-            m_col[h] = Y.ind(h%2);
-            m_chd[h] = hmatrix<T>(X.sub(h/2),Y.sub(h%2),tol,eval(Ms(m_row[h],m_col[h])));
+            m_row[h] = Xb.ind(h/2);
+            m_col[h] = Yb.ind(h%2);
+            m_chd[h] = hmatrix<T>(Xb.sub(h/2),Yb.sub(h%2),tol,eval(Ms(m_row[h],m_col[h])));
         }
     }
 }
 
 //==========================================================================
 // [.hmatrix]
-///
+/// Empty contructor using nodes, define far leaves as compressed and close
+/// leaves as dense, fill with nothing.
 template<typename T>
 template<typename S>
 hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol)
 {
-    bintree<S> Xtree(X);
-    bintree<S> Ytree(Y);
-    (*this) = hmatrix<T>(Xtree,Ytree, tol);
+    (*this) = hmatrix<T>(bintree<S>(X),bintree<S>(Y),tol);
 }
 
 //==========================================================================
 // [.hmatrix]
-///
+/// Dense matrix contructor using nodes, fill all leaves with full matrix
+/// and try to recompress if low-rank representation is available.
 template<typename T>
 template<typename S>
 hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol, matrix<T>const& M)
 {
-    auto fct = [&M](matrix<std::size_t> Ix,matrix<std::size_t> Iy)
-    {
-        return eval(M(Ix,Iy));
-    };
-    (*this) = hmatrix(X,Y,tol,fct);
-}
-
-//==========================================================================
-// [.hmatrix]
-///
-template<typename T>
-template<typename S>
-hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol, smatrix<T>const& Ms)
-{
-    bintree<S> Xtree(X);
-    bintree<S> Ytree(Y);
-    (*this) = hmatrix<T>(Xtree,Ytree, tol, Ms);
+    (*this) = hmatrix(bintree<S>(X),bintree<S>(Y),tol,M);
     check();
 }
 
 //==========================================================================
 // [.hmatrix]
-///
+/// Sparse matrix contructor using nodes, fill non-zeros leaves with full
+/// matrix and empty leaves with low-rank representation of a zeros block.
+template<typename T>
+template<typename S>
+hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol, smatrix<T>const& Ms)
+{
+    (*this) = hmatrix<T>(bintree<S>(X),bintree<S>(Y),tol,Ms);
+    check();
+}
+
+//==========================================================================
+// [.hmatrix]
+/// Lambda function contructor using nodes, fill close interactions with dense
+/// matrix and far with compressed. Try to recompressed dense leaves if
+/// rank default. Parallelization using open-MP.
 template<typename T>
 template<typename S>
 hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol,
                     std::function<matrix<T>(matrix<std::size_t>,matrix<std::size_t>)>const& fct)
 {
     // Build tree and block interactions
-    (*this) = hmatrix<T>(X,Y,tol);
+    (*this) = hmatrix<T>(bintree<S>(X),bintree<S>(Y),tol);
     
     // Get leaves references
     std::vector<hmatrix<T>*> ptr;
@@ -382,20 +441,23 @@ hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol,
 
 //==========================================================================
 // [.hmatrix]
-///
+/// Matrix-vector product constructor using nodes, fill nothing but add
+/// hierarchical matrix-vector product to input value MV.
+/// Parallelization using open-MP.
 template<typename T>
 template<typename S>
 hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol,
                     std::function<matrix<T>(matrix<std::size_t>,matrix<std::size_t>)>const& fct,
                     matrix<T>const& V, matrix<T>& MV)
 {
+    // Check input
     if (size(V,1)!=size(Y,1) || size(MV,1)!=size(X,1) || size(V,2)!=size(MV,2))
     {
         error(__FILE__, __LINE__, __FUNCTION__,"Dimensions must agree.");
     }
     
     // Build tree and block interactions
-    (*this) = hmatrix<T>(X,Y,tol);
+    (*this) = hmatrix<T>(bintree<S>(X),bintree<S>(Y),tol);
     
     // Get leaves references
     std::vector<hmatrix<T>*> ptr;
@@ -443,7 +505,7 @@ hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol,
 //==========================================================================//
 //==========================================================================
 // [.check]
-///
+/// Check leaves data conformity and make low-rank fusion if possible.
 template<typename T>
 void hmatrix<T>::check()
 {
@@ -481,7 +543,7 @@ void hmatrix<T>::check()
 
 //==========================================================================
 // [.full2lowrank]
-///
+/// Convert full leaf to low-rank using SVD compression.
 template<typename T>
 void hmatrix<T>::full2lowrank()
 {
@@ -509,7 +571,8 @@ void hmatrix<T>::full2lowrank()
 
 //==========================================================================
 // [.fusion]
-///
+/// Low-rank fusion if possible if and only if hierarchical leaf has four
+/// low-rank blocks.
 template<typename T>
 void hmatrix<T>::fusion()
 {
@@ -551,6 +614,7 @@ void hmatrix<T>::fusion()
                     m_col[h].resize(0,0);
                 }
                 m_chd.clear();
+                check();
             }
         }
     }
@@ -558,7 +622,8 @@ void hmatrix<T>::fusion()
 
 //==========================================================================
 // [.hfull]
-///
+/// In-place conversion to dense matrix :
+/// Ah -> M.
 template<typename T>
 void hmatrix<T>::hfull(matrix<T>& M, matrix<std::size_t> I, matrix<std::size_t> J) const
 {
@@ -585,7 +650,8 @@ void hmatrix<T>::hfull(matrix<T>& M, matrix<std::size_t> I, matrix<std::size_t> 
 
 //==========================================================================
 // [.hinv]
-///
+/// In-place hierarchical matrix inversion :
+/// Ah -> Ah^(-1).
 template<typename T>
 void hmatrix<T>::hinv()
 {
@@ -632,7 +698,8 @@ void hmatrix<T>::hinv()
 
 //==========================================================================
 // [.hllowsolve]
-///
+/// In-place hmatrix-hmatrix lower-triangular left resolution :
+/// Ah -> Lh^(-1) * Ah.
 template<typename T>
 void hmatrix<T>::hllowsolve(hmatrix<T>const& Lh)
 {
@@ -678,7 +745,8 @@ void hmatrix<T>::hllowsolve(hmatrix<T>const& Lh)
 
 //==========================================================================
 // [.hllowsolve]
-///
+/// In-place hmatrix-matrix lower-triangular left resolution :
+/// B -> Lh^(-1) * B.
 template<typename T>
 void hmatrix<T>::hllowsolve(matrix<T>& B, matrix<std::size_t> I) const
 {
@@ -711,7 +779,8 @@ void hmatrix<T>::hllowsolve(matrix<T>& B, matrix<std::size_t> I) const
 
 //==========================================================================
 // [.hlupsolve]
-///
+/// In-place hmatrix-matrix upper-triangular left resolution :
+/// B -> Uh^(-1) * B.
 template<typename T>
 void hmatrix<T>::hlupsolve(matrix<T>& B, matrix<std::size_t> I) const
 {
@@ -744,7 +813,8 @@ void hmatrix<T>::hlupsolve(matrix<T>& B, matrix<std::size_t> I) const
 
 //==========================================================================
 // [.hlmtimes]
-///
+/// In-place hmatrix-matrix product :
+/// C -> C + Ah * B.
 template<typename T>
 void hmatrix<T>::hlmtimes(matrix<T>const& B, matrix<T>& C, matrix<std::size_t> I, matrix<std::size_t> J) const
 {
@@ -779,7 +849,8 @@ void hmatrix<T>::hlmtimes(matrix<T>const& B, matrix<T>& C, matrix<std::size_t> I
 
 //==========================================================================
 // [.hlu]
-///
+/// In-place hmatrix-hmatrix lower-upper factorization :
+/// Ah -> mtimes(Ah,Uh).
 template<typename T>
 void hmatrix<T>::hlu(hmatrix<T>& Uh)
 {
@@ -835,7 +906,8 @@ void hmatrix<T>::hlu(hmatrix<T>& Uh)
 
 //==========================================================================
 // [.hrmtimes]
-///
+/// In-place matrix-hmatrix product :
+/// C -> C + A * Bh.
 template<typename T>
 void hmatrix<T>::hrmtimes(matrix<T>const& A, matrix<T>& C, matrix<std::size_t> I, matrix<std::size_t> J) const
 {
@@ -870,7 +942,8 @@ void hmatrix<T>::hrmtimes(matrix<T>const& A, matrix<T>& C, matrix<std::size_t> I
 
 //==========================================================================
 // [.hrupsolve]
-///
+/// In-place hmatrix-hmatrix upper-triangular right resolution :
+/// Bh -> Bh * Uh^(-1).
 template<typename T>
 void hmatrix<T>::hrupsolve(hmatrix<T>const& Uh)
 {
@@ -927,7 +1000,8 @@ void hmatrix<T>::hrupsolve(hmatrix<T>const& Uh)
 
 //==========================================================================
 // [.hrupsolve]
-///
+/// In-place matrix-hmatrix upper-triangular right resolution :
+/// B -> B * Uh^(-1).
 template<typename T>
 void hmatrix<T>::hrupsolve(matrix<T>& B, matrix<std::size_t> J) const
 {
@@ -960,7 +1034,8 @@ void hmatrix<T>::hrupsolve(matrix<T>& B, matrix<std::size_t> J) const
 
 //==========================================================================
 // [.htranspose]
-///
+/// In-place hmatrix transposition :
+/// Bh -> Bh^t.
 template<typename T>
 void hmatrix<T>::htranspose()
 {
@@ -998,7 +1073,7 @@ void hmatrix<T>::htranspose()
 
 //==========================================================================
 // [.leafptr]
-///
+/// Extract leaves pointers to compute externaly leaves data.
 template<typename T>
 void hmatrix<T>::leafptr(std::vector<hmatrix<T>*>& ptr,
                          std::vector<matrix<std::size_t>>& idx, std::vector<matrix<std::size_t>>& jdx,
@@ -1023,7 +1098,7 @@ void hmatrix<T>::leafptr(std::vector<hmatrix<T>*>& ptr,
 
 //==========================================================================
 // [.recompress]
-///
+/// Recompression of dense and low-rank leaves with fusion.
 template<typename T>
 void hmatrix<T>::recompress(double tol)
 {
@@ -1052,7 +1127,9 @@ void hmatrix<T>::recompress(double tol)
 
 //==========================================================================
 // [.spy]
-///
+/// Extract dense matrix representing leaves type, where M(i,j) stand for:
+///   1 for compressed leaves,
+///   2 for full leaves.
 template<typename T>
 void hmatrix<T>::spy(matrix<T>& M, matrix<std::size_t> I, matrix<std::size_t> J) const
 {
@@ -1079,7 +1156,10 @@ void hmatrix<T>::spy(matrix<T>& M, matrix<std::size_t> I, matrix<std::size_t> J)
 
 //==========================================================================
 // [.stat]
-///
+/// Extract hierarchical storage statistics, with :
+/// Leaf : #hierarchical #compressed #full
+/// Rate : #values/numel * 100
+/// tol  : accuracy
 template<typename T>
 void hmatrix<T>::stat(matrix<std::size_t>& info) const
 {
@@ -1102,7 +1182,8 @@ void hmatrix<T>::stat(matrix<std::size_t>& info) const
 
 //==========================================================================
 // [.tgeabhm]
-///
+/// In-place hmatrix product with low-rank matrix representation :
+/// Ch -> alpha*(A*B) + beta*Ch.
 template<typename T>
 void hmatrix<T>::tgeabhm(T alpha, matrix<T>const& A, matrix<T>const& B, T beta, matrix<std::size_t> I, matrix<std::size_t> J)
 {
@@ -1143,7 +1224,8 @@ void hmatrix<T>::tgeabhm(T alpha, matrix<T>const& A, matrix<T>const& B, T beta, 
 
 //==========================================================================
 // [.tgehmhm]
-///
+/// In-place hmatrix product :
+/// Ch -> alpha*(Ah*Bh) + beta*Ch.
 template<typename T>
 void hmatrix<T>::tgehmhm(T alpha, hmatrix<T>const& Ah, hmatrix<T>const& Bh, T beta)
 {
@@ -1299,7 +1381,9 @@ void hmatrix<T>::tgehmhm(T alpha, hmatrix<T>const& Ah, hmatrix<T>const& Bh, T be
 //==========================================================================//
 //==========================================================================
 // [operator+=]
-///
+/// In-place addition of hmatrix or scalar :
+/// Ah -> Ah + b,
+/// Ah -> Ah + Bh.
 template<typename T>
 hmatrix<T>& hmatrix<T>::operator+=(T b)
 {
@@ -1325,38 +1409,6 @@ hmatrix<T>& hmatrix<T>::operator+=(T b)
     }
     return (*this);
 }
-
-//==========================================================================
-// [operator*=]
-///
-template<typename T>
-hmatrix<T>& hmatrix<T>::operator*=(T b)
-{
-    if (m_typ==0)
-    {
-        for (int h=0; h<4; ++h)
-        {
-            m_chd[h] *= b;
-        }
-    }
-    else  if (m_typ==1)
-    {
-        m_dat[0] *= b;
-    }
-    else  if (m_typ==2)
-    {
-        m_dat[0] *= b;
-    }
-    else
-    {
-        error(__FILE__, __LINE__, __FUNCTION__,"Unavailable case.");
-    }
-    return (*this);
-}
-
-//==========================================================================
-// [operator+=]
-///
 template<typename T>
 hmatrix<T>& hmatrix<T>::operator+=(hmatrix<T>const& Bh)
 {
@@ -1404,8 +1456,39 @@ hmatrix<T>& hmatrix<T>::operator+=(hmatrix<T>const& Bh)
 }
 
 //==========================================================================
+// [operator*=]
+/// In-place hmatrix scalar multiplication :
+/// Ah -> Ah*b.
+template<typename T>
+hmatrix<T>& hmatrix<T>::operator*=(T b)
+{
+    if (m_typ==0)
+    {
+        for (int h=0; h<4; ++h)
+        {
+            m_chd[h] *= b;
+        }
+    }
+    else  if (m_typ==1)
+    {
+        m_dat[0] *= b;
+    }
+    else  if (m_typ==2)
+    {
+        m_dat[0] *= b;
+    }
+    else
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Unavailable case.");
+    }
+    return (*this);
+}
+
+//==========================================================================
 // [operator+]
-///
+/// External hmatrix addition :
+/// Ch = Ah + b,
+/// Ch = Ah + Bh.
 template<typename T>
 inline hmatrix<T> operator+(hmatrix<T>const& Ah, T b)
 {
@@ -1430,7 +1513,10 @@ inline hmatrix<T> operator+(hmatrix<T>const& Ah, hmatrix<T>const& Bh)
 
 //==========================================================================
 // [operator-]
-///
+/// External hmatrix unitary minus or substraction :
+/// Ch = -Ah,
+/// Ch = Ah - b,
+/// Ch = Ah - Bh.
 template<typename T>
 inline hmatrix<T> operator-(hmatrix<T>const& Ah)
 {
@@ -1464,7 +1550,8 @@ inline hmatrix<T> operator-(hmatrix<T>const& Ah, hmatrix<T>const& Bh)
 
 //==========================================================================
 // [operator*]
-///
+/// External hmatrix terms by terms scalar multiplication :
+/// Ch = Ah * b.
 template<typename T>
 inline hmatrix<T> operator*(hmatrix<T>const& Ah, T b)
 {
@@ -1482,7 +1569,8 @@ inline hmatrix<T> operator*(T a, hmatrix<T>const& Bh)
 
 //==========================================================================
 // [operator/]
-///
+/// External hmatrix terms by terms scalar division :
+/// Ch = Ah / b.
 template<typename T>
 inline hmatrix<T> operator/(hmatrix<T>const& Ah, T b)
 {
@@ -1493,7 +1581,8 @@ inline hmatrix<T> operator/(hmatrix<T>const& Ah, T b)
 
 //==========================================================================
 // [operator<<]
-///
+/// Flux operator to display hmatrix size and statistics using standard
+/// C++ convention of disp(Ah) operator.
 template<typename T>
 std::ostream& operator<<(std::ostream& flux, hmatrix<T> const& Ah)
 {
@@ -1518,7 +1607,7 @@ std::ostream& operator<<(std::ostream& flux, hmatrix<T> const& Ah)
 //==========================================================================//
 //==========================================================================
 // [full]
-/// Hierarchical to dense conversion.
+/// Hierarchical to dense matrix conversion.
 template<typename T>
 inline matrix<T> full(hmatrix<T>const& Ah)
 {
@@ -1529,7 +1618,8 @@ inline matrix<T> full(hmatrix<T>const& Ah)
 
 //==========================================================================
 // [gmres]
-/// Iterative solver.
+/// Iterative solver using hierarchical matrix-vector product, eventually
+/// using hierarchical preconditionners.
 template<typename T>
 matrix<T> gmres(hmatrix<T>const& Ah, matrix<T>const& B,
                 double tol = 1e-6, std::size_t maxit = 10,
@@ -1566,8 +1656,38 @@ matrix<T> gmres(hmatrix<T>const& Ah, matrix<T>const& B, double tol, std::size_t 
 }
 
 //==========================================================================
+// [hones]
+/// Ones hierarchical matrix using low-rank representation.
+template<typename T=double>
+hmatrix<T> hones(std::size_t m, long n=-1)
+{
+    if (n==-1) {n=m;}
+    return hmatrix<T>(m,n,0,(T)1);
+}
+template<typename T=double>
+hmatrix<T> hones(matrix<std::size_t>const& S)
+{
+    return hones<T>(S(0),S(1));
+}
+
+//==========================================================================
+// [hzeros]
+/// Zeros hierarchical matrix using low-rank representation.
+template<typename T=double>
+hmatrix<T> hzeros(std::size_t m, long n=-1)
+{
+    if (n==-1) {n=m;}
+    return hmatrix<T>(m,n,0,(T)0);
+}
+template<typename T=double>
+hmatrix<T> hzeros(matrix<std::size_t>const& S)
+{
+    return hzeros<T>(S(0),S(1));
+}
+
+//==========================================================================
 // [inv]
-/// Hierarchical matrix inverse.
+/// Inverse of hierarchical matrix.
 template<typename T>
 inline hmatrix<T> inv(hmatrix<T>const& Ah)
 {
@@ -1578,11 +1698,8 @@ inline hmatrix<T> inv(hmatrix<T>const& Ah)
 
 //==========================================================================
 // [linsolve]
-/// Solve linear system Ah*X=B.
-///
-/// mtimes(Ah,B) is the hierarchical matrix product of A and B, where Ah is
-/// H-Matrix and B dense matrix. The number of columns of Ah must equal
-/// to the number of rows of B. Use Hierarchical LU factorization.
+/// Solve linear system Ah*X=B where Ah is a hierarchical matrix, using
+/// hierarchical LU factorization.
 template<typename T>
 inline matrix<T> linsolve(hmatrix<T>const& Ah, matrix<T>const& B)
 {
@@ -1608,11 +1725,7 @@ inline auto lu(hmatrix<T>const& Ah, double tol=0)
 
 //==========================================================================
 // [mtimes]
-/// Hierarchical-matrix multiply.
-///
-/// mtimes(A,B) is the hierarchical matrix product of A and B, where A and
-/// B are H-Matrix and/or dense matrix. The number of columns of A must equal
-/// the number of rows of B.
+/// Hierarchical-matrix multiply with dense or hierarchical matrix.
 template<typename T>
 inline matrix<T> mtimes(hmatrix<T>const& Ah, matrix<T>const& B)
 {
@@ -1637,7 +1750,7 @@ inline hmatrix<T> mtimes(hmatrix<T>const& Ah, hmatrix<T>const& Bh)
 
 //==========================================================================
 // [recompress]
-/// Leaves recompression with new tolerance.
+/// Leaves recompression according to a new tolerance.
 template<typename T>
 inline hmatrix<T> recompress(hmatrix<T>const& Ah, double tol)
 {
@@ -1649,13 +1762,6 @@ inline hmatrix<T> recompress(hmatrix<T>const& Ah, double tol)
 //==========================================================================
 // [size]
 /// Size of H-matrix.
-///
-/// S = size(Ah) for m-by-n H-matrix A returns the two-element vector [m,n]
-/// containing the number of rows and columns in the matrix.
-///
-/// S = size(Ah,dim) returns the lengths of the specified dimensions dim.
-///
-/// \see length, numel.
 template<typename T>
 inline matrix<std::size_t> size(hmatrix<T>const& Ah)
 {
@@ -1669,7 +1775,7 @@ inline std::size_t size(hmatrix<T>const& Ah, int dim)
 
 //==========================================================================
 // [spy]
-/// Spy hierarchical structure.
+/// Spy hierarchical structure, giving dense representation of leaves type.
 template<typename T>
 inline matrix<T> spy(hmatrix<T>const& Ah)
 {
@@ -1688,12 +1794,8 @@ inline matrix<T> spy(hmatrix<T>const& Ah)
 
 //==========================================================================
 // [tgeabm]
-/// In-place low-rank matrix product with H-matrix.
-///
-/// tgeabm(alpha,A,B,beta,Ch) performs the in-place matrix-hmatrix operations
-///    C = alpha*A*B + beta*Ch,
-/// where alpha, beta are scalars and A, B are matrices with compatible size
-/// and Ch is H-Matrix.
+/// In-place low-rank matrix product with hierarchical matrix:
+/// C = alpha*A*B + beta*Ch,
 template<typename T>
 inline void tgeabm(T alpha, matrix<T>const& A, matrix<T>const& B, T beta, hmatrix<T>& Ch)
 {
@@ -1702,11 +1804,8 @@ inline void tgeabm(T alpha, matrix<T>const& A, matrix<T>const& B, T beta, hmatri
 
 //==========================================================================
 // [tgemm]
-/// In-place H-matrix product.
-///
-/// tgemm(alpha,Ah,Bh,beta,Ch) performs the in-place hmatrix-hmatrix operations
-///    C = alpha*Ah*Bh + beta*Ch,
-/// where alpha, beta are scalars and Ah, Bh, Ch are hmatrices with compatible size.
+/// In-place hierarchical matrix product:
+/// C = alpha*Ah*Bh + beta*Ch,
 template<typename T>
 inline void tgemm(T alpha, hmatrix<T>const& Ah, hmatrix<T>const& Bh, T beta, hmatrix<T>& Ch)
 {
@@ -1715,9 +1814,7 @@ inline void tgemm(T alpha, hmatrix<T>const& Ah, hmatrix<T>const& Bh, T beta, hma
 
 //==========================================================================
 // [transpose]
-/// Non-conjugate transpose.
-///
-/// transpose(Ah) is called for the syntax A^t.
+/// Non-conjugate transpose of hierarchical matrix.
 template<typename T>
 inline hmatrix<T> transpose(hmatrix<T>const& Ah)
 {

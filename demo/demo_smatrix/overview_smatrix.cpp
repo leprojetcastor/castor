@@ -130,11 +130,17 @@ int main (int argc, char* argv[])
     std::cout << "|       EXTERNAL      |" << std::endl;
     std::cout << "+=====================+" << std::endl;
 
-    // Builders
+    // Builders (m,n)
     disp(speye(3,4));
     disp(spones(3,4));
     disp(sprand(3,4));
     disp(spzeros(3,4));
+    
+    // Builders {m,n}
+    disp(speye({3,4}));
+    disp(spones({3,4}));
+    disp(sprand({3,4}));
+    disp(spzeros({3,4}));
     
     // Dimensions
     disp(size(speye(3,4)));

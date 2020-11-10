@@ -51,7 +51,7 @@ class scview;
 ///    auto             B = A;
 /// \endcode
 ///
-/// \see view, cview.
+// \see sview, scview.
 template<typename T=double>
 class smatrix
 {
@@ -746,6 +746,7 @@ void smatrix<T>::check()
 // [matrix.clear]
 /// Removes all values of sparse matrix A and fix size to 0x0.\n
 /// Clear should be used to free memory without deleting matrix object.
+/// 
 /// \code{.cpp}
 ///    smatrix<> As = {{1,2,3},{4,5,6}};
 ///    disp(As);
@@ -1945,7 +1946,7 @@ smatrix<T> spones(std::size_t m, long n=-1)
 template<typename T=double>
 smatrix<T> spones(matrix<std::size_t>const& S)
 {
-    return ones<T>(S(0),S(1));
+    return spones<T>(S(0),S(1));
 }
 
 //==========================================================================
@@ -1975,7 +1976,7 @@ smatrix<T> sprand(std::size_t m, long n=-1, bool seed=false)
 template<typename T=double>
 smatrix<T> sprand(matrix<std::size_t>const& S, bool seed=false)
 {
-    return rand<T>(S(0),S(1),seed);
+    return sprand<T>(S(0),S(1),seed);
 }
 
 //==========================================================================
@@ -1997,6 +1998,11 @@ smatrix<T> spzeros(std::size_t m, long n=-1)
 {
     if (n==-1) {n=m;}
     return smatrix<T>(m,n);
+}
+template<typename T=double>
+smatrix<T> spzeros(matrix<std::size_t>const& S, bool seed=false)
+{
+    return spzeros<T>(S(0),S(1));
 }
 
 //==========================================================================

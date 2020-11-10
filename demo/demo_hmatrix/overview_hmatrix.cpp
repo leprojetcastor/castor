@@ -67,14 +67,33 @@ int main (int argc, char* argv[])
     
     //===============================================================
     std::cout << "+==================+" << std::endl;
+    std::cout << "|     BUILDERS     |" << std::endl;
+    std::cout << "+==================+" << std::endl;
+    
+    disp(hzeros(5));
+    disp(hzeros({4,5}));
+    disp(hones(5));
+    disp(hones({4,5}));
+       
+    //===============================================================
+    std::cout << "+==================+" << std::endl;
     std::cout << "|    FULL MATRIX   |" << std::endl;
     std::cout << "+==================+" << std::endl;
     
     tic();
-    matrix<double> M = Gxy<double>(X,Y);
+    matrix<double> M = ones(Nx,Ny);
     toc();
     tic();
     hmatrix<double> Mh(X,Y,tol,M);
+    toc();
+    disp(Mh);
+    disp( norm(M-full(Mh),"inf")/norm(M,"inf") );
+    
+    tic();
+    M = Gxy<double>(X,Y);
+    toc();
+    tic();
+    Mh = hmatrix<double>(X,Y,tol,M);
     toc();
     disp(Mh);
     disp( norm(M-full(Mh),"inf")/norm(M,"inf") );
@@ -85,32 +104,42 @@ int main (int argc, char* argv[])
     std::cout << "+==================+" << std::endl;
 
     tic();
-    smatrix<double> S = speye(Nx,Nx);
+    smatrix<double> S = spones(Nx,Ny);
     toc();
     tic();
-    hmatrix<double> MhS(X,X,tol,S);
+    hmatrix<double> MhS(X,Y,tol,S);
     toc();
+    disp(MhS);
     disp( norm(full(S)-full(MhS),"inf")/norm(full(S),"inf") );
+    
+    tic();
+    S = M;
+    toc();
+    tic();
+    MhS = hmatrix<double>(X,Y,tol,S);
+    toc();
+    disp( norm(M-full(MhS),"inf")/norm(M,"inf") );
         
     //===============================================================
-    std::cout << "+====================+" << std::endl;
-    std::cout << "|  LAMBDA FUNCTIONS  |" << std::endl;
-    std::cout << "+====================+" << std::endl;
+    std::cout << "+===================+" << std::endl;
+    std::cout << "|  LAMBDA FUNCTION  |" << std::endl;
+    std::cout << "+===================+" << std::endl;
 
-    // Define kernel function as lambda function
     auto fct = [&X,&Y](matrix<std::size_t> Ix, matrix<std::size_t> Iy)
     {
         return Gxy<double>(X,Y,0.,Ix,Iy);
     };
-
-    // H-Matrix with partial pivoting
     tic();
     hmatrix<double> MhF(X,Y,tol,fct);
     toc();
     disp(MhF);
     disp( norm(M-full(MhF),"inf")/norm(M,"inf") );
     
-    // Matrix-vector product
+    //===============================================================
+    std::cout << "+=========================+" << std::endl;
+    std::cout << "|  MATRIX-VECTOR PRODUCT  |" << std::endl;
+    std::cout << "+=========================+" << std::endl;
+    
     matrix<double> V   = rand(Ny,2);
     matrix<double> ref = mtimes(M,V);
     matrix<double> sol(Nx,2);
