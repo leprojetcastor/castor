@@ -3,4 +3,4 @@
 Analytical Scattering
 =====================
 
-The project can be found `here <https://marcbakry.github.io/AnalyticalScattering/>`_.
+The project can be found `here <https://github.com/marcbakry/AnalyticalScattering/>`_.
