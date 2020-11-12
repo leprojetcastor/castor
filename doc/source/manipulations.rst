@@ -9,7 +9,7 @@ Many functions are provided for the manipulation of matrices. For instance, it i
 
 all
 ---
-.. doxygenfunction:: all
+.. doxygenfunction:: all(matrix<T> const &A)
    :project: castor
 
 See :ref:`label-row`, :ref:`label-col`, :ref:`label-get`, :ref:`label-set`, :ref:`label-view`, :ref:`label-cview`.
@@ -55,7 +55,7 @@ See :ref:`label-class-matrix`, :ref:`label-resize`.
 
 col
 ---
-.. doxygenfunction:: col
+.. doxygenfunction:: col(matrix<T> const &A)
    :project: castor
 
 See :ref:`label-row`, :ref:`label-all`, :ref:`label-get`, :ref:`label-set`, :ref:`label-view`, :ref:`label-cview`.
@@ -157,7 +157,7 @@ See :ref:`label-resize`, :ref:`label-transpose`.
 
 row
 ---
-.. doxygenfunction:: row
+.. doxygenfunction:: row(matrix<T> const &A)
    :project: castor
 
 See :ref:`label-all`, :ref:`label-col`, :ref:`label-get`, :ref:`label-set`, :ref:`label-view`, :ref:`label-cview`.

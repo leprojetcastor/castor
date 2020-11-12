@@ -119,10 +119,13 @@ See :ref:`label-cross`.
 
 gmres
 -----
-.. doxygenfunction:: gmres(matrix<T> const &A, matrix<T> const &B, double tol = 1e-6, std::size_t maxit = 10, matrix<T> const &Am1 = matrix<T>(), matrix<T> const &X0 = matrix<T>())
+.. doxygenfunction::  gmres(matrix<T> const &A, matrix<T> const &B, double tol = 1e-6, std::size_t maxit = 10, std::function<matrix<T>(matrix<T> const&)> const &Am1 = std::function<matrix<T>(matrix<T> const&)>(), matrix<T> const &X0 = matrix<T>())
    :project: castor
-.. doxygenfunction:: gmres(std::function<matrix<T>(matrix<T> const&)> const &A, matrix<T> const &B, double tol = 1e-6, std::size_t maxit = 10, std::function<matrix<T>(matrix<T> const&)> const &Am1 = matrix<T>(), matrix<T> const &X0 = matrix<T>())
+.. doxygenfunction::  gmres(matrix<T> const &A, matrix<T> const &B, double tol, std::size_t maxit, matrix<T> const &Am1, matrix<T> const &X0 = matrix<T>())
    :project: castor
+.. doxygenfunction:: gmres(std::function<matrix<T>(matrix<T> const&)> const &A, matrix<T> const &B, double tol = 1e-6, std::size_t maxit = 10, std::function<matrix<T>(matrix<T> const&)> const &Am1 = std::function<matrix<T>(matrix<T> const&)>(), matrix<T> const &X0 = matrix<T>())
+   :project: castor
+
 
 
 See :ref:`label-linsolve`.

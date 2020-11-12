@@ -2,16 +2,6 @@
 API
 ===
 
-.. _label-aca-hmatrix:
-
-aca
----
-.. doxygenfunction:: aca(matrix<std::size_t> I, matrix<std::size_t> J, std::function<matrix<double>(matrix<std::size_t>, matrix<std::size_t>)> const &fct, double tol)
-    :project: castor
-.. doxygenfunction:: aca(matrix<std::size_t> I, matrix<std::size_t> J, std::function<matrix<std::complex<double>>(matrix<std::size_t>, matrix<std::size_t>)> const &fct, double tol)
-    :project: castor
-
-
 .. _label-full-hmatrix:
 
 full
@@ -23,7 +13,11 @@ full
 
 gmres
 -----
-.. doxygenfunction:: gmres(hmatrix<T> const &Ah, matrix<T> const &B, double tol = 1e-6, std::size_t maxit = 10, hmatrix<T> const &Ahm1 = hmatrix<T>(), matrix<T> const &X0 = matrix<T>())
+.. doxygenfunction:: gmres(hmatrix<T> const &Ah, matrix<T> const &B, double tol, std::size_t maxit, hmatrix<T> const &Lh, hmatrix<T> const &Uh, matrix<T> const &X0 = matrix<T>())
+    :project: castor
+.. doxygenfunction:: gmres(hmatrix<T> const &Ah, matrix<T> const &B, double tol, std::size_t maxit, hmatrix<T> const &Ahm1, matrix<T> const &X0 = matrix<T>())
+    :project: castor
+.. doxygenfunction:: gmres(hmatrix<T> const &Ah, matrix<T> const &B, double tol = 1e-6, std::size_t maxit = 10, std::function<matrix<T>(matrix<T> const&)> const &Am1 = std::function<matrix<T>(matrix<T> const&)>(), matrix<T> const &X0 = matrix<T>())
     :project: castor
 
 .. _label-inv-hmatrix:
@@ -46,7 +40,7 @@ linsolve
 
 lu
 --
-.. doxygenfunction:: lu(hmatrix<T> const &Ah)
+.. doxygenfunction:: lu(hmatrix<T> const &Ah, double tol = 0)
     :project: castor
 
 
@@ -59,14 +53,6 @@ mtimes
 .. doxygenfunction:: mtimes(matrix<T> const &A, hmatrix<T> const &Bh)
     :project: castor
 .. doxygenfunction:: mtimes(hmatrix<T> const &Ah, matrix<T> const &B)
-    :project: castor
-
-
-.. _label-rank2-hmatrix:
-
-rank2
------
-.. doxygenfunction:: rank2(matrix<T> const &A, double tol)
     :project: castor
 
 

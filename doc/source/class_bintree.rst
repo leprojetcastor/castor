@@ -1,12 +1,12 @@
 
-.. _label-class-binarytree:
+.. _label-class-bintree:
 
-Class binarytree
-++++++++++++++++
+Class bintree
++++++++++++++
 
 This class is used by :ref:`label-class-hmatrix` for space partitioning.
 
-.. doxygenclass:: castor::binarytree
+.. doxygenclass:: castor::bintree
    :project: castor
    :members:
    :undoc-members:

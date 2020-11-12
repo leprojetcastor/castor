@@ -13,9 +13,13 @@ Some examples of use may also be found at :ref:`label-linear-algebra-advanced`.
 
 aca
 ---
-.. doxygenfunction:: aca(matrix<std::complex<double>> const &M, double tol)
+.. doxygenfunction:: aca(matrix<T> const &A, matrix<T> const &B, double tol = 1e-6, std::size_t rmax = 1e6)
    :project: castor
-.. doxygenfunction:: aca(matrix<double> const &M, double tol)
+.. doxygenfunction:: aca(matrix<T> const &M, double tol = 1e-6, std::size_t rmax = 1e6)
+   :project: castor
+.. doxygenfunction:: aca(matrix<std::size_t> I, matrix<std::size_t> J, std::function<matrix<std::complex<double>>(matrix<std::size_t>, matrix<std::size_t>)> const &fct, double tol = 1e-6, std::size_t rmax = 1e6)
+   :project: castor
+.. doxygenfunction:: aca(matrix<std::size_t> I, matrix<std::size_t> J, std::function<matrix<double>(matrix<std::size_t>, matrix<std::size_t>)> const &fct, double tol = 1e-6, std::size_t rmax = 1e6)
    :project: castor
 
 See :ref:`label-svd`, :ref:`label-rank`.
