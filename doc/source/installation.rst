@@ -3,6 +3,8 @@
 Installation
 ============
 
+We describe below the procedure for **MacOS** and **Linux** distributions like Ubuntu. For the installation on **Windows**, see the dedicated section :ref:`label-install-windows`.
+
 Download header files
 +++++++++++++++++++++
 
@@ -21,7 +23,7 @@ On Linux and macOS platforms :
 
 .. code::
 
-    $ git clone git@gitlab.labos.polytechnique.fr:leprojetcastor/castor.git 
+    $ git clone https://gitlab.labos.polytechnique.fr/leprojetcastor/castor.git
     $ cd castor
     $ mkdir build
     $ cd build
@@ -61,6 +63,8 @@ BLAS and LAPACK may be obtained through multiple channels:
 
 **Remark:** on MacOS, the ``vecLib`` framework shipped with the Apple Command Line Tools is an optimized implementation of BLAS and LAPACK. ``vecLib`` will be detected automatically by ``cmake`` if no other BLAS/LAPACK implementations are found.
 
+
+.. _label-install-vtk:
 
 Installing VTK
 ..............
@@ -141,3 +145,60 @@ where the ``-DCMAKE_INSTALL_PREFIX=...`` option may be omitted if you want to us
     bash install_vtk.sh
 
 to start the installation process.
+
+.. _label-install-windows:
+
+Installing on Windows 10
+++++++++++++++++++++++++
+
+There is *a priori* no easy solution on Windows 10. One possibility is to use *only* the Visual Studio tools (freely available for non-commercial use). The blocking point is the compilation of BLAS/LAPACK as it requires a Fortran compiler which is a complicated topic. Consequently, a possibility would be to use the Intel MKL library (also freely available for non-commercial use, but requires a registration). In order to build VTK, one can follow the recommandations `here <https://vtk.org/Wiki/VTK/Building/Windows>`_. The **castor** framework *could* then be installed in a similar fashion as VTK using ``cmake`` or ``cmake-gui``. 
+
+The solution above has not yet been fully tested and we will rather use the `MSYS2 tools <https://www.msys2.org/>`_. MSYS2 will allow the Unix/MacOS user to work with a familiar self-contained environment within Windows. After installation, start a MSYS2 terminal (for a standard installation, the executable file is ``C:\msys64\mingw64.exe``) and update the database with the following commands:
+
+.. code:: text
+
+    pacman -Syu
+    pacman -Su
+
+First, install the build tools, ``GCC``, ``git`` and ``cmake``:
+
+.. code:: text
+
+    pacman -S base-devel
+    pacman -S mingw-w64-x86_64-gcc
+    pacman -S git 
+    pacman -S mingw-w64-x86_64-cmake
+
+It may take a *lot of time*. Now, install the dependencies ``OpenBLAS`` and ``VTK 8.2``:
+
+.. code:: text
+
+    pacman -S mingw-w64-x86_64-openblas
+    pacman -S mingw-w64-x86_64-vtk
+
+Note that the current version of ``VTK`` is 8.2. If it is not the case, you will need to compile it from source. Fortunately, it happens in the same fashion as for the Ubuntu case, see :ref:`label-install-vtk`. We are now ready to install **castor**. First, clone the repository, and create a ``build directory``:
+
+.. code:: text
+
+    git clone https://gitlab.labos.polytechnique.fr/leprojetcastor/castor.git
+    cd castor
+    mkdir build && cd build
+
+Now, let us generate the build files. ``VTK`` should normally be found  automatically but it may not be the case for ``OpenBLAS``. The following command should work:
+
+.. code:: text
+
+    cmake -G"MSYS Makefiles" -DBLAS_LIBRARIES="/mingw64/lib/libopenblas.a" -DLAPACK_LIBRARIES="/mingw64/lib/libopenblas.a" -DCBLAS_INCLUDE_DIR="/mingw64/include/OpenBLAS" ..
+
+**Remark:** The ``-G"MSYS Makefiles"`` is mandatory. Otherwise, ``cmake`` could try to generate a Visual Studio project.
+
+Once the previous command completede successfully, compile the examples and install the **castor** headers:
+
+.. code:: text
+
+    make
+    make install
+
+The executable files for the examples can be found in the ``castor/build/demo/demo_*`` subfolders. The folder containing the headers is copied in the ``/mingw64/include/`` sub-directory.
+
+**Remark:** if you have questions or remarks about the installation procedure on Windows, please contact Marc Bakry (contact info at :ref:`label-developpers`).
