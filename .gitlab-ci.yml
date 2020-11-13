@@ -19,6 +19,7 @@ build:
   artifacts:
     paths:
       - build
+      - include/castor.zip
 
 test:
   stage: test
