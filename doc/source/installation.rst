@@ -10,7 +10,7 @@ Download header files
 
 **(the easy way!)**
 
-The simplest way to get the **castor** library is to download the `latest version of header files <https://gitlab.labos.polytechnique.fr/leprojetcastor/castor/-/raw/master/include/matrix?inline=false>`_ and include them during the compilation of your c++ program using the library, see :ref:`label-compilation` in the :ref:`label-basic` section.
+The simplest way to get the **castor** library is to download the `latest version of header files <https://gitlab.labos.polytechnique.fr/leprojetcastor/castor/-/jobs/artifacts/master/download?job=deploy>`_ and include them during the compilation of your c++ program using the library, see :ref:`label-compilation` in the :ref:`label-basic` section.
 
 From git repository with CMake
 ++++++++++++++++++++++++++++++

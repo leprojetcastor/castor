@@ -30,6 +30,7 @@ deploy:
   script: 
     - cp -r include/castor .
   artifacts:
+    name: "castor"
     paths:
       - castor
 
