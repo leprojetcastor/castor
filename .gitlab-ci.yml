@@ -18,6 +18,9 @@ build:
 
 zip:
   stage: build
+  before_script:
+    - apt-get update --yes
+    - apt-get install --yes zip
   script:
     - cp -r include/castor .
     - zip castor.zip castor
