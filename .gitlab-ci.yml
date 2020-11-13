@@ -12,14 +12,18 @@ build:
     - cd build
     - cmake ..
     - make
-    - cd ..
-    - cd include
-    - zip castor.zip castor
-    - cd ..
   artifacts:
     paths:
       - build
-      - include/castor.zip
+
+zip:
+  stage: build
+  script:
+    - cp -r include/castor .
+    - zip castor.zip castor
+  artifacts:
+    paths:
+      - castor.zip
 
 test:
   stage: test
