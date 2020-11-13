@@ -6,11 +6,16 @@ build:
     - apt-get update --yes
     - apt-get install --yes cmake
     - apt-get install --yes libopenblas-dev
+    - apt-get install --yes zip
   script:
     - mkdir build
     - cd build
     - cmake ..
     - make
+    - cd ..
+    - cd include
+    - zip castor.zip castor
+    - cd ..
   artifacts:
     paths:
       - build

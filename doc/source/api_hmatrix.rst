@@ -127,13 +127,13 @@ operator+
 
 operator-
 ---------
-.. doxygenfunction:: operator-(hmatrix<T> const &Ah)
-    :project: castor
 .. doxygenfunction:: operator-(T a, hmatrix<T> const &Bh)
     :project: castor
 .. doxygenfunction:: operator-(hmatrix<T> const &Ah, hmatrix<T> const &Bh)
     :project: castor
 .. doxygenfunction:: operator-(hmatrix<T> const &Ah, T b)
+    :project: castor
+.. doxygenfunction:: operator-(hmatrix<T> const &Ah)
     :project: castor
 
 
@@ -141,9 +141,9 @@ operator-
 
 operator*
 ---------
-.. doxygenfunction:: operator*(hmatrix<T> const &Ah, T b)
-    :project: castor
 .. doxygenfunction:: operator*(T a, hmatrix<T> const &Bh)
+    :project: castor
+.. doxygenfunction:: operator*(hmatrix<T> const &Ah, T b)
     :project: castor
 
 
