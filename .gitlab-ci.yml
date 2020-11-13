@@ -6,7 +6,6 @@ build:
     - apt-get update --yes
     - apt-get install --yes cmake
     - apt-get install --yes libopenblas-dev
-    - apt-get install --yes zip
   script:
     - mkdir build
     - cd build
@@ -16,17 +15,6 @@ build:
     paths:
       - build
 
-zip:
-  stage: build
-  before_script:
-    - apt-get update --yes
-    - apt-get install --yes zip
-  script:
-    - cp -r include/castor .
-    - zip castor.zip castor
-  artifacts:
-    paths:
-      - castor.zip
 
 test:
   stage: test
@@ -36,6 +24,14 @@ test:
     when: always
     paths:
       - test_res.txt
+
+deploy:
+  stage: deploy
+  artifacts:
+    when: always
+    paths:
+      - include/castor
+
 
 
 pages:
