@@ -27,10 +27,11 @@ test:
 
 deploy:
   stage: deploy
+  script: 
+    - cp -r include/castor .
   artifacts:
-    when: always
     paths:
-      - include/castor
+      - castor
 
 
 
