@@ -54,8 +54,6 @@ The library **matrix** is a header-only library. That actually means to compile 
 IDE
 +++
 
-Simply enter the path to the directory containing the ``castor`` folder in your favorite IDE [1]_ (refer to your IDE documentation).
+Simply enter the path to the directory containing the ``castor`` folder in your favorite IDE (VSCode, Xcode, CodeBlocks). 
 
-
-
-.. [1] Integrated Development Environment. There exists a *huge* variety of IDEs : VSCode, Xcode, Geany, CodeBlocks, VI, Emacs, etc. The best solution is to try some.
+Tutorial is coming.
