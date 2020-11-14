@@ -3,21 +3,14 @@
 Installation
 ============
 
-We describe below the procedure for **MacOS** and **Linux** distributions like Ubuntu. For the installation on **Windows**, see the dedicated section :ref:`label-install-windows`.
-
-Download header files
-+++++++++++++++++++++
-
-**(the easy way!)**
-
 The simplest way to get the **castor** library is to download the `latest version of header files <https://gitlab.labos.polytechnique.fr/leprojetcastor/castor/-/jobs/artifacts/master/download?job=deploy>`_ and include them during the compilation of your c++ program using the library, see :ref:`label-compilation` in the :ref:`label-basic` section.
+
+For a complete installation integrating check dependencies and examples compilation, we describe below the procedure for **MacOS** and **Linux** distributions like Ubuntu. For the installation on **Windows**, see the dedicated section :ref:`label-install-windows`.
 
 From git repository with CMake
 ++++++++++++++++++++++++++++++
 
-**(the not-too-complicated way)**
-
-You can also install the **castor** library from source with ``CMake``.
+You can install the **castor** library from source with ``CMake``.
 
 On Linux and macOS platforms :
 
