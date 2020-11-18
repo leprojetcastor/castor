@@ -1019,7 +1019,7 @@ template<typename T>
 auto operator-(smatrix<T>const& As)
 {
     smatrix<T> Bs = As;
-    Bs *= -1;
+    Bs *= (T)-1;
     return Bs;
 }
 template<typename R, typename S>

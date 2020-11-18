@@ -1307,7 +1307,7 @@ inline auto operator+(matrix<R>const& A, S B) {return A+matrix<S>(B);}
 template<typename S>
 auto operator-(matrix<S>const& A)
 {
-    using T = decltype(-1*A(0));
+    using T = decltype(-A(0));
     matrix<T> B(size(A,1),size(A,2));
     for (std::size_t l=0; l<numel(B); ++l) {B(l) = -A(l);}
     return B;

@@ -62,7 +62,7 @@ fprintf(stderr, "\n")
 #define KISS_FFT_INFO(...) KISS_FFT_LOG_MSG(INFO, __VA_ARGS__)
 #define KISS_FFT_DEBUG(...) KISS_FFT_LOG_MSG(DEBUG, __VA_ARGS__)
 
-#endif 
+#endif
 
 
 
@@ -117,7 +117,7 @@ extern "C" {
 # define kiss_fft_scalar __m128
 # ifndef KISS_FFT_MALLOC
 #  define KISS_FFT_MALLOC(nbytes) _mm_malloc(nbytes,16)
-#  define KISS_FFT_ALIGN_CHECK(ptr) 
+#  define KISS_FFT_ALIGN_CHECK(ptr)
 #  define KISS_FFT_ALIGN_SIZE_UP(size) ((size + 15UL) & ~0xFUL)
 # endif
 # ifndef KISS_FFT_FREE
@@ -139,7 +139,7 @@ extern "C" {
 #include <stdint.h>
 # if (FIXED_POINT == 32)
 #  define kiss_fft_scalar int32_t
-# else	
+# else
 #  define kiss_fft_scalar int16_t
 # endif
 #else
@@ -156,7 +156,7 @@ typedef struct {
 
 typedef struct kiss_fft_state* kiss_fft_cfg;
 
-/* 
+/*
  *  kiss_fft_alloc
  *
  *  Initialize a FFT (or IFFT) algorithm's cfg/state buffer.
@@ -198,7 +198,7 @@ void KISS_FFT_API kiss_fft(kiss_fft_cfg cfg,const kiss_fft_cpx *fin,kiss_fft_cpx
  * */
 void KISS_FFT_API kiss_fft_stride(kiss_fft_cfg cfg,const kiss_fft_cpx *fin,kiss_fft_cpx *fout,int fin_stride);
 
-/* If kiss_fft_alloc allocated a buffer, it is one contiguous 
+/* If kiss_fft_alloc allocated a buffer, it is one contiguous
  buffer and can be simply free()d when no longer needed*/
 #define kiss_fft_free KISS_FFT_FREE
 
@@ -219,7 +219,7 @@ int KISS_FFT_API kiss_fft_next_fast_size(int n);
 (kiss_fft_next_fast_size( ((n)+1)>>1)<<1)
 
 #ifdef __cplusplus
-} 
+}
 #endif
 
 #endif
@@ -1030,10 +1030,15 @@ public:
     ckiss(float v, float w=0) {r=v; i=w;};
     ckiss(std::complex<float> v) {r=v.real(); i=v.imag();};
     operator std::complex<float>() const {return std::complex<float>(r,i);};
+    ckiss& operator*=(ckiss const& c) {float t=r; r=r*c.r-i*c.i; i=t*c.i+i*c.r; return (*this);}
 };
 std::ostream& operator<<(std::ostream& flux, ckiss const& c)
 {
     flux << "(" << c.r << "," << c.i << ")"; return flux;
+}
+inline void disp(matrix<ckiss>const& A, int info=2, std::ostream& flux=std::cout, std::size_t m=3, std::size_t n=3)
+{
+    disp<std::complex<float>>(A,info,flux,m,n);
 }
 
 //==========================================================================
@@ -1100,7 +1105,7 @@ auto dft(matrix<S>const& X, std::size_t n=0, int dim=0, bool isinverse=false)
                 }
                 if (isinverse) {Y(i,j) /= n;}
             }
-        }        
+        }
     }
     else if (dim==2)
     {
