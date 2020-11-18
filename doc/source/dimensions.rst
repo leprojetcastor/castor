@@ -9,7 +9,7 @@ These functions allow to recover the dimensions of a matrix : total number of el
 
 length
 ------
-.. doxygenfunction:: length
+.. doxygenfunction:: length(matrix<T> const &A)
    :project: castor
 
 See :ref:`label-numel`, :ref:`label-size`.

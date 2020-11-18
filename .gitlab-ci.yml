@@ -15,6 +15,7 @@ build:
     paths:
       - build
 
+
 test:
   stage: test
   script: 
@@ -23,6 +24,16 @@ test:
     when: always
     paths:
       - test_res.txt
+
+deploy:
+  stage: deploy
+  script: 
+    - cp -r include/castor .
+  artifacts:
+    name: "castor"
+    paths:
+      - castor
+
 
 
 pages:

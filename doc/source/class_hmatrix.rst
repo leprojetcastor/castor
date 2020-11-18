@@ -4,7 +4,7 @@
 Class hmatrix
 +++++++++++++
 
-As part of **castor**, the ``hmatrix`` class provides a **fully abstract interface** for the manipulation of hierarchical matrices [1]_. The class itself and the related functions can be found in :ref:`label-class-hmatrix`. It uses another class :ref:`label-class-binarytree` dedicated to binary space partitioning. 
+As part of **castor**, the ``hmatrix`` class provides a **fully abstract interface** for the manipulation of hierarchical matrices [1]_. The class itself and the related functions can be found in :ref:`label-class-hmatrix`. It uses another class :ref:`label-class-bintree` dedicated to binary space partitioning. 
 
 
 **This is work-in-progress! The descriptions of the different features and examples will be added to this section progressively.**

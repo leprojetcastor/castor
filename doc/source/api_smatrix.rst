@@ -211,13 +211,13 @@ See :ref:`label-disp-smatrix`.
 
 operator+
 ---------
-.. doxygenfunction:: operator+(R As, smatrix<S> const &Bs)
+.. doxygenfunction:: operator+(smatrix<R> const &As, S b)
     :project: castor
-.. doxygenfunction:: operator+(smatrix<R> const &As, S Bs)
+.. doxygenfunction:: operator+(R a, smatrix<S> const &Bs)
     :project: castor
-.. doxygenfunction:: operator+(matrix<R> const &As, smatrix<S> const &Bs)
+.. doxygenfunction:: operator+(smatrix<R> const &As, matrix<S> const &B)
     :project: castor
-.. doxygenfunction:: operator+(smatrix<R> const &As, matrix<S> const &Bs)
+.. doxygenfunction:: operator+(matrix<R> const &A, smatrix<S> const &Bs)
     :project: castor
 .. doxygenfunction:: operator+(smatrix<R> const &As, smatrix<S> const &Bs)
     :project: castor
@@ -228,17 +228,17 @@ operator+
 
 operator-
 ---------
-.. doxygenfunction:: operator-(smatrix<T> const &As)
+.. doxygenfunction:: operator-(smatrix<R> const &As, S b)
     :project: castor
-.. doxygenfunction:: operator-(R As, smatrix<S> const &Bs)
+.. doxygenfunction:: operator-(R a, smatrix<S> const &Bs)
     :project: castor
-.. doxygenfunction:: operator-(smatrix<R> const &As, S Bs)
+.. doxygenfunction:: operator-(smatrix<R> const &As, matrix<S> const &B)
     :project: castor
-.. doxygenfunction:: operator-(matrix<R> const &As, smatrix<S> const &Bs)
-    :project: castor
-.. doxygenfunction:: operator-(smatrix<R> const &As, matrix<S> const &Bs)
+.. doxygenfunction:: operator-(matrix<R> const &A, smatrix<S> const &Bs)
     :project: castor
 .. doxygenfunction:: operator-(smatrix<R> const &As, smatrix<S> const &Bs)
+    :project: castor
+.. doxygenfunction:: operator-(smatrix<T> const &As)
     :project: castor
 
 
@@ -247,13 +247,13 @@ operator-
 
 operator*
 ---------
-.. doxygenfunction:: operator*(R As, smatrix<S> const &Bs)
-    :project: castor
 .. doxygenfunction:: operator*(smatrix<R> const &As, S Bs)
     :project: castor
-.. doxygenfunction:: operator*(matrix<R> const &As, smatrix<S> const &Bs)
+.. doxygenfunction:: operator*(R As, smatrix<S> const &Bs)
     :project: castor
-.. doxygenfunction:: operator*(smatrix<R> const &As, matrix<S> const &Bs)
+.. doxygenfunction:: operator*(smatrix<R> const &As, matrix<S> const &B)
+    :project: castor
+.. doxygenfunction:: operator*(matrix<R> const &A, smatrix<S> const &Bs)
     :project: castor
 .. doxygenfunction:: operator*(smatrix<R> const &As, smatrix<S> const &Bs)
     :project: castor
