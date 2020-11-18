@@ -2,6 +2,8 @@ add_subdirectory(demo_matrix)
 
 add_subdirectory(demo_smatrix)
 
+add_subdirectory(demo_kissfft)
+
 add_subdirectory(demo_hmatrix)
 
 if(LAPACK_FOUND)
