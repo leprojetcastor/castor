@@ -74,7 +74,17 @@ int main (int argc, char* argv[])
     disp(hzeros({4,5}));
     disp(hones(5));
     disp(hones({4,5}));
-       
+
+    //===============================================================
+    std::cout << "+==================+" << std::endl;
+    std::cout << "|      SPYDATA     |" << std::endl;
+    std::cout << "+==================+" << std::endl;
+    
+    smatrix<logical> Sf, Sc;
+    std::tie(Sf,Sc) = spydata(hones(3));
+    disp(Sf);
+    disp(Sc);
+    
     //===============================================================
     std::cout << "+==================+" << std::endl;
     std::cout << "|    FULL MATRIX   |" << std::endl;

@@ -21,6 +21,15 @@ using namespace castor;
 int main(int argc, const char * argv[])
 {
     disp("+===============+");
+    disp("|     CKISS     |");
+    disp("+===============+");
+    
+    ckiss a(3,4);
+    ckiss b(3,-4);
+    a *= b;
+    disp(a);
+    
+    disp("+===============+");
     disp("|      FFT      |");
     disp("+===============+");
     

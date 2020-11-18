@@ -172,7 +172,7 @@ public:
                  std::vector<matrix<std::size_t>>& idx, std::vector<matrix<std::size_t>>& jdx,
                  matrix<std::size_t> I={}, matrix<std::size_t> J={});
     void recompress(double tol);
-    void spy(matrix<T>& M, matrix<std::size_t> I={}, matrix<std::size_t> J={}) const;
+    void spydata(smatrix<logical>& Sf, smatrix<logical>& Sc, matrix<std::size_t> I={}, matrix<std::size_t> J={}) const;
     void stat(matrix<std::size_t>& info) const;
     void tgeabhm(T alpha, matrix<T>const& A, matrix<T>const& B, T beta, matrix<std::size_t> I={}, matrix<std::size_t> J={});
     void tgehmhm(T alpha, hmatrix<T>const& Ah, hmatrix<T>const& Bh, T beta);
@@ -504,7 +504,7 @@ hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol,
 //                               FUNCTIONS                                  //
 //==========================================================================//
 //==========================================================================
-// [.check]
+// [hmatrix.check]
 /// Check leaves data conformity and make low-rank fusion if possible.
 template<typename T>
 void hmatrix<T>::check()
@@ -542,7 +542,7 @@ void hmatrix<T>::check()
 }
 
 //==========================================================================
-// [.full2lowrank]
+// [hmatrix.full2lowrank]
 /// Convert full leaf to low-rank using SVD compression.
 template<typename T>
 void hmatrix<T>::full2lowrank()
@@ -570,7 +570,7 @@ void hmatrix<T>::full2lowrank()
 }
 
 //==========================================================================
-// [.fusion]
+// [hmatrix.fusion]
 /// Low-rank fusion if possible if and only if hierarchical leaf has four
 /// low-rank blocks.
 template<typename T>
@@ -621,7 +621,7 @@ void hmatrix<T>::fusion()
 }
 
 //==========================================================================
-// [.hfull]
+// [hmatrix.hfull]
 /// In-place conversion to dense matrix :
 /// Ah -> M.
 template<typename T>
@@ -649,7 +649,7 @@ void hmatrix<T>::hfull(matrix<T>& M, matrix<std::size_t> I, matrix<std::size_t> 
 }
 
 //==========================================================================
-// [.hinv]
+// [hmatrix.hinv]
 /// In-place hierarchical matrix inversion :
 /// Ah -> Ah^(-1).
 template<typename T>
@@ -697,7 +697,7 @@ void hmatrix<T>::hinv()
 }
 
 //==========================================================================
-// [.hllowsolve]
+// [hmatrix.hllowsolve]
 /// In-place hmatrix-hmatrix lower-triangular left resolution :
 /// Ah -> Lh^(-1) * Ah.
 template<typename T>
@@ -744,7 +744,7 @@ void hmatrix<T>::hllowsolve(hmatrix<T>const& Lh)
 }
 
 //==========================================================================
-// [.hllowsolve]
+// [hmatrix.hllowsolve]
 /// In-place hmatrix-matrix lower-triangular left resolution :
 /// B -> Lh^(-1) * B.
 template<typename T>
@@ -778,7 +778,7 @@ void hmatrix<T>::hllowsolve(matrix<T>& B, matrix<std::size_t> I) const
 }
 
 //==========================================================================
-// [.hlupsolve]
+// [hmatrix.hlupsolve]
 /// In-place hmatrix-matrix upper-triangular left resolution :
 /// B -> Uh^(-1) * B.
 template<typename T>
@@ -812,7 +812,7 @@ void hmatrix<T>::hlupsolve(matrix<T>& B, matrix<std::size_t> I) const
 }
 
 //==========================================================================
-// [.hlmtimes]
+// [hmatrixhlmtimes]
 /// In-place hmatrix-matrix product :
 /// C -> C + Ah * B.
 template<typename T>
@@ -848,7 +848,7 @@ void hmatrix<T>::hlmtimes(matrix<T>const& B, matrix<T>& C, matrix<std::size_t> I
 }
 
 //==========================================================================
-// [.hlu]
+// [hmatrix.hlu]
 /// In-place hmatrix-hmatrix lower-upper factorization :
 /// Ah -> mtimes(Ah,Uh).
 template<typename T>
@@ -905,7 +905,7 @@ void hmatrix<T>::hlu(hmatrix<T>& Uh)
 }
 
 //==========================================================================
-// [.hrmtimes]
+// [hmatrix.hrmtimes]
 /// In-place matrix-hmatrix product :
 /// C -> C + A * Bh.
 template<typename T>
@@ -941,7 +941,7 @@ void hmatrix<T>::hrmtimes(matrix<T>const& A, matrix<T>& C, matrix<std::size_t> I
 }
 
 //==========================================================================
-// [.hrupsolve]
+// [hmatrix.hrupsolve]
 /// In-place hmatrix-hmatrix upper-triangular right resolution :
 /// Bh -> Bh * Uh^(-1).
 template<typename T>
@@ -999,7 +999,7 @@ void hmatrix<T>::hrupsolve(hmatrix<T>const& Uh)
 }
 
 //==========================================================================
-// [.hrupsolve]
+// [hmatrix.hrupsolve]
 /// In-place matrix-hmatrix upper-triangular right resolution :
 /// B -> B * Uh^(-1).
 template<typename T>
@@ -1033,7 +1033,7 @@ void hmatrix<T>::hrupsolve(matrix<T>& B, matrix<std::size_t> J) const
 }
 
 //==========================================================================
-// [.htranspose]
+// [hmatrix.htranspose]
 /// In-place hmatrix transposition :
 /// Bh -> Bh^t.
 template<typename T>
@@ -1072,7 +1072,7 @@ void hmatrix<T>::htranspose()
 }
 
 //==========================================================================
-// [.leafptr]
+// [hmatrix.leafptr]
 /// Extract leaves pointers to compute externaly leaves data.
 template<typename T>
 void hmatrix<T>::leafptr(std::vector<hmatrix<T>*>& ptr,
@@ -1097,7 +1097,7 @@ void hmatrix<T>::leafptr(std::vector<hmatrix<T>*>& ptr,
 }
 
 //==========================================================================
-// [.recompress]
+// [hmatrix.recompress]
 /// Recompression of dense and low-rank leaves with fusion.
 template<typename T>
 void hmatrix<T>::recompress(double tol)
@@ -1126,12 +1126,10 @@ void hmatrix<T>::recompress(double tol)
 }
 
 //==========================================================================
-// [.spy]
-/// Extract dense matrix representing leaves type, where M(i,j) stand for:
-///   1 for compressed leaves,
-///   2 for full leaves.
+// [hmatrix.spydata]
+/// Extract sparse matrix Sf representing full leaves and Sc compressed ones.
 template<typename T>
-void hmatrix<T>::spy(matrix<T>& M, matrix<std::size_t> I, matrix<std::size_t> J) const
+void hmatrix<T>::spydata(smatrix<logical>& Sf, smatrix<logical>& Sc, matrix<std::size_t> I, matrix<std::size_t> J) const
 {
     if (isempty(I)) {I = range(0,m_siz(0));}
     if (isempty(J)) {J = range(0,m_siz(1));}
@@ -1143,19 +1141,33 @@ void hmatrix<T>::spy(matrix<T>& M, matrix<std::size_t> I, matrix<std::size_t> J)
     {
         matrix<std::size_t> I1=range(0,numel(I)/2), I2=range(numel(I)/2,numel(I));
         matrix<std::size_t> J1=range(0,numel(J)/2), J2=range(numel(J)/2,numel(J));
-        m_chd[0].spy(M,eval(I(I1)),eval(J(J1)));
-        m_chd[1].spy(M,eval(I(I1)),eval(J(J2)));
-        m_chd[2].spy(M,eval(I(I2)),eval(J(J1)));
-        m_chd[3].spy(M,eval(I(I2)),eval(J(J2)));
+        m_chd[0].spydata(Sf,Sc,eval(I(I1)),eval(J(J1)));
+        m_chd[1].spydata(Sf,Sc,eval(I(I1)),eval(J(J2)));
+        m_chd[2].spydata(Sf,Sc,eval(I(I2)),eval(J(J1)));
+        m_chd[3].spydata(Sf,Sc,eval(I(I2)),eval(J(J2)));
     }
     else
     {
-        M(I,J) = m_typ;
+        smatrix<logical> S(m_siz(0),m_siz(1));
+        S(row(S),{0,m_siz(1)-1}) = spones<logical>(m_siz(0),2);
+        S({0,m_siz(0)-1},col(S)) = spones<logical>(2,m_siz(1));
+        if (m_typ==1)
+        {
+            Sc(I,J) = S;
+        }
+        else if (m_typ==2)
+        {
+            Sf(I,J) = S;
+        }
+        else
+        {
+            error(__FILE__, __LINE__, __FUNCTION__,"Unavailable case.");
+        }
     }
 }
 
 //==========================================================================
-// [.stat]
+// [hmatrix.stat]
 /// Extract hierarchical storage statistics, with :
 /// Leaf : #hierarchical #compressed #full
 /// Rate : #values/numel * 100
@@ -1181,7 +1193,7 @@ void hmatrix<T>::stat(matrix<std::size_t>& info) const
 }
 
 //==========================================================================
-// [.tgeabhm]
+// [hmatrix.tgeabhm]
 /// In-place hmatrix product with low-rank matrix representation :
 /// Ch -> alpha*(A*B) + beta*Ch.
 template<typename T>
@@ -1223,7 +1235,7 @@ void hmatrix<T>::tgeabhm(T alpha, matrix<T>const& A, matrix<T>const& B, T beta, 
 }
 
 //==========================================================================
-// [.tgehmhm]
+// [hmatrix.tgehmhm]
 /// In-place hmatrix product :
 /// Ch -> alpha*(Ah*Bh) + beta*Ch.
 template<typename T>
@@ -1774,22 +1786,15 @@ inline std::size_t size(hmatrix<T>const& Ah, int dim)
 }
 
 //==========================================================================
-// [spy]
-/// Spy hierarchical structure, giving dense representation of leaves type.
+// [spydata]
+/// H-matrix leaf structure in sparse matrix format, both for full and
+/// compressed leaves.
 template<typename T>
-inline matrix<T> spy(hmatrix<T>const& Ah)
+inline auto spydata(hmatrix<T>const& Ah)
 {
-    if (size(Ah,1)*size(Ah,2)>1e7)
-    {
-        warning(__FILE__, __LINE__, __FUNCTION__,"H-matrix is too large to be spied on.");
-        return 0;
-    }
-    else
-    {
-        matrix<T> A(size(Ah,1),size(Ah,2));
-        Ah.spy(A);
-        return A;
-    }
+    smatrix<logical> Sf(size(Ah,1),size(Ah,2)), Sc(size(Ah,1),size(Ah,2));
+    Ah.spydata(Sf,Sc);
+    return std::make_tuple(Sf,Sc);
 }
 
 //==========================================================================
