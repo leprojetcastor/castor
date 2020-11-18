@@ -118,7 +118,7 @@ Boundary element computation using le projet castor. Simulation of acoustic scat
    :maxdepth: 1
    :hidden:
 
-   bembuilder
+   fembem
    analyticalscattering
 
 .. toctree::
