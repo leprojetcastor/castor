@@ -1307,7 +1307,7 @@ inline auto operator+(matrix<R>const& A, S B) {return A+matrix<S>(B);}
 template<typename S>
 auto operator-(matrix<S>const& A)
 {
-    using T = decltype(-A(0));
+    using T = decltype(-1*A(0));
     matrix<T> B(size(A,1),size(A,2));
     for (std::size_t l=0; l<numel(B); ++l) {B(l) = -A(l);}
     return B;
@@ -3792,7 +3792,7 @@ template<typename T=double, typename U, typename V>
 matrix<T> logspace(U x1, V x2, std::size_t n=50)
 {
     matrix<T> A = linspace<T>(x1,x2,n);
-    for (std::size_t l=0; l<numel(A); ++l) {A(l) = pow(10,A(l));}
+    for (std::size_t l=0; l<numel(A); ++l) {A(l) = std::pow(10,A(l));}
     return A;
 }
 
