@@ -18,6 +18,7 @@
 #define CASTOR_GRAPHICS_HPP
 
 #include <castor/matrix.hpp>
+#include <castor/smatrix.hpp>
 
 #include <vtkArrowSource.h>
 #include <vtkAxesActor.h>
@@ -1070,7 +1071,7 @@ void mesh(figure& fig, matrix<T>const& M, std::string options="")
 ///     drawnow(fig);
 /// \endcode
 ///
-// \see plot3
+// \see plot3, spy.
 template<typename T>
 inline void plot(figure& fig, matrix<T>const& X, matrix<T>const&Y, std::vector<std::string>const& style={""},
                  std::vector<std::string>const& label={""})
@@ -1113,6 +1114,31 @@ template<typename T>
 inline void quiver(figure& fig, matrix<T>const& vtx, matrix<T>const& dir, matrix<T>const& val={})
 {
     fig.quiver(vtx,dir,val);
+}
+
+//==========================================================================
+// [spy]
+/// Spy sparse matrix non-zeros values.
+///
+/// \code{.cpp}
+///     smatrix<> Ms = speye(10);
+///     figure fig;
+///     spy(Ms,"b","Ms");
+///     drawnow(fig);
+/// \endcode
+///
+// \see plot.
+template<typename T>
+inline void spy(figure& fig, smatrix<T>const& Ms, std::string const& style="", std::string const& label="")
+{
+    matrix<long> X, Y;
+    long m=size(Ms,1)-1, n=size(Ms,2)-1;
+    X = {0,n,n,0,0};
+    Y = {0,0,-m,-m,0};
+    fig.plot(X,Y,{"-k"},{""});
+    matrix<T> V;
+    std::tie(Y,X,V) = find(Ms);
+    fig.plot(X,-Y,{style},{label+" (nnz="+std::to_string(nnz(Ms))+")"});
 }
 
 //==========================================================================

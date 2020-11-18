@@ -704,7 +704,7 @@ sview<T> smatrix<T>::operator()(matrix<std::size_t>const& I, matrix<std::size_t>
 //                           INTERNAL TOOLS                                 //
 //==========================================================================//
 //==========================================================================
-// [matrix.check]
+// [smatrix.check]
 /// check(As) removes all zeros values and associated indices and verify if
 /// linear indices are well sorted in ascending order.
 ///
@@ -743,7 +743,7 @@ void smatrix<T>::check()
 }
 
 //==========================================================================
-// [matrix.clear]
+// [smatrix.clear]
 /// Removes all values of sparse matrix A and fix size to 0x0.\n
 /// Clear should be used to free memory without deleting matrix object.
 /// 

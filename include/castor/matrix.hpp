@@ -4739,10 +4739,10 @@ matrix<T> reshape(matrix<T>const& A, std::size_t m, std::size_t n)
 ///
 // \see reshape.
 template<typename T>
-matrix<T> resize(matrix<T>const& A, std::size_t m, std::size_t n, T V=(T)NAN)
+matrix<T> resize(matrix<T>const& A, std::size_t m, std::size_t n, T v=(T)NAN)
 {
     matrix<T> B = A;
-    B.resize(m,n);
+    B.resize(m,n,v);
     return B;
 }
 

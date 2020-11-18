@@ -22,7 +22,7 @@
 #include <cblas.h>
 #endif
 
-namespace castor 
+namespace castor
 {
 
 //==========================================================================//

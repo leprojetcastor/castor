@@ -14,6 +14,7 @@
  */
 
 #include "castor/matrix.hpp"
+#include "castor/smatrix.hpp"
 #include "castor/graphics.hpp"
 
 using namespace castor;
@@ -67,6 +68,15 @@ int main (int argc, char* argv[])
     M = reshape(M,5,20);
     figure fig3;
     imagesc(fig3,M);
+    
+    //===============================================================
+    std::cout << "+=======================+" << std::endl;
+    std::cout << "|          SPY          |" << std::endl;
+    std::cout << "+=======================+" << std::endl;
+
+    smatrix<> Ms = speye(10,15);
+    figure fig31;
+    spy(fig31,Ms,"b","Ms");
 
     //===============================================================
     std::cout << "+=======================+" << std::endl;
@@ -82,8 +92,7 @@ int main (int argc, char* argv[])
     figure fig5;
     caxis(fig5,{-1,1});
     mesh(fig5,X,Y,Z);
-    mesh(fig5,X,Y,-Z);
-    
+    mesh(fig5,X,Y,-Z);    
 
     //===============================================================
     std::cout << "+=======================+" << std::endl;
