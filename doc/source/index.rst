@@ -13,7 +13,7 @@ The **castor** library provides tools to :
 
 These tools are used by applicative projects : 
 
-- boundary element method using Galerkin approximation
+- finite and boundary element method using Galerkin approximation
 - analytical solutions for scattering problems 
 
 The source files of the library is available here : `<https://gitlab.labos.polytechnique.fr/leprojetcastor/castor>`_.

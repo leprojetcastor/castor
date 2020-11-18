@@ -3,4 +3,4 @@
 Bembuilder 
 ==========
 
-`Repository <https://gitlab.labos.polytechnique.fr/aussal/bembuilder>`_
+The project can be found here : `<ihttps://gitlab.labos.polytechnique.fr/leprojetcastor/fembem>`_.
