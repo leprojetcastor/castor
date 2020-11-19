@@ -97,6 +97,17 @@ int main(int argc, const char * argv[])
     sol = reshape(idft(dft(A)),size(A,1),size(A,2));
     disp( norm(ref-sol,"inf") / norm(ref,"inf") );
     
+    disp("+==================+");
+    disp("|    CONVOLUTION   |");
+    disp("+==================+");
+    
+    disp(conv(ones(2,2),ones(2,1)));
+    disp(fftconv(ones(2,2),ones(2,1)));
+    disp(conv(ones(4,3),eye(3,3),1));
+    disp(fftconv(ones(4,3),eye(3,3),1));
+    disp(conv(ones(3,3),eye(3,2),2));
+    disp(fftconv(ones(3,3),eye(3,2),2));
+    
     disp("+===============+");
     disp("|     PERFO     |");
     disp("+===============+");

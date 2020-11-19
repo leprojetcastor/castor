@@ -1027,10 +1027,19 @@ class ckiss : public kiss_fft_cpx
 {
 public:
     ckiss() {r=0; i=0;};
-    ckiss(float v, float w=0) {r=v; i=w;};
-    ckiss(std::complex<float> v) {r=v.real(); i=v.imag();};
-    operator std::complex<float>() const {return std::complex<float>(r,i);};
-    ckiss& operator*=(ckiss const& c) {float t=r; r=r*c.r-i*c.i; i=t*c.i+i*c.r; return (*this);}
+    template<typename S>
+    ckiss(S v, S w=0) {r=v; i=w;};
+    template<typename S>
+    ckiss(std::complex<S> v) {r=v.real(); i=v.imag();};
+    template<typename S>
+    operator std::complex<S>() const {return std::complex<S>(r,i);};
+    ckiss& operator*=(ckiss const& c)
+    {
+        float t = r;
+        r=r*c.r - i*c.i;
+        i=t*c.i + i*c.r;
+        return (*this);
+    }
 };
 std::ostream& operator<<(std::ostream& flux, ckiss const& c)
 {
@@ -1039,92 +1048,6 @@ std::ostream& operator<<(std::ostream& flux, ckiss const& c)
 inline void disp(matrix<ckiss>const& A, int info=2, std::ostream& flux=std::cout, std::size_t m=3, std::size_t n=3)
 {
     disp<std::complex<float>>(A,info,flux,m,n);
-}
-
-//==========================================================================
-// [dft]
-/// Discrete Fourier Transform of an array.
-///
-/// Y = dft(X) computes the discrete Fourier transform (DFT) of all the
-/// N values of array X using a naive algorithm :
-///
-/// Y(k) = sum_{n=0}^(N-1) e^{-2i\pi*k * n/N} X(n).
-///
-/// Y = dft(X,n) returns the n-point DFT. If no value is specified, Y is the
-/// dft of all values of X, in linear indexing.
-///
-/// Y = dft(X,n,dim) returns the Fourier transform along the dimension dim.
-/// For example, if X is a matrix, then dft(X,n,2) returns the n-point Fourier
-/// transform of each row.
-///
-/// Y = dft(X,n,dim,flag) specify is inverse fft is computed.
-///
-/// \code{.cpp}
-///    matrix<float> X = eye(1,4);
-///    auto Y = fft(X);
-///    disp(Y);
-/// \endcode
-///
-// \see fft, idft.
-template<typename S>
-auto dft(matrix<S>const& X, std::size_t n=0, int dim=0, bool isinverse=false)
-{
-    using T = std::complex<decltype(std::abs(X(0)))>;
-    if ((dim<0) || (dim>2))
-    {
-        error(__FILE__, __LINE__, __FUNCTION__,"Dimension argument must be 0 for all, 1 for rows or 2 for columns.");
-    }
-    if (n==0) {n = X.size(dim);}
-    matrix<T> Y;
-    if (dim==0)
-    {
-        Y = zeros<T>(1,n);
-        T arg(0,-2*M_PI/n);
-        if (isinverse) {arg *= -1;}
-        for (std::size_t k=0; k<numel(Y); ++k)
-        {
-            for (std::size_t l=0; l<std::min(n,numel(X)); ++l)
-            {
-                Y(k) += std::exp(arg*(T)(k*l)) * X(l);
-            }
-            if (isinverse) {Y(k) /= n;}
-        }
-    }
-    else if (dim==1)
-    {
-        Y = zeros<T>(n,size(X,2));
-        T arg(0,-2*M_PI/n);
-        if (isinverse) {arg *= -1;}
-        for (std::size_t i=0; i<size(Y,1); ++i)
-        {
-            for (std::size_t j=0; j<size(Y,2); ++j)
-            {
-                for (std::size_t l=0; l<std::min(n,size(X,1)); ++l)
-                {
-                    Y(i,j) += std::exp(arg*(T)(i*l)) * X(l,j);
-                }
-                if (isinverse) {Y(i,j) /= n;}
-            }
-        }
-    }
-    else if (dim==2)
-    {
-        Y = zeros<T>(size(X,1),n);
-        T arg(0,-2*M_PI/n);
-        if (isinverse) {arg *= -1;}
-        for (std::size_t i=0; i<size(Y,1); ++i)
-        {
-            for (std::size_t j=0; j<size(Y,2); ++j)
-            {
-                for (std::size_t l=0; l<std::min(n,size(X,1)); ++l)
-                {
-                    Y(i,j) += std::exp(arg*(T)(j*l)) * X(i,l);
-                }
-                if (isinverse) {Y(i,j) /= n;}
-            }
-        }
-    }
-    return Y;
 }
 
 //==========================================================================
@@ -1201,32 +1124,48 @@ matrix<std::complex<float>> fft(matrix<ckiss> Xc, std::size_t n=0, int dim=0, bo
 }
 
 //==========================================================================
-// [idft]
-/// Inverse Discrete Fourier Transform of an array.
+// [fftconv]
+/// Convolution product and polynomial multiplication using FFT.
 ///
-/// Y = idft(X) computes the inverse discrete Fourier transform (IDFT) of
-/// all the N values of array X using a naive algorithm :
+/// C = fftconv(A,B) convolves array A and B using Fast Fourier Transform
+/// that guarantee efficient execution. The resulting array is vector
+/// of length NUMEL(A)+NUMEL(B)-1. If A and B are vectors of polynomial
+/// coefficients, convolving them is equivalent to multiplying the two
+/// polynomials.
 ///
-/// Y(n) = 1/N sum_{k=0}^(N-1) e^{2i\pi*n * k/N} X(k).
-///
-/// Y = idft(X,n) returns the n-point IDFT. If no value is specified, Y is the
-/// idft of all values of X, in linear indexing.
-///
-/// Y = idft(X,n,dim) returns the Inverse Fourier transform along the dimension dim.
-/// For example, if X is a matrix, then idft(X,n,2) returns the n-point Fourier
-/// transform of each row.
+/// C = fftconv(A,B,DIM) convolve along dimension DIM if A and B have
+/// compatible size.
 ///
 /// \code{.cpp}
-///    matrix<float> X = eye(1,4);
-///    auto Y = idft(X);
-///    disp(Y);
+///    matrix<float> A = eye(3,4);
+///    matrix<float> B = rand(3,10);
+///    disp(fftconv(A,B,2);
 /// \endcode
 ///
-// \see ifft, dft.
+// \see conv, fft.
 template<typename S>
-inline auto idft(matrix<S>const& X, std::size_t n=0, int dim=0)
+auto fftconv(matrix<S>const& A, matrix<S>const& B, int dim=0)
 {
-    return dft(X, n, dim, true);
+    using T = std::complex<decltype(std::abs(A(0)))>;
+    std::size_t n = A.size(dim) + B.size(dim)-1;
+    std::size_t nfft = std::pow(2,(std::size_t)std::log2(n)+1);
+    auto Af = fft(A,nfft,dim);
+    auto Bf = fft(B,nfft,dim);
+    Af *= Bf;
+    matrix<T> C = ifft(Af,0,dim);
+    if (dim==0)
+    {
+        C = eval(C(range(0,n)));
+    }
+    else if (dim==1)
+    {
+        C = eval(C(range(0,n),col(C)));
+    }
+    else if (dim==2)
+    {
+        C = eval(C(row(C),range(0,n)));
+    }
+    return C;
 }
 
 //==========================================================================
