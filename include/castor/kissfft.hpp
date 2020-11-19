@@ -1026,13 +1026,12 @@ namespace castor
 class ckiss : public kiss_fft_cpx
 {
 public:
-    ckiss() {r=0; i=0;};
-    template<typename S>
-    ckiss(S v, S w=0) {r=v; i=w;};
-    template<typename S>
-    ckiss(std::complex<S> v) {r=v.real(); i=v.imag();};
-    template<typename S>
-    operator std::complex<S>() const {return std::complex<S>(r,i);};
+    ckiss()                               {r=0; i=0;};
+    ckiss(float v, float w=0)             {r=v; i=w;};
+    ckiss(std::complex<float> v)          {r=v.real(); i=v.imag();};
+    ckiss(std::complex<double> v)         {r=v.real(); i=v.imag();};
+    operator std::complex<float>()  const {return std::complex<float>(r,i);};
+    operator std::complex<double>() const {return std::complex<double>(r,i);};
     ckiss& operator*=(ckiss const& c)
     {
         float t = r;

@@ -107,6 +107,7 @@ int main(int argc, const char * argv[])
     disp(fftconv(ones(4,3),eye(3,3),1));
     disp(conv(ones(3,3),eye(3,2),2));
     disp(fftconv(ones(3,3),eye(3,2),2));
+    disp(fft(M_1I*ones(3)));
     
     disp("+===============+");
     disp("|     PERFO     |");
