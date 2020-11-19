@@ -60,11 +60,6 @@ static std::vector<std::string> documentationFiles =
 static auto ticTimer = std::chrono::high_resolution_clock::now();
 
 using logical = std::uint8_t;
-std::ostream& operator<<(std::ostream& flux, logical const& l)
-{
-    flux << (int)l;
-    return flux;
-}
 
 template<typename T>
 class view;
@@ -3014,7 +3009,7 @@ void disp(matrix<T>const& A, int info, std::ostream& flux, std::size_t r, std::s
                 // Logical
                 if (std::is_same<T,logical>::value)
                 {
-                    flux << B(i,j) << "  ";
+                    flux << (int)std::abs<int>(B(i,j)) << "  ";
                 }
                 // Integral (int, long, size_t, etc.)
                 else if (std::is_integral<T>::value)
