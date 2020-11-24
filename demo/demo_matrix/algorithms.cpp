@@ -346,6 +346,17 @@ int main (int argc, char* argv[])
     C = gmres(A,B,1e-3,10,Am1,C);
     disp( norm(mtimes(A,C)-B,"inf") );
     
+    disp("+--------------------+");
+    disp("|     CONVOLUTION    |");
+    disp("+--------------------+");
+    disp(conv(ones(3,4),eye(3),2));
+    
+    disp("+--------------------------+");
+    disp("|     FOURIER TRANSFORM    |");
+    disp("+--------------------------+");
+    disp(dft(eye(1,3)));
+    disp(real(idft(ones<std::complex<double>>(1,3))));
+    
     
     disp("done !");
     return 0;

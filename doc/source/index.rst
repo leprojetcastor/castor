@@ -13,8 +13,12 @@ The **castor** library provides tools to :
 
 These tools are used by applicative projects : 
 
-- boundary element method using Galerkin approximation
+- finite and boundary element method using Galerkin approximation
 - analytical solutions for scattering problems 
+
+The source files of the library is available here : `<https://gitlab.labos.polytechnique.fr/leprojetcastor/castor>`_.
+
+As the semantics offered by **castor** library being voluntarily close to the Matlab environment, there are functions signature and their documentation inspired by it. You can refer to https://fr.mathworks.com/help/matlab/index.html.
 
 Licensing
 ---------
@@ -35,6 +39,7 @@ Boundary element computation using le projet castor. Simulation of acoustic scat
 .. toctree::
    :caption: Installation
    :maxdepth: 1
+   :hidden:
 
    installation
 
@@ -43,6 +48,7 @@ Boundary element computation using le projet castor. Simulation of acoustic scat
 .. toctree::
    :caption: User guide
    :maxdepth: 1
+   :hidden:
 
    getting_started
    basics
@@ -54,6 +60,7 @@ Boundary element computation using le projet castor. Simulation of acoustic scat
 .. toctree::
    :caption: Dense matrix
    :maxdepth: 1
+   :hidden:
 
    class_matrix
    class_view_cview
@@ -70,6 +77,7 @@ Boundary element computation using le projet castor. Simulation of acoustic scat
 .. toctree::
    :caption: Linear algebra
    :maxdepth: 1
+   :hidden:
 
    factorization
    linear_solver
@@ -79,6 +87,7 @@ Boundary element computation using le projet castor. Simulation of acoustic scat
 .. toctree::
    :caption: Graphical rendering
    :maxdepth: 1
+   :hidden:
 
    class_figure
    basic_plot
@@ -90,6 +99,7 @@ Boundary element computation using le projet castor. Simulation of acoustic scat
 .. toctree::
    :caption: Sparse matrix
    :maxdepth: 1
+   :hidden:
 
    class_smatrix
    api_smatrix 
@@ -97,6 +107,7 @@ Boundary element computation using le projet castor. Simulation of acoustic scat
 .. toctree::
    :caption: Hierarchical matrix
    :maxdepth: 1
+   :hidden:
 
    class_hmatrix
    class_bintree
@@ -105,14 +116,15 @@ Boundary element computation using le projet castor. Simulation of acoustic scat
 .. toctree::
    :caption: Applications
    :maxdepth: 1
+   :hidden:
 
-   bembuilder
+   fembem
    analyticalscattering
 
 .. toctree::
    :caption: Contacts
    :maxdepth: 1
+   :hidden:
  
    developpers
 
-As the semantics offered by matrix being voluntarily close to the Matlab environment, the function definitions presented here, as well as their documentation, are inspired by it (https://fr.mathworks.com/help/matlab/index.html).

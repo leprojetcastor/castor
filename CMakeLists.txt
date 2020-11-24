@@ -19,6 +19,11 @@ target_include_directories(hmatrix INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
+add_library(kissfft INTERFACE)
+target_include_directories(kissfft INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+
 find_package(LAPACK)
 if(LAPACK_FOUND)
   message(STATUS "BLAS_LIBRARIES : " ${BLAS_LIBRARIES})
@@ -60,6 +65,7 @@ add_subdirectory(demo)
 include(GNUInstallDirs)
 install(FILES  ${CMAKE_CURRENT_SOURCE_DIR}/include/castor/matrix.hpp DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/castor)
 install(FILES  ${CMAKE_CURRENT_SOURCE_DIR}/include/castor/smatrix.hpp DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/castor)
+install(FILES  ${CMAKE_CURRENT_SOURCE_DIR}/include/castor/kissfft.hpp DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/castor)
 if(LAPACK_FOUND)
   install(FILES  ${CMAKE_CURRENT_SOURCE_DIR}/include/castor/linalg.hpp DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/castor)
   install(FILES  ${CMAKE_CURRENT_SOURCE_DIR}/include/castor/hmatrix.hpp DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/castor)

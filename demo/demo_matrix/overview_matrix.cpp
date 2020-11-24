@@ -452,7 +452,10 @@ int main (int argc, char* argv[])
     disp(setdiff(eye(3),zeros(4)));
     disp(union2(eye(3),zeros(4)));
     disp(gmres(eye(3),ones(3,2)));
-
+    disp(conv(ones(3,4),eye(3),2));
+    disp(dft(eye(1,3)));
+    disp(idft(ones<std::complex<double>>(1,3)));
+    
     // =============================================================== FUNCTIONS
     std::cout << "+================================+" << std::endl;
     std::cout << "|     MATHEMATICAL FUNCTIONS     |" << std::endl;

@@ -1307,7 +1307,7 @@ inline auto operator+(matrix<R>const& A, S B) {return A+matrix<S>(B);}
 template<typename S>
 auto operator-(matrix<S>const& A)
 {
-    using T = decltype(-1*A(0));
+    using T = decltype(-A(0));
     matrix<T> B(size(A,1),size(A,2));
     for (std::size_t l=0; l<numel(B); ++l) {B(l) = -A(l);}
     return B;
@@ -2350,6 +2350,84 @@ inline matrix<float> conj(matrix<float>const& A) {return A;}
 inline matrix<double> conj(matrix<double>const& A) {return A;}
 
 //==========================================================================
+// [conv]
+/// Convolution product and polynomial multiplication.
+///
+/// C = conv(A,B) convolves array A and B. The resulting array is vector
+/// of length NUMEL(A)+NUMEL(B)-1. If A and B are vectors of polynomial
+/// coefficients, convolving them is equivalent to multiplying the two
+/// polynomials.
+///
+/// C = conv(A,B,DIM) convolve along dimension DIM if A and B have
+/// compatible size.
+///
+/// \code{.cpp}
+///    matrix<float> A = eye(3,4);
+///    matrix<float> B = rand(3,10);
+///    disp(conv(A,B,2));
+/// \endcode
+///
+// \see fftconv.
+template<typename T>
+matrix<T> conv(matrix<T>const& A, matrix<T>const& B, int dim=0)
+{
+    matrix<T> C;
+    if (dim==0)
+    {
+        C = matrix<T>(1,numel(A)+numel(B)-1);
+        for (std::size_t i=0; i<numel(A); ++i)
+        {
+            for (std::size_t j=0; j<numel(B); ++j)
+            {
+                C(i+j) += A(i)*B(j);
+            }
+        }
+    }
+    else if (dim==1)
+    {
+        if (size(A,2)!=size(B,2))
+        {
+            error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+        }
+        C = matrix<T>(size(A,1)+size(B,1)-1,size(A,2));
+        for (std::size_t i=0; i<size(A,1); ++i)
+        {
+            for (std::size_t j=0; j<size(B,1); ++j)
+            {
+                for (std::size_t k=0; k<size(A,2); ++k)
+                {
+                    
+                    C(i+j,k) += A(i,k)*B(j,k);
+                }
+            }
+        }
+    }
+    else if (dim==2)
+    {
+        if (size(A,1)!=size(B,1))
+        {
+            error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+        }
+        C = matrix<T>(size(A,1),size(A,2)+size(B,2)-1);
+        for (std::size_t k=0; k<size(A,1); ++k)
+        {
+            for (std::size_t i=0; i<size(A,2); ++i)
+            {
+                for (std::size_t j=0; j<size(B,2); ++j)
+                {
+                    C(k,i+j) += A(k,i)*B(k,j);
+                }
+            }
+        }
+    }
+    else
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Dimension argument must be 0 for all, 1 for rows or 2 for columns.");
+    }
+    return C;
+}
+
+//==========================================================================
 // [cos]
 /// Cosine of argument in radians.
 ///
@@ -2595,6 +2673,91 @@ template<typename T>
 auto deg2rad(T x)
 {
     return x*M_PI/180;
+}
+
+//==========================================================================
+// [dft]
+/// Discrete Fourier Transform of an array.
+///
+/// Y = dft(X) computes the discrete Fourier transform (DFT) of all the
+/// N values of array X using a naive algorithm :
+///
+/// Y(k) = sum_{n=0}^(N-1) e^{-2i\pi*k * n/N} X(n).
+///
+/// Y = dft(X,n) returns the n-point DFT. If no value is specified, Y is the
+/// dft of all values of X, in linear indexing.
+///
+/// Y = dft(X,n,dim) returns the Fourier transform along the dimension dim.
+/// For example, if X is a matrix, then dft(X,n,2) returns the n-point Fourier
+/// transform of each row.
+///
+/// Y = dft(X,n,dim,flag) specify is inverse fft is computed.
+///
+/// \code{.cpp}
+///    matrix<float> X = eye(1,4);
+///    disp(fft(X));
+/// \endcode
+///
+// \see idft, fft.
+template<typename S>
+auto dft(matrix<S>const& X, std::size_t n=0, int dim=0, bool isinverse=false)
+{
+    using T = std::complex<decltype(std::abs(X(0)))>;
+    if ((dim<0) || (dim>2))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Dimension argument must be 0 for all, 1 for rows or 2 for columns.");
+    }
+    if (n==0) {n = X.size(dim);}
+    matrix<T> Y;
+    if (dim==0)
+    {
+        Y = matrix<T>(1,n);
+        T arg(0,-2*M_PI/n);
+        if (isinverse) {arg *= -1;}
+        for (std::size_t k=0; k<numel(Y); ++k)
+        {
+            for (std::size_t l=0; l<std::min(n,numel(X)); ++l)
+            {
+                Y(k) += std::exp(arg*(T)(k*l)) * X(l);
+            }
+            if (isinverse) {Y(k) /= n;}
+        }
+    }
+    else if (dim==1)
+    {
+        Y = matrix<T>(n,size(X,2));
+        T arg(0,-2*M_PI/n);
+        if (isinverse) {arg *= -1;}
+        for (std::size_t i=0; i<size(Y,1); ++i)
+        {
+            for (std::size_t j=0; j<size(Y,2); ++j)
+            {
+                for (std::size_t l=0; l<std::min(n,size(X,1)); ++l)
+                {
+                    Y(i,j) += std::exp(arg*(T)(i*l)) * X(l,j);
+                }
+                if (isinverse) {Y(i,j) /= n;}
+            }
+        }
+    }
+    else if (dim==2)
+    {
+        Y = matrix<T>(size(X,1),n);
+        T arg(0,-2*M_PI/n);
+        if (isinverse) {arg *= -1;}
+        for (std::size_t i=0; i<size(Y,1); ++i)
+        {
+            for (std::size_t j=0; j<size(Y,2); ++j)
+            {
+                for (std::size_t l=0; l<std::min(n,size(X,2)); ++l)
+                {
+                    Y(i,j) += std::exp(arg*(T)(j*l)) * X(i,l);
+                }
+                if (isinverse) {Y(i,j) /= n;}
+            }
+        }
+    }
+    return Y;
 }
 
 //==========================================================================
@@ -3347,6 +3510,34 @@ inline void help(std::string name, std::vector<std::string> filename)
 // \see vertcat, cat.
 template<typename R, typename S>
 inline auto horzcat(R const& A, S const& B) {return cat(2,A,B);}
+
+//==========================================================================
+// [idft]
+/// Inverse Discrete Fourier Transform of an array.
+///
+/// Y = idft(X) computes the inverse discrete Fourier transform (IDFT) of
+/// all the N values of array X using a naive algorithm :
+///
+/// Y(n) = 1/N sum_{k=0}^(N-1) e^{2i\pi*n * k/N} X(k).
+///
+/// Y = idft(X,n) returns the n-point IDFT. If no value is specified, Y is the
+/// idft of all values of X, in linear indexing.
+///
+/// Y = idft(X,n,dim) returns the Inverse Fourier transform along the dimension dim.
+/// For example, if X is a matrix, then idft(X,n,2) returns the n-point Fourier
+/// transform of each row.
+///
+/// \code{.cpp}
+///    matrix<float> X = eye(1,4);
+///    disp(idft(X));
+/// \endcode
+///
+// \see dft, ifft.
+template<typename S>
+inline auto idft(matrix<S>const& X, std::size_t n=0, int dim=0)
+{
+    return dft(X, n, dim, true);
+}
 
 //==========================================================================
 // [idx2sph]
@@ -4739,10 +4930,10 @@ matrix<T> reshape(matrix<T>const& A, std::size_t m, std::size_t n)
 ///
 // \see reshape.
 template<typename T>
-matrix<T> resize(matrix<T>const& A, std::size_t m, std::size_t n, T V=(T)NAN)
+matrix<T> resize(matrix<T>const& A, std::size_t m, std::size_t n, T v=(T)NAN)
 {
     matrix<T> B = A;
-    B.resize(m,n);
+    B.resize(m,n,v);
     return B;
 }
 

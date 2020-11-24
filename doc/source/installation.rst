@@ -10,7 +10,7 @@ For a complete installation integrating check dependencies and examples compilat
 From git repository with CMake
 ++++++++++++++++++++++++++++++
 
-You can install the **castor** library from source with ``CMake``.
+You can install the **castor** library from source with ``CMake``. The source files of the library is available here `<https://gitlab.labos.polytechnique.fr/leprojetcastor/castor>`_.
 
 On Linux and macOS platforms :
 
