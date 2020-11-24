@@ -56,6 +56,7 @@ Boundary element computation using le projet castor. Simulation of acoustic scat
    linalg
    graphics
    sparse_matrix 
+   kissfft
 
 .. toctree::
    :caption: Dense matrix
