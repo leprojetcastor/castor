@@ -159,6 +159,10 @@ void zungqr_(int *M, int *N, int *K, zlpk *A, int *LDA, zlpk *TAU, zlpk *WORK, i
 // C/ZGEEV
 void cgeev_(char *JOBVL, char *JOBVR, int *N, clpk *A, int *LDA, clpk *W, clpk *VL, int *LDVL, clpk *VR, int *LDVR, clpk *WORK, int *LWORK, float *RWORK, int *INFO);
 void zgeev_(char *JOBVL, char *JOBVR, int *N, zlpk *A, int *LDA, zlpk *W, zlpk *VL, int *LDVL, zlpk *VR, int *LDVR, zlpk *WORK, int *LWORK, double *RWORK, int *INFO);
+
+// S/D/C/ZGGEV
+void cggev_(char *JOBVL, char *JOBVR, int *N, clpk *A, int *LDA, clpk *B, int *LDB, clpk *ALPHA, clpk *BETA, clpk *VL, int *LDVL, clpk *VR, int *LDVR, clpk *WORK, int *LWORK, float *RWORK, int *INFO);
+void zggev_(char *JOBVL, char *JOBVR, int *N, zlpk *A, int *LDA, zlpk *B, int *LDB, zlpk *ALPHA, zlpk *BETA, zlpk *VL, int *LDVL, zlpk *VR, int *LDVR, zlpk *WORK, int *LWORK, double *RWORK, int *INFO);
 }
 
 //==========================================================================
@@ -268,6 +272,61 @@ void tgeev(std::string typ, int& n, std::vector<T>& A, std::vector<T>& E, std::v
     {
         warning(__FILE__, __LINE__, __FUNCTION__,
                 "The QR algorithm failed to compute all the eigenvalues, and no eigenvectors have been computed.");
+    }
+}
+
+// [tgeev]
+/// Generalized eigenvalues and the left and/or right eigenvectors.
+///
+/// TGEEV computes for an N-by-N nonsymmetric matrix A of type T, the
+/// eigenvalues and, optionally, the left and/or right eigenvectors.
+void xggev(char &jobl, char &jobr, int &n, std::vector<clpk> &A, std::vector<clpk> &B, std::vector<clpk> &alpha, std::vector<clpk> &beta, std::vector<clpk> &V, clpk &wkopt, int &lwork, int &info)
+{
+    std::vector<float> rwork(2*n);
+    cggev_(&jobl, &jobr, &n, &A[0], &n, &B[0], &n, &alpha[0], &beta[0], &V[0], &n, &V[0], &n, &wkopt, &lwork, &rwork[0], &info); // fetch workspace size
+    lwork = static_cast<int>(wkopt.r);
+    std::vector<clpk> work(lwork);
+    cggev_(&jobl, &jobr, &n, &A[0], &n, &B[0], &n, &alpha[0], &beta[0], &V[0], &n, &V[0], &n, &work[0], &lwork, &rwork[0], &info); // perform computation
+}
+void xggev(char &jobl, char &jobr, int &n, std::vector<zlpk> &A, std::vector<zlpk> &B, std::vector<zlpk> &alpha, std::vector<zlpk> &beta, std::vector<zlpk> &V, zlpk &wkopt, int &lwork, int &info)
+{
+    std::vector<double> rwork(2*n);
+    zggev_(&jobl, &jobr, &n, &A[0], &n, &B[0], &n, &alpha[0], &beta[0], &V[0], &n, &V[0], &n, &wkopt, &lwork, &rwork[0], &info); // fetch workspace size
+    lwork = static_cast<int>(wkopt.r);
+    std::vector<zlpk> work(lwork);
+    zggev_(&jobl, &jobr, &n, &A[0], &n, &B[0], &n, &alpha[0], &beta[0], &V[0], &n, &V[0], &n, &work[0], &lwork, &rwork[0], &info); // perform computation
+}
+template<typename T>
+void tggev(std::string typ, int &n, std::vector<T> &A, std::vector<T> &B, std::vector<T> &E, std::vector<T> &V)
+{
+    if(A.size() != n*n)
+    {
+        error(__FILE__, __LINE__, __FUNCTION__, "Matrix A must be square.");
+    }
+    if(B.size() != n*n)
+    {
+        error(__FILE__, __LINE__, __FUNCTION__, "Matrix B must have the same size as A.");
+    }
+    char jobl = 'N';
+    char jobr = 'N';
+    if(typ == "none") {}
+    else if(typ == "left") {jobl = 'V'; V.resize(n*n);}
+    else if(typ == "right"){jobr = 'V'; V.resize(n*n);}
+    else
+    {
+        error(__FILE__, __LINE__, __FUNCTION__, "Unknown eig type, only use \"none\", \"left\" or \"right\" for 2nd argument.");
+    }
+    int lwork = -1;
+    int info  = 0;
+    T wkopt;
+    std::vector<T> alpha(n), beta(n);
+    xggev(jobl, jobr, n, A, B, alpha, beta, V, wkopt, lwork, info);
+    if(info < 0)
+    {
+        warning(__FILE__,__LINE__,__FUNCTION__,"Matrix argument(s) had illegal value(s).");
+    }else if(info > 0)
+    {
+        warning(__FILE__,__LINE__,__FUNCTION__,"The algorithm failed to compute the eigenvalues.");
     }
 }
 
