@@ -275,7 +275,7 @@ void tgeev(std::string typ, int& n, std::vector<T>& A, std::vector<T>& E, std::v
     }
 }
 
-// [tgeev]
+// [tggev]
 /// Generalized eigenvalues and the left and/or right eigenvectors.
 ///
 /// TGEEV computes for an N-by-N nonsymmetric matrix A of type T, the
@@ -321,6 +321,13 @@ void tggev(std::string typ, int &n, std::vector<T> &A, std::vector<T> &B, std::v
     T wkopt;
     std::vector<T> alpha(n), beta(n);
     xggev(jobl, jobr, n, A, B, alpha, beta, V, wkopt, lwork, info);
+    // compute the eigenvalues
+    for(std::size_t ii=0; ii<n; ++ii)
+    {
+        auto den = beta[ii].r*beta[ii].r   + beta[ii].i*beta[ii].i;
+        E[ii].r  = (alpha[ii].r*beta[ii].r + alpha[ii].i*beta[ii].i)/den;
+        E[ii].i  = (beta[ii].r*alpha[ii].i - alpha[ii].r*beta[ii].i)/den;
+    }
     if(info < 0)
     {
         warning(__FILE__,__LINE__,__FUNCTION__,"Matrix argument(s) had illegal value(s).");
@@ -867,11 +874,62 @@ auto eig(matrix<std::complex<double>>const& A, std::string typ)
     if (Vlpk.size()>0) {V = lpk2mat<std::complex<double>>(Vlpk,n,n);}
     return std::make_tuple(E,V);
 }
+auto eig(matrix<float> &A, matrix<float> &B, std::string typ)
+{
+    int n = (int)size(A,1);
+    std::vector<clpk> Alpk = mat2lpk<clpk>(A,numel(A));
+    std::vector<clpk> Blpk = mat2lpk<clpk>(B,numel(B));
+    std::vector<clpk> Elpk(n), Vlpk;
+    tggev(typ, n, Alpk, Blpk, Elpk, Vlpk);
+    matrix<std::complex<float>> E=Elpk, V;
+    if (Vlpk.size()>0) {V = lpk2mat<std::complex<float>>(Vlpk,n,n);}
+    return std::make_tuple(real(E),real(V));
+}
+auto eig(matrix<double> &A, matrix<double> &B, std::string typ)
+{
+    int n = (int)size(A,1);
+    std::vector<zlpk> Alpk = mat2lpk<zlpk>(A,numel(A));
+    std::vector<zlpk> Blpk = mat2lpk<zlpk>(B,numel(B));
+    std::vector<zlpk> Elpk(n), Vlpk;
+    tggev(typ, n, Alpk, Blpk, Elpk, Vlpk);
+    matrix<std::complex<double>> E=Elpk, V;
+    if (Vlpk.size()>0) {V = lpk2mat<std::complex<double>>(Vlpk,n,n);}
+    return std::make_tuple(real(E),real(V));
+}
+auto eig(matrix<std::complex<float>> &A, matrix<std::complex<float>> &B, std::string typ)
+{
+    int n = (int)size(A,1);
+    std::vector<clpk> Alpk = mat2lpk<clpk>(A,numel(A));
+    std::vector<clpk> Blpk = mat2lpk<clpk>(B,numel(B));
+    std::vector<clpk> Elpk(n), Vlpk;
+    tggev(typ, n, Alpk, Blpk, Elpk, Vlpk);
+    matrix<std::complex<float>> E=Elpk, V;
+    if (Vlpk.size()>0) {V = lpk2mat<std::complex<float>>(Vlpk,n,n);}
+    return std::make_tuple(E,V);
+}
+auto eig(matrix<std::complex<double>> &A, matrix<std::complex<double>> &B, std::string typ)
+{
+    int n = (int)size(A,1);
+    std::vector<zlpk> Alpk = mat2lpk<zlpk>(A,numel(A));
+    std::vector<zlpk> Blpk = mat2lpk<zlpk>(B,numel(B));
+    std::vector<zlpk> Elpk(n), Vlpk;
+    tggev(typ, n, Alpk, Blpk, Elpk, Vlpk);
+    matrix<std::complex<double>> E=Elpk, V;
+    if (Vlpk.size()>0) {V = lpk2mat<std::complex<double>>(Vlpk,n,n);}
+    return std::make_tuple(E,V);
+}
 template<typename T>
 matrix<T> eig(matrix<T>const& A)
 {
     matrix<T> E, V;
     std::tie(E,V) = eig(A,"none");
+    return E;
+}
+template<typename T>
+matrix<T> eig(matrix<T> const &A, matrix<T> const &B)
+{
+    matrix<T> E, V;
+    std::tie(E,V) = eig(A,B,"none");
     return E;
 }
 
