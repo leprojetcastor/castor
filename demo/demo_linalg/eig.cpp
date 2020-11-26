@@ -64,18 +64,38 @@ int main()
     // FLOAT - GENERALIZED
     Af      = rand<float>(m);
     auto Bf = rand<float>(m);
-    std::tie(Ef,Uf) = eig(Af,Bf,"left");
-    Uf = transpose(Uf);
-    disp(norm(mtimes(Uf,Af) - mtimes(diag(Ef),mtimes(Uf,Bf)),"inf"));
-    std::tie(Ef,Vf) = eig(Af,Bf,"left");
-    disp(norm(mtimes(Af,Vf) - mtimes(Bf,mtimes(Vf,diag(Ef))),"inf"));
+    std::tie(Ec,Uc) = eig(Af,Bf,"left");
+    Uc = conj(transpose(Uc));
+    disp(norm(mtimes(Uc,Af) - mtimes(diag(Ec),mtimes(Uc,Bf)),"inf"));
+    std::tie(Ec,Vc) = eig(Af,Bf,"right");
+    disp(norm(mtimes(Af,Vc) - mtimes(Bf,mtimes(Vc,diag(Ec))),"inf"));
 
     // // DOUBLE - GENERALIZED
-    // Ad      = rand<double>(m);
-    // auto Bd = rand<double>(m);
-    // std::tie(Ed,Ud) = eig(Ad,Bd,"left");
-    // Ud = transpose(Ud);
-    // disp(norm(mtimes(Ud,Ad) - mtimes(diag(Ed),mtimes(Ud,Bd)),"inf"));
+    Ad      = rand<double>(m);
+    auto Bd = rand<double>(m);
+    std::tie(Ez,Uz) = eig(Ad,Bd,"left");
+    Uz = conj(transpose(Uz));
+    disp(norm(mtimes(Uz,Ad) - mtimes(diag(Ez),mtimes(Uz,Bd)),"inf"));
+    std::tie(Ez,Vz) = eig(Ad,Bd,"right");
+    disp(norm(mtimes(Ad,Vz) - mtimes(Bd,mtimes(Vz,diag(Ez))),"inf"));
+
+    // COMPLEX FLOAT - GENERALIZED
+    Ac      = rand<float>(m) + M_1If*rand<float>(m);
+    auto Bc = rand<float>(m) + M_1If*rand<float>(m);
+    std::tie(Ec,Uc) = eig(Ac,Bc,"left");
+    Uc = conj(transpose(Uc));
+    disp(norm(mtimes(Uc,Ac) - mtimes(diag(Ec),mtimes(Uc,Bc)),"inf"));
+    std::tie(Ec,Vc) = eig(Ac,Bc,"right");
+    disp(norm(mtimes(Ac,Vc) - mtimes(Bc,mtimes(Vc,diag(Ec))),"inf"));
+    
+    // COMPLEX DOUBLE - GENERALIZED
+    Az      = rand<double>(m) + M_1I*rand<double>(m);
+    auto Bz = rand<double>(m) + M_1I*rand<double>(m);
+    std::tie(Ez,Uz) = eig(Az,Bz,"left");
+    Uz = conj(transpose(Uz));
+    disp(norm(mtimes(Uz,Az) - mtimes(diag(Ez),mtimes(Uz,Bz)),"inf"));
+    std::tie(Ez,Vz) = eig(Az,Bz,"right");
+    disp(norm(mtimes(Az,Vz) - mtimes(Bz,mtimes(Vz,diag(Ez))),"inf"));
 
     disp("done !");
     return 0;
