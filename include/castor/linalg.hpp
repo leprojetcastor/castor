@@ -282,7 +282,7 @@ void tgeev(std::string typ, int& n, std::vector<T>& A, std::vector<T>& E, std::v
 /// eigenvalues and, optionally, the left and/or right eigenvectors.
 void xggev(char &jobl, char &jobr, int &n, std::vector<clpk> &A, std::vector<clpk> &B, std::vector<clpk> &alpha, std::vector<clpk> &beta, std::vector<clpk> &V, clpk &wkopt, int &lwork, int &info)
 {
-    std::vector<float> rwork(2*n);
+    std::vector<float> rwork(8*n);
     cggev_(&jobl, &jobr, &n, &A[0], &n, &B[0], &n, &alpha[0], &beta[0], &V[0], &n, &V[0], &n, &wkopt, &lwork, &rwork[0], &info); // fetch workspace size
     lwork = static_cast<int>(wkopt.r);
     std::vector<clpk> work(lwork);
@@ -290,7 +290,7 @@ void xggev(char &jobl, char &jobr, int &n, std::vector<clpk> &A, std::vector<clp
 }
 void xggev(char &jobl, char &jobr, int &n, std::vector<zlpk> &A, std::vector<zlpk> &B, std::vector<zlpk> &alpha, std::vector<zlpk> &beta, std::vector<zlpk> &V, zlpk &wkopt, int &lwork, int &info)
 {
-    std::vector<double> rwork(2*n);
+    std::vector<double> rwork(8*n);
     zggev_(&jobl, &jobr, &n, &A[0], &n, &B[0], &n, &alpha[0], &beta[0], &V[0], &n, &V[0], &n, &wkopt, &lwork, &rwork[0], &info); // fetch workspace size
     lwork = static_cast<int>(wkopt.r);
     std::vector<zlpk> work(lwork);
@@ -324,9 +324,11 @@ void tggev(std::string typ, int &n, std::vector<T> &A, std::vector<T> &B, std::v
     // compute the eigenvalues
     for(std::size_t ii=0; ii<n; ++ii)
     {
-        auto den = beta[ii].r*beta[ii].r   + beta[ii].i*beta[ii].i;
-        E[ii].r  = (alpha[ii].r*beta[ii].r + alpha[ii].i*beta[ii].i)/den;
-        E[ii].i  = (beta[ii].r*alpha[ii].i - alpha[ii].r*beta[ii].i)/den;
+        auto numr = (alpha[ii].r * beta[ii].r  + alpha[ii].i * beta[ii].i);
+        auto numi = (beta[ii].r  * alpha[ii].i - alpha[ii].r * beta[ii].i);
+        auto den  = beta[ii].r   * beta[ii].r  + beta[ii].i  * beta[ii].i;
+        E[ii].r  = numr/den;
+        E[ii].i  = numi/den;
     }
     if(info < 0)
     {

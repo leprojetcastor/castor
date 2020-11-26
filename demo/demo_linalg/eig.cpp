@@ -63,12 +63,21 @@ int main()
     std::tie(Ez,Vz) = eig(Az,"right");
     disp(norm(mtimes(Az,Vz)-mtimes(Vz,diag(Ez)),"inf"));
 
-    // DOUBLE - GENERALIZED
-    Ad      = rand<double>(m);
-    auto Bd = rand<double>(m);
-    std::tie(Ed,Ud) = eig(Ad,Bd,"left");
-    Ud = transpose(Ud);
-    disp(norm(mtimes(Ud,Ad) - mtimes(diag(Ed),mtimes(Ud,Bd)),"inf"));
+    // FLOAT - GENERALIZED
+    Af      = rand<float>(m);
+    auto Bf = rand<float>(m);
+    std::tie(Ef,Uf) = eig(Af,Bf,"left");
+    Uf = transpose(Uf);
+    disp(norm(mtimes(Uf,Af) - mtimes(diag(Ef),mtimes(Uf,Bf)),"inf"));
+    std::tie(Ef,Vf) = eig(Af,Bf,"left");
+    disp(norm(mtimes(Af,Vf) - mtimes(Bf,mtimes(Vf,diag(Ef))),"inf"));
+
+    // // DOUBLE - GENERALIZED
+    // Ad      = rand<double>(m);
+    // auto Bd = rand<double>(m);
+    // std::tie(Ed,Ud) = eig(Ad,Bd,"left");
+    // Ud = transpose(Ud);
+    // disp(norm(mtimes(Ud,Ad) - mtimes(diag(Ed),mtimes(Ud,Bd)),"inf"));
 
     disp("done !");
     return 0;
