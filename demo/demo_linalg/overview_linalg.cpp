@@ -295,25 +295,24 @@ int main()
 
     // FLOAT
     Af = 1-eye<float>(m);
-    matrix<float> Ef, Vf;
-    std::tie(Ef,Uf) = eig(Af,"left");
-    Uf = transpose(Uf);
-    disp(norm(mtimes(Uf,Af)-mtimes(diag(Ef),Uf),"inf"));
-    std::tie(Ef,Vf) = eig(Af,"right");
-    disp(norm(mtimes(Af,Vf)-mtimes(Vf,diag(Ef)),"inf"));
+    matrix<std::complex<float>> Ec, Vc;
+    std::tie(Ec,Uc) = eig(Af,"left");
+    Uc = transpose(Uc);
+    disp(norm(mtimes(Uc,Af)-mtimes(diag(Ec),Uc),"inf"));
+    std::tie(Ec,Vc) = eig(Af,"right");
+    disp(norm(mtimes(Af,Vc)-mtimes(Vc,diag(Ec)),"inf"));
 
     // DOUBLE
     Ad = 1-eye(m);
-    matrix<> Ed, Vd;
-    std::tie(Ed,Ud) = eig(Ad,"left");
-    Ud = transpose(Ud);
-    disp(norm(mtimes(Ud,Ad)-mtimes(diag(Ed),Ud),"inf"));
-    std::tie(Ed,Vd) = eig(Ad,"right");
-    disp(norm(mtimes(Ad,Vd)-mtimes(Vd,diag(Ed)),"inf"));
+    matrix<std::complex<double>> Ez, Vz;
+    std::tie(Ez,Uz) = eig(Ad,"left");
+    Uz = transpose(Uz);
+    disp(norm(mtimes(Uz,Ad)-mtimes(diag(Ez),Uz),"inf"));
+    std::tie(Ez,Vz) = eig(Ad,"right");
+    disp(norm(mtimes(Ad,Vz)-mtimes(Vz,diag(Ez)),"inf"));
 
     // COMPLEX FLOAT
     Ac = rand<float>(m);
-    matrix<std::complex<float>> Ec, Vc;
     std::tie(Ec,Uc) = eig(Ac,"left");
     Uc = conj(transpose(Uc));
     disp(norm(mtimes(Uc,Ac)-mtimes(diag(Ec),Uc),"inf"));
@@ -322,7 +321,6 @@ int main()
 
     // COMPLEX DOUBLE
     Az = rand(m);
-    matrix<std::complex<double>> Ez, Vz;
     std::tie(Ez,Uz) = eig(Az,"left");
     Uz = conj(transpose(Uz));
     disp(norm(mtimes(Uz,Az)-mtimes(diag(Ez),Uz),"inf"));
@@ -381,7 +379,7 @@ int main()
 
     // FLOAT
     Af = rand<float>(m,n);
-    matrix<float> Sf;
+    matrix<float> Sf, Vf;
     std::tie(Sf,Uf,Vf) = svd(Af,"vect");
     disp(norm(Af-mtimes(Uf,mtimes(diag(Sf),Vf)),"inf"));
 
@@ -391,7 +389,7 @@ int main()
 
     // DOUBLE
     Ad = rand(m,n);
-    matrix<> Sd;
+    matrix<> Sd, Vd;
     std::tie(Sd,Ud,Vd) = svd(Ad,"vect");
     disp(norm(Ad-mtimes(Ud,mtimes(diag(Sd),Vd)),"inf"));
 
