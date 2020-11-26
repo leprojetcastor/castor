@@ -31,7 +31,7 @@ int main()
     auto Af = 1-eye<float>(m);
     matrix<std::complex<float>> Ec, Uc, Vc;
     std::tie(Ec,Uc) = eig(Af,"left");
-    Uc = transpose(Uc);
+    Uc = conj(transpose(Uc));
     disp(norm(mtimes(Uc,Af)-mtimes(diag(Ec),Uc),"inf"));
     std::tie(Ec,Vc) = eig(Af,"right");
     disp(norm(mtimes(Af,Vc)-mtimes(Vc,diag(Ec)),"inf"));
@@ -40,7 +40,7 @@ int main()
     auto Ad = 1-eye(m);
     matrix<std::complex<double>> Ez, Uz, Vz;
     std::tie(Ez,Uz) = eig(Ad,"left");
-    Uz = transpose(Uz);
+    Uz = conj(transpose(Uz));
     disp(norm(mtimes(Uz,Ad)-mtimes(diag(Ez),Uz),"inf"));
     std::tie(Ez,Vz) = eig(Ad,"right");
     disp(norm(mtimes(Ad,Vz)-mtimes(Vz,diag(Ez)),"inf"));
