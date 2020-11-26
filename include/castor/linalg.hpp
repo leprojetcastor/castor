@@ -776,7 +776,7 @@ auto eig(matrix<float>const& A, std::string typ)
     tgeev(typ, n, Alpk, Elpk, Vlpk);
     matrix<std::complex<float>> E=Elpk, V;
     if (Vlpk.size()>0) {V = lpk2mat<std::complex<float>>(Vlpk,n,n);}
-    return std::make_tuple(real(E),real(V));
+    return std::make_tuple(E,V);
 }
 auto eig(matrix<double>const& A, std::string typ)
 {
@@ -786,7 +786,7 @@ auto eig(matrix<double>const& A, std::string typ)
     tgeev(typ, n, Alpk, Elpk, Vlpk);
     matrix<std::complex<double>> E=Elpk, V;
     if (Vlpk.size()>0) {V = lpk2mat<std::complex<double>>(Vlpk,n,n);}
-    return std::make_tuple(real(E),real(V));
+    return std::make_tuple(E,V);
 }
 auto eig(matrix<std::complex<float>>const& A, std::string typ)
 {
