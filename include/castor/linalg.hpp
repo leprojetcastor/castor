@@ -890,7 +890,7 @@ auto eig(matrix<std::complex<double>>const& A, std::string typ)
     if (Vlpk.size()>0) {V = lpk2mat<std::complex<double>>(Vlpk,n,n);}
     return std::make_tuple(E,V);
 }
-auto eig(matrix<float> &A, matrix<float> &B, std::string typ)
+auto eig(matrix<float> const &A, matrix<float> const &B, std::string typ)
 {
     int n = (int)size(A,1);
     std::vector<clpk> Alpk = mat2lpk<clpk>(A,numel(A));
@@ -901,7 +901,7 @@ auto eig(matrix<float> &A, matrix<float> &B, std::string typ)
     if (Vlpk.size()>0) {V = lpk2mat<std::complex<float>>(Vlpk,n,n);}
     return std::make_tuple(E,V);
 }
-auto eig(matrix<double> &A, matrix<double> &B, std::string typ)
+auto eig(matrix<double> const &A, matrix<double> const &B, std::string typ)
 {
     int n = (int)size(A,1);
     std::vector<zlpk> Alpk = mat2lpk<zlpk>(A,numel(A));
@@ -912,7 +912,7 @@ auto eig(matrix<double> &A, matrix<double> &B, std::string typ)
     if (Vlpk.size()>0) {V = lpk2mat<std::complex<double>>(Vlpk,n,n);}
     return std::make_tuple(E,V);
 }
-auto eig(matrix<std::complex<float>> &A, matrix<std::complex<float>> &B, std::string typ)
+auto eig(matrix<std::complex<float>> const &A, matrix<std::complex<float>> const &B, std::string typ)
 {
     int n = (int)size(A,1);
     std::vector<clpk> Alpk = mat2lpk<clpk>(A,numel(A));
@@ -923,7 +923,7 @@ auto eig(matrix<std::complex<float>> &A, matrix<std::complex<float>> &B, std::st
     if (Vlpk.size()>0) {V = lpk2mat<std::complex<float>>(Vlpk,n,n);}
     return std::make_tuple(E,V);
 }
-auto eig(matrix<std::complex<double>> &A, matrix<std::complex<double>> &B, std::string typ)
+auto eig(matrix<std::complex<double>> const &A, matrix<std::complex<double>> const &B, std::string typ)
 {
     int n = (int)size(A,1);
     std::vector<zlpk> Alpk = mat2lpk<zlpk>(A,numel(A));
@@ -935,7 +935,7 @@ auto eig(matrix<std::complex<double>> &A, matrix<std::complex<double>> &B, std::
     return std::make_tuple(E,V);
 }
 template<typename T>
-matrix<T> eig(matrix<T>const& A)
+matrix<T> eig(matrix<T> const & A)
 {
     matrix<T> E, V;
     std::tie(E,V) = eig(A,"none");
