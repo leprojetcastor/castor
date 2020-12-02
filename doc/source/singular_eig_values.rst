@@ -18,7 +18,7 @@ eig
    :project: castor
 .. doxygenfunction:: eig(matrix<std::complex<float>> const &A, matrix<std::complex<float>> const &B, std::string typ)
    :project: castor
-.. doxygenfunction:: eig(matrix<double> const &A, (matrix<double> const &B, std::string typ)
+.. doxygenfunction:: eig(matrix<double> const &A, matrix<double> const &B, std::string typ)
    :project: castor
 .. doxygenfunction:: eig(matrix<float> const &A, matrix<float> const &B, std::string typ)
    :project: castor
