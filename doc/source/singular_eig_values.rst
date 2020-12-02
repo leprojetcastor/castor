@@ -22,6 +22,16 @@ eig
    :project: castor
 .. doxygenfunction:: eig(matrix<float> const &A, std::string typ)
    :project: castor
+.. doxygenfunction:: eig(matrix<T> const &A, matrix<T> const &B)
+   :project: castor
+.. doxygenfunction:: eig(matrix<std::complex<double>> const &A, matrix<std::complex<double>> const &B, std::string typ)
+   :project: castor
+.. doxygenfunction:: eig(matrix<std::complex<float>> const &A, matrix<std::complex<float>> const &B, std::string typ)
+   :project: castor
+.. doxygenfunction:: eig(matrix<double> const &A, (matrix<double> const &B, std::string typ)
+   :project: castor
+.. doxygenfunction:: eig(matrix<float> const &A, matrix<float> const &B, std::string typ)
+   :project: castor
 
 See :ref:`label-qr`, :ref:`label-svd`.
 

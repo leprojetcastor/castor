@@ -819,13 +819,27 @@ auto aca(matrix<T>const& A, matrix<T>const& B, double tol=1e-6, std::size_t rmax
 /// [E,U] = eig(A,"left") produces a row vector E containing the eigenvalues of
 /// a square matrix A, associated to the left eigenvectors U as:
 /// U^t*A = diag(E)*U^t,
-/// where U^t is the conjuguate transposition.
+/// where U^t is the conjugate transpose.
 ///
 /// [E,V] = eig(A,"right") produces a row vector E containing the eigenvalues of
 /// a square matrix A, associated to the right eigenvector V as:
 /// A*V = V*diag(E).
 ///
 /// [E,V] = eig(A,"none") is equivalent to E = eig(A).
+///
+/// E = eig(A,B) produces a row vector E containing the generalized eigenvalues
+/// of square matrices matrices A and B
+///
+/// [E,U] = eig(A,B,"left") produces a row vector and a matrix U containing the
+/// generalized eigenvalues and the corresponding left eigenvectors such that
+/// U^t*A = diag(E)*U^t*B
+/// where U^t is the conjugate transpose.
+///
+/// [E,V] = eig(A,B,"right") produces a row vector and a matrix V containing the
+/// generalized eigenvalues and the corresponding right eigenvectors such that
+/// A*V = B*V*diag(E)
+///
+/// [E,V] = eig(A,B,"none") is equivalent to E = eig(A,B)
 ///
 /// \code{.cpp}
 ///    matrix<> A = 1-eye(4);
