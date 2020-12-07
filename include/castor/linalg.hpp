@@ -159,6 +159,10 @@ void zungqr_(int *M, int *N, int *K, zlpk *A, int *LDA, zlpk *TAU, zlpk *WORK, i
 // C/ZGEEV
 void cgeev_(char *JOBVL, char *JOBVR, int *N, clpk *A, int *LDA, clpk *W, clpk *VL, int *LDVL, clpk *VR, int *LDVR, clpk *WORK, int *LWORK, float *RWORK, int *INFO);
 void zgeev_(char *JOBVL, char *JOBVR, int *N, zlpk *A, int *LDA, zlpk *W, zlpk *VL, int *LDVL, zlpk *VR, int *LDVR, zlpk *WORK, int *LWORK, double *RWORK, int *INFO);
+
+// S/D/C/ZGGEV
+void cggev_(char *JOBVL, char *JOBVR, int *N, clpk *A, int *LDA, clpk *B, int *LDB, clpk *ALPHA, clpk *BETA, clpk *VL, int *LDVL, clpk *VR, int *LDVR, clpk *WORK, int *LWORK, float *RWORK, int *INFO);
+void zggev_(char *JOBVL, char *JOBVR, int *N, zlpk *A, int *LDA, zlpk *B, int *LDB, zlpk *ALPHA, zlpk *BETA, zlpk *VL, int *LDVL, zlpk *VR, int *LDVR, zlpk *WORK, int *LWORK, double *RWORK, int *INFO);
 }
 
 //==========================================================================
@@ -268,6 +272,70 @@ void tgeev(std::string typ, int& n, std::vector<T>& A, std::vector<T>& E, std::v
     {
         warning(__FILE__, __LINE__, __FUNCTION__,
                 "The QR algorithm failed to compute all the eigenvalues, and no eigenvectors have been computed.");
+    }
+}
+
+// [tggev]
+/// Generalized eigenvalues and the left and/or right eigenvectors.
+///
+/// TGEEV computes for an N-by-N nonsymmetric matrix A of type T, the
+/// eigenvalues and, optionally, the left and/or right eigenvectors.
+void xggev(char &jobl, char &jobr, int &n, std::vector<clpk> &A, std::vector<clpk> &B, std::vector<clpk> &alpha, std::vector<clpk> &beta, std::vector<clpk> &V, clpk &wkopt, int &lwork, int &info)
+{
+    std::vector<float> rwork(8*n);
+    cggev_(&jobl, &jobr, &n, &A[0], &n, &B[0], &n, &alpha[0], &beta[0], &V[0], &n, &V[0], &n, &wkopt, &lwork, &rwork[0], &info); // fetch workspace size
+    lwork = static_cast<int>(wkopt.r);
+    std::vector<clpk> work(lwork);
+    cggev_(&jobl, &jobr, &n, &A[0], &n, &B[0], &n, &alpha[0], &beta[0], &V[0], &n, &V[0], &n, &work[0], &lwork, &rwork[0], &info); // perform computation
+}
+void xggev(char &jobl, char &jobr, int &n, std::vector<zlpk> &A, std::vector<zlpk> &B, std::vector<zlpk> &alpha, std::vector<zlpk> &beta, std::vector<zlpk> &V, zlpk &wkopt, int &lwork, int &info)
+{
+    std::vector<double> rwork(8*n);
+    zggev_(&jobl, &jobr, &n, &A[0], &n, &B[0], &n, &alpha[0], &beta[0], &V[0], &n, &V[0], &n, &wkopt, &lwork, &rwork[0], &info); // fetch workspace size
+    lwork = static_cast<int>(wkopt.r);
+    std::vector<zlpk> work(lwork);
+    zggev_(&jobl, &jobr, &n, &A[0], &n, &B[0], &n, &alpha[0], &beta[0], &V[0], &n, &V[0], &n, &work[0], &lwork, &rwork[0], &info); // perform computation
+}
+template<typename T>
+void tggev(std::string typ, int &n, std::vector<T> &A, std::vector<T> &B, std::vector<T> &E, std::vector<T> &V)
+{
+    if(A.size() != n*n)
+    {
+        error(__FILE__, __LINE__, __FUNCTION__, "Matrix A must be square.");
+    }
+    if(B.size() != n*n)
+    {
+        error(__FILE__, __LINE__, __FUNCTION__, "Matrix B must have the same size as A.");
+    }
+    char jobl = 'N';
+    char jobr = 'N';
+    if(typ == "none") {}
+    else if(typ == "left") {jobl = 'V'; V.resize(n*n);}
+    else if(typ == "right"){jobr = 'V'; V.resize(n*n);}
+    else
+    {
+        error(__FILE__, __LINE__, __FUNCTION__, "Unknown eig type, only use \"none\", \"left\" or \"right\" for 2nd argument.");
+    }
+    int lwork = -1;
+    int info  = 0;
+    T wkopt;
+    std::vector<T> alpha(n), beta(n);
+    xggev(jobl, jobr, n, A, B, alpha, beta, V, wkopt, lwork, info);
+    // compute the eigenvalues
+    for(std::size_t ii=0; ii<n; ++ii)
+    {
+        auto numr = (alpha[ii].r * beta[ii].r  + alpha[ii].i * beta[ii].i);
+        auto numi = (beta[ii].r  * alpha[ii].i - alpha[ii].r * beta[ii].i);
+        auto den  = beta[ii].r   * beta[ii].r  + beta[ii].i  * beta[ii].i;
+        E[ii].r  = numr/den;
+        E[ii].i  = numi/den;
+    }
+    if(info < 0)
+    {
+        warning(__FILE__,__LINE__,__FUNCTION__,"Matrix argument(s) had illegal value(s).");
+    }else if(info > 0)
+    {
+        warning(__FILE__,__LINE__,__FUNCTION__,"The algorithm failed to compute the eigenvalues.");
     }
 }
 
@@ -751,13 +819,27 @@ auto aca(matrix<T>const& A, matrix<T>const& B, double tol=1e-6, std::size_t rmax
 /// [E,U] = eig(A,"left") produces a row vector E containing the eigenvalues of
 /// a square matrix A, associated to the left eigenvectors U as:
 /// U^t*A = diag(E)*U^t,
-/// where U^t is the conjuguate transposition.
+/// where U^t is the conjugate transpose.
 ///
 /// [E,V] = eig(A,"right") produces a row vector E containing the eigenvalues of
 /// a square matrix A, associated to the right eigenvector V as:
 /// A*V = V*diag(E).
 ///
 /// [E,V] = eig(A,"none") is equivalent to E = eig(A).
+///
+/// E = eig(A,B) produces a row vector E containing the generalized eigenvalues
+/// of square matrices matrices A and B
+///
+/// [E,U] = eig(A,B,"left") produces a row vector and a matrix U containing the
+/// generalized eigenvalues and the corresponding left eigenvectors such that
+/// U^t*A = diag(E)*U^t*B
+/// where U^t is the conjugate transpose.
+///
+/// [E,V] = eig(A,B,"right") produces a row vector and a matrix V containing the
+/// generalized eigenvalues and the corresponding right eigenvectors such that
+/// A*V = B*V*diag(E)
+///
+/// [E,V] = eig(A,B,"none") is equivalent to E = eig(A,B)
 ///
 /// \code{.cpp}
 ///    matrix<> A = 1-eye(4);
@@ -808,11 +890,62 @@ auto eig(matrix<std::complex<double>>const& A, std::string typ)
     if (Vlpk.size()>0) {V = lpk2mat<std::complex<double>>(Vlpk,n,n);}
     return std::make_tuple(E,V);
 }
+auto eig(matrix<float> const &A, matrix<float> const &B, std::string typ)
+{
+    int n = (int)size(A,1);
+    std::vector<clpk> Alpk = mat2lpk<clpk>(A,numel(A));
+    std::vector<clpk> Blpk = mat2lpk<clpk>(B,numel(B));
+    std::vector<clpk> Elpk(n), Vlpk;
+    tggev(typ, n, Alpk, Blpk, Elpk, Vlpk);
+    matrix<std::complex<float>> E=Elpk, V;
+    if (Vlpk.size()>0) {V = lpk2mat<std::complex<float>>(Vlpk,n,n);}
+    return std::make_tuple(E,V);
+}
+auto eig(matrix<double> const &A, matrix<double> const &B, std::string typ)
+{
+    int n = (int)size(A,1);
+    std::vector<zlpk> Alpk = mat2lpk<zlpk>(A,numel(A));
+    std::vector<zlpk> Blpk = mat2lpk<zlpk>(B,numel(B));
+    std::vector<zlpk> Elpk(n), Vlpk;
+    tggev(typ, n, Alpk, Blpk, Elpk, Vlpk);
+    matrix<std::complex<double>> E=Elpk, V;
+    if (Vlpk.size()>0) {V = lpk2mat<std::complex<double>>(Vlpk,n,n);}
+    return std::make_tuple(E,V);
+}
+auto eig(matrix<std::complex<float>> const &A, matrix<std::complex<float>> const &B, std::string typ)
+{
+    int n = (int)size(A,1);
+    std::vector<clpk> Alpk = mat2lpk<clpk>(A,numel(A));
+    std::vector<clpk> Blpk = mat2lpk<clpk>(B,numel(B));
+    std::vector<clpk> Elpk(n), Vlpk;
+    tggev(typ, n, Alpk, Blpk, Elpk, Vlpk);
+    matrix<std::complex<float>> E=Elpk, V;
+    if (Vlpk.size()>0) {V = lpk2mat<std::complex<float>>(Vlpk,n,n);}
+    return std::make_tuple(E,V);
+}
+auto eig(matrix<std::complex<double>> const &A, matrix<std::complex<double>> const &B, std::string typ)
+{
+    int n = (int)size(A,1);
+    std::vector<zlpk> Alpk = mat2lpk<zlpk>(A,numel(A));
+    std::vector<zlpk> Blpk = mat2lpk<zlpk>(B,numel(B));
+    std::vector<zlpk> Elpk(n), Vlpk;
+    tggev(typ, n, Alpk, Blpk, Elpk, Vlpk);
+    matrix<std::complex<double>> E=Elpk, V;
+    if (Vlpk.size()>0) {V = lpk2mat<std::complex<double>>(Vlpk,n,n);}
+    return std::make_tuple(E,V);
+}
 template<typename T>
-matrix<T> eig(matrix<T>const& A)
+matrix<T> eig(matrix<T> const & A)
 {
     matrix<T> E, V;
     std::tie(E,V) = eig(A,"none");
+    return E;
+}
+template<typename T>
+matrix<T> eig(matrix<T> const &A, matrix<T> const &B)
+{
+    matrix<T> E, V;
+    std::tie(E,V) = eig(A,B,"none");
     return E;
 }
 
