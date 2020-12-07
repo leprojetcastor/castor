@@ -24,10 +24,19 @@ int main(int argc, const char * argv[])
     disp("|     CKISS     |");
     disp("+===============+");
     
-    ckiss a(3,4);
+    ckiss a(1,2);
     ckiss b(3,-4);
+    disp(a);
+    a += b;
+    disp(a);
+    a -= b;
+    disp(a);
     a *= b;
     disp(a);
+    a /= b;
+    disp(a);
+    disp(a+b-b);
+    disp(a*b/b);
     
     disp("+===============+");
     disp("|      FFT      |");

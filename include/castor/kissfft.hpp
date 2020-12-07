@@ -1032,14 +1032,58 @@ public:
     ckiss(std::complex<double> v)         {r=v.real(); i=v.imag();};
     operator std::complex<float>()  const {return std::complex<float>(r,i);};
     operator std::complex<double>() const {return std::complex<double>(r,i);};
+    ckiss& operator+=(ckiss const& c)
+    {
+        r += c.r;
+        i += c.i;
+        return (*this);
+    }
+    ckiss& operator-=(ckiss const& c)
+    {
+        r -= c.r;
+        i -= c.i;
+        return (*this);
+    }
     ckiss& operator*=(ckiss const& c)
     {
         float t = r;
-        r=r*c.r - i*c.i;
-        i=t*c.i + i*c.r;
+        r = r*c.r - i*c.i;
+        i = t*c.i + i*c.r;
+        return (*this);
+    }
+    ckiss& operator/=(ckiss const& c)
+    {
+        float t = r;
+        float m = c.r*c.r + c.i*c.i;
+        r = (r*c.r + i*c.i)/m;
+        i = (-t*c.i + i*c.r)/m;
         return (*this);
     }
 };
+ckiss operator+(ckiss const& a, ckiss const& b)
+{
+    ckiss c = a;
+    c += b;
+    return c;
+}
+ckiss operator-(ckiss const& a, ckiss const& b)
+{
+    ckiss c = a;
+    c -= b;
+    return c;
+}
+ckiss operator*(ckiss const& a, ckiss const& b)
+{
+    ckiss c = a;
+    c *= b;
+    return c;
+}
+ckiss operator/(ckiss const& a, ckiss const& b)
+{
+    ckiss c = a;
+    c /= b;
+    return c;
+}
 std::ostream& operator<<(std::ostream& flux, ckiss const& c)
 {
     flux << "(" << c.r << "," << c.i << ")"; return flux;
