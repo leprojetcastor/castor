@@ -53,7 +53,7 @@ int main()
         fractal = pars.itMax - fractal;
         // ADD SOME PLOT
         figs.push_back(figure());
-        imagesc(figs.back(),fractal);
+        imagesc<float>(figs.back(),fractal);
     }
     drawnow(figs.back());
     return EXIT_SUCCESS;
