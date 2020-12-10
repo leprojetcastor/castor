@@ -65,14 +65,12 @@ size
 
 See :ref:`label-length`, :ref:`label-numel`.
 
+.. _label-spydata:
 
-.. _label-spy-hmatrix:
-
-spy
----
-.. doxygenfunction:: spy(hmatrix<T> const &Ah)
+spydata
+-------
+.. doxygenfunction:: spydata(hmatrix<T> const &Ah)
     :project: castor
-
 
 .. _label-tgeabm-hmatrix:
 
@@ -100,13 +98,14 @@ transpose
 
 .. _label-operators-hmatrix:
 
-Operators
-+++++++++
+operators
+---------
 
 .. _label-operator<<-hmatrix:
 
 operator<<
-----------
+++++++++++
+
 .. doxygenfunction:: operator<<(std::ostream &flux, hmatrix<T> const &Ah)
     :project: castor
 
@@ -114,7 +113,8 @@ operator<<
 .. _label-operator+-hmatrix:
 
 operator+
----------
+++++++++++
+
 .. doxygenfunction:: operator+(T a, hmatrix<T> const &Bh)
     :project: castor
 .. doxygenfunction:: operator+(hmatrix<T> const &Ah, hmatrix<T> const &Bh)
@@ -126,7 +126,8 @@ operator+
 .. _label-operator--hmatrix:
 
 operator-
----------
+++++++++++
+
 .. doxygenfunction:: operator-(T a, hmatrix<T> const &Bh)
     :project: castor
 .. doxygenfunction:: operator-(hmatrix<T> const &Ah, hmatrix<T> const &Bh)
@@ -140,7 +141,8 @@ operator-
 .. _label-operator*-hmatrix:
 
 operator*
----------
+++++++++++
+
 .. doxygenfunction:: operator*(T a, hmatrix<T> const &Bh)
     :project: castor
 .. doxygenfunction:: operator*(hmatrix<T> const &Ah, T b)
@@ -150,7 +152,8 @@ operator*
 .. _label-operator/-hmatrix:
 
 operator/
----------
+++++++++++
+
 .. doxygenfunction:: operator/(hmatrix<T> const &Ah, T b)
     :project: castor
 
@@ -158,7 +161,7 @@ operator/
 .. _label-operator+=-hmatrix:
 
 operator+=
-----------
+++++++++++
 .. doxygenfunction:: operator+=(hmatrix<T> const &Bh)
     :project: castor
 .. doxygenfunction:: operator+=(T b)
@@ -169,6 +172,6 @@ operator+=
 .. _label-operator*=-hmatrix:
 
 operator*=
-----------
+++++++++++
 .. doxygenfunction:: operator*=(T b)
     :project: castor

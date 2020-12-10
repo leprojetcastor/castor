@@ -64,6 +64,15 @@ argunique
 
 See :ref:`label-unique`, :ref:`label-argsetdiff`, :ref:`label-argintersect`.
 
+.. _label-conv:
+
+conv
+----
+.. doxygenfunction:: conv
+   :project: castor
+
+See :ref:`label-fftconv`.
+
 .. _label-cross:
 
 cross
@@ -114,6 +123,16 @@ dot
    :project: castor
 
 See :ref:`label-cross`.
+
+.. _label-fftconv:
+
+fftconv
+-------
+.. doxygenfunction:: fftconv
+   :project: castor
+
+See :ref:`label-conv`, :ref:`label-fft`.
+
 
 .. _label-gmres:
 

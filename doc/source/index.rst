@@ -74,6 +74,7 @@ Boundary element computation using le projet castor. Simulation of acoustic scat
    manipulations
    operators
    tools 
+   transforms 
 
 .. toctree::
    :caption: Linear algebra
