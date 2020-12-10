@@ -1086,7 +1086,16 @@ ckiss operator/(ckiss const& a, ckiss const& b)
 }
 std::ostream& operator<<(std::ostream& flux, ckiss const& c)
 {
-    flux << "(" << c.r << "," << c.i << ")"; return flux;
+    std::complex<float> cpx(c.r,c.i);
+    flux << cpx;
+    return flux;
+}
+std::istream& operator>>(std::istream& flux, ckiss& c)
+{
+    std::complex<float> cpx;
+    flux >> cpx;
+    c = cpx;
+    return flux;
 }
 inline void disp(matrix<ckiss>const& A, int info=2, std::ostream& flux=std::cout, std::size_t m=3, std::size_t n=3)
 {

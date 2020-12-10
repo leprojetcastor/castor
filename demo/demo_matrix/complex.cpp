@@ -62,6 +62,9 @@ int main (int argc, char* argv[])
     disp("Prod :");
     disp(prod(Ac));
     
+    disp("Norm :");
+    disp(norm(Ac));
+    
     
     disp("done !");
     return 0;

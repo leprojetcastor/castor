@@ -24,8 +24,10 @@ int main(int argc, const char * argv[])
     disp("|     CKISS     |");
     disp("+===============+");
     
-    ckiss a(1,2);
-    ckiss b(3,-4);
+    // Define
+    ckiss a(1,2), b(3,-4), c, d;
+    
+    // Math operators
     disp(a);
     a += b;
     disp(a);
@@ -37,7 +39,18 @@ int main(int argc, const char * argv[])
     disp(a);
     disp(a+b-b);
     disp(a*b/b);
-    
+
+    // Flux operators
+    std::ofstream output("castor_kissfftIO.txt");
+    output << a << b << std::endl;
+    output.close();
+    std::ifstream input("castor_kissfftIO.txt");
+    input >> c;
+    input >> d;
+    input.close();
+    disp(c);
+    disp(d);
+
     disp("+===============+");
     disp("|      FFT      |");
     disp("+===============+");

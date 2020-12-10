@@ -47,6 +47,7 @@ if(VTK_FOUND)
   message(STATUS "VTK_INCLUDE_DIRS : ${VTK_INCLUDE_DIRS}")
   message(STATUS "VTK_LIBRARIES    : ${VTK_LIBRARIES}")
   message(STATUS "VTK_USE_FILE     : ${VTK_USE_FILE}")
+  list(REMOVE_ITEM VTK_LIBRARIES /usr/lib/libxml2.dylib)
   add_library(graphics INTERFACE)
   target_include_directories(graphics INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

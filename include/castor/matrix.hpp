@@ -4470,12 +4470,13 @@ std::size_t nnz(matrix<T>const& A)
 /// \endcode
 ///
 // \see max, sum.
-template<typename T>
-matrix<T> norm(matrix<T>const& A, std::string typ, int dim)
+template<typename S>
+auto norm(matrix<S>const& A, std::string typ, int dim)
 {
+    using T = decltype(std::abs(A(0)));
     matrix<T> nrm;
     if (typ=="1") {nrm = sum(abs(A),dim);}
-    else if (typ=="2") {nrm = sqrt(sum(pow(A,2),dim));}
+    else if (typ=="2") {nrm = sqrt(sum(pow(abs(A),2),dim));}
     else if (typ=="inf" || typ=="INF" || typ=="Inf") {nrm = max(abs(A),dim);}
     else
     {
@@ -4483,8 +4484,12 @@ matrix<T> norm(matrix<T>const& A, std::string typ, int dim)
     }
     return nrm;
 }
-template<typename T>
-inline T norm(matrix<T>const& A, std::string typ="2") {return (T)norm(A,typ,0);}
+template<typename S>
+auto norm(matrix<S>const& A, std::string typ="2")
+{
+    using T = decltype(std::abs(A(0)));
+    return (T)norm(A,typ,0);
+}
 
 //==========================================================================
 // [numel]
