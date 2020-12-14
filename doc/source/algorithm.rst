@@ -259,9 +259,9 @@ See :ref:`label-tgemm-naive`, :ref:`label-kron`.
 
 norm
 ----
-.. doxygenfunction:: norm(matrix<T> const &A, std::string typ = "2")
+.. doxygenfunction:: norm(matrix<S> const &A, std::string typ = "2")
    :project: castor
-.. doxygenfunction:: norm(matrix<T> const &A, std::string typ, int dim)
+.. doxygenfunction:: norm(matrix<S> const &A, std::string typ, int dim)
    :project: castor
 
 See :ref:`label-max`, :ref:`label-sum`.
