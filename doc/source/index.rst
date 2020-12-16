@@ -122,6 +122,7 @@ Boundary element computation using le projet castor. Simulation of acoustic scat
 
    fembem
    analyticalscattering
+   castorfftw
 
 .. toctree::
    :caption: Contacts
