@@ -56,4 +56,4 @@ IDE
 
 Simply enter the path to the directory containing the ``castor`` folder in your favorite IDE (VSCode, Xcode, CodeBlocks). 
 
-Tutorial is coming.
+`Video tutorial for XCode <http://www.cmapx.polytechnique.fr/~aussal/tmp/matrix_xcode.mov>`_

@@ -132,6 +132,14 @@ isvector
 
 See :ref:`label-isequal`, :ref:`label-isempty`.
 
+.. _label-range:
+
+range
+-----
+.. doxygenfunction:: range
+   :project: castor
+
+See :ref:`label-colon`, :ref:`label-get`, :ref:`label-set`, :ref:`label-view`.
 
 .. _label-resize:
 
