@@ -53,13 +53,16 @@ int main (int argc, char* argv[])
     std::tie(x,y,z) = sphere2(Nx);
     X = horzcat(reshape(x,Nx,1),reshape(y,Nx,1));
     X = horzcat(X,reshape(z,Nx,1));
+    disp(bbox(X));
     
     // Sphere Y
     matrix<double> Y;
     std::tie(x,y,z) = sphere2(Ny);
     Y = horzcat(reshape(x,Ny,1),reshape(y,Ny,1));
     Y = horzcat(Y,reshape(z,Ny,1));
-    //    Y = 1 + Y;
+    // Y = 1 + Y;
+    disp(bbox(Y));
+    disp(bbox(X).isfar(bbox(Y)));
     
     // Tree
     bintree<double> Xtree(X);
@@ -146,20 +149,6 @@ int main (int argc, char* argv[])
     disp( norm(M-full(MhF),"inf")/norm(M,"inf") );
     
     //===============================================================
-    std::cout << "+=========================+" << std::endl;
-    std::cout << "|  MATRIX-VECTOR PRODUCT  |" << std::endl;
-    std::cout << "+=========================+" << std::endl;
-    
-    matrix<double> V   = rand(Ny,2);
-    matrix<double> ref = mtimes(M,V);
-    matrix<double> sol(Nx,2);
-    tic();
-    hmatrix<double> MhV(X,Y,tol,fct,V,sol);
-    toc();
-    disp(MhV);
-    disp( norm(ref-sol,"inf")/norm(ref,"inf") );
-    
-    //===============================================================
     std::cout << "+=================+" << std::endl;
     std::cout << "|     ALGEBRA     |" << std::endl;
     std::cout << "+=================+" << std::endl;
@@ -171,9 +160,9 @@ int main (int argc, char* argv[])
     disp( norm(M-full(Mh),"inf")/norm(M,"inf") );
 
     // FULL: Left product
-    V   = rand(2,Nx);
-    ref = mtimes(V,M);
-    sol = mtimes(V,Mh);
+    matrix<double> V   = rand(2,Nx);
+    matrix<double> ref = mtimes(V,M);
+    matrix<double> sol = mtimes(V,Mh);
     disp( norm(ref-sol,"inf")/norm(ref,"inf") );
 
     // FULL: Right product

@@ -4,10 +4,10 @@
  |________________________________________________________________________|
  |   '&`   |                                                              |
  |    #    |   FILE       : hmatrix.hpp                                   |
- |    #    |   VERSION    : 0.1.0                                         |
+ |    #    |   VERSION    : 0.1.1                                         |
  |   _#_   |   AUTHOR(S)  : Matthieu Aussal                               |
  |  ( # )  |   CREATION   : 01.04.2020                                    |
- |  / 0 \  |   LAST MODIF : 31.10.2020                                    |
+ |  / 0 \  |   LAST MODIF : 14.02.2021                                    |
  | ( === ) |   SYNOPSIS   : Hierarchical matrix operations & algebra with |
  |  `---'  |                matlab-like standard functions and procedures |
  +========================================================================+
@@ -23,15 +23,88 @@ namespace castor
 {
 
 //==========================================================================//
+//                           BOUNDING BOX CLASS                             //
+//==========================================================================//
+// [bbox]
+/// Bounding box
+///
+/// Bounding box data from n-d nodes X.
+class bbox
+{
+public:
+    // CONSTRUCTOR
+    bbox(){};
+    template<typename T>
+    bbox(matrix<T>const& X);
+    
+    // FUNCTIONS
+    bool isfar(bbox const& Yb, double eta=3.) const;
+    
+    // ACCESSORS
+    matrix<double>const& ctr()  const {return m_ctr;};
+    matrix<double>const& edg()  const {return m_edg;};
+    matrix<double>const& maxi() const {return m_max;};
+    matrix<double>const& mini() const {return m_min;};
+    
+private:
+    matrix<double> m_ctr;    // CENTER
+    matrix<double> m_edg;    // EDGE LENGTH
+    matrix<double> m_max;    // MAXIMUM
+    matrix<double> m_min;    // MINIMUM
+};
+
+//==========================================================================
+//
+/// Constructor of bounding box
+template<typename T>
+bbox::bbox(matrix<T>const& X)
+{
+    m_min = min(X,1);
+    m_max = max(X,1);
+    m_ctr = (m_min+m_max)/2.;
+    m_edg = m_max-m_min;
+}
+
+//==========================================================================
+//
+/// Evaluate distance with another bounding box using admissibility
+/// criterium fixed by eta (default is 3).
+bool bbox::isfar(bbox const& Yb, double eta) const
+{
+    matrix<double> zero(1,3);
+    matrix<double> d1 = maximum(zero,m_min-Yb.maxi());
+    matrix<double> d2 = maximum(zero,Yb.mini()-m_max);
+    double diamX  = std::sqrt(sum(pow(m_edg,2)));
+    double diamY  = std::sqrt(sum(pow(Yb.edg(),2)));
+    double distXY = std::sqrt(sum(pow(d1,2)+pow(d2,2)));
+    return (std::min(diamX,diamY) <= eta*distXY);
+}
+
+//==========================================================================
+// [operator<<]
+/// Flux operator to display hmatrix size and statistics using standard
+/// C++ convention of disp(Ah) operator.
+std::ostream& operator<<(std::ostream& flux, bbox const& Xb)
+{
+    flux << "Bounding box data :" << std::endl;
+    flux << "  Minimum : " << Xb.mini() << std::endl;
+    flux << "  Center  : " << Xb.ctr()  <<std::endl;
+    flux << "  Maximum : " << Xb.maxi() <<std::endl;
+    flux << "  Edge    : " << Xb.edg();
+    return flux;
+}
+
+
+//==========================================================================//
 //                         BINARY TREE CLASS                                //
 //==========================================================================//
 // [bintree]
 /// Binary tree
 ///
-/// bitree(X,N) is a recursive tree with a binary structure. Each branch is divided
-/// into two new ones, with a median distribution of the M tri-dimensional nodes X,
-/// stored in a M-by-3 matrix. Leaves are reached when there are less than N nodes
-/// in a branch (default is N=100).
+/// bintree(X,N) is a recursive tree with a binary structure and bounding boxes.
+/// Each branch is divided into two new ones, with a median distribution of
+/// the M tri-dimensional nodes X, stored in a M-by-3 matrix. Leaves are reached
+/// when there are less than N nodes in a branch (default is N=100).
 template<typename T>
 class bintree
 {
@@ -41,23 +114,19 @@ public:
     bintree(matrix<T>const& X, std::size_t n=100);
     
     // FUNCTIONS
-    matrix<T> leaf() const;
+    matrix<T> leaf()  const;
     
     // ACCESSORS
     bool const&               isleaf()   const {return m_isleaf;};
+    bbox const&               box()      const {return m_box;};
     matrix<T>const&           crd()      const {return m_crd;};
-    matrix<T>const&           ctr()      const {return m_ctr;};
-    matrix<T>const&           edg()      const {return m_edg;};
     matrix<std::size_t>const& ind(int i) const {return m_ind[i];};
     bintree<T>const&          sub(int i) const {return m_sub[i];};
     
 private:
     bool                    m_isleaf; // TRUE IF LEAF
+    bbox                    m_box;    // BOUNDING BOX DATA
     matrix<T>               m_crd;    // POINTS COORDINATES
-    matrix<T>               m_min;    // MINIMUM
-    matrix<T>               m_max;    // MAXIMUM
-    matrix<T>               m_ctr;    // CENTER
-    matrix<T>               m_edg;    // EDGE LENGTH
     matrix<std::size_t>     m_ind[2]; // CHILDREN INDICES
     std::vector<bintree<T>> m_sub;    // CHILDREN (RECURSION)
 };
@@ -65,25 +134,20 @@ private:
 //==========================================================================
 //
 /// Constructor of binary tree. Nodes coordinates are stored in a M-by-3 matrix
-/// and maximum leaf size is fixed by N (default is 100).
+/// and maximum leaf size is fixed by n (default is 100).
 template<typename T>
 bintree<T>::bintree(matrix<T>const& X, std::size_t n)
 {
     // Initialize
     std::size_t N = size(X,1);
-    
-    // Box definition
     m_isleaf = (N<n);
-    m_crd = X;
-    m_min = min(X,1);
-    m_max = max(X,1);
-    m_ctr = (m_min+m_max)/2.;
-    m_edg = m_max-m_min;
+    m_box    = bbox(X);
+    m_crd    = X;
     
     // Children recursion
     if (!m_isleaf)
     {
-        std::size_t         dim  = argmax(m_edg);
+        std::size_t         dim  = argmax(m_box.edg());
         matrix<std::size_t> iloc = argsort(eval(X(range(0,N),dim)));
         m_ind[0] = eval(iloc(range(0,N/2)));
         m_ind[1] = eval(iloc(range(N/2,N)));
@@ -117,6 +181,8 @@ matrix<T> bintree<T>::leaf() const
 //                           H-MATRIX CLASS                                 //
 //==========================================================================//
 // [hmatrix]
+/// Hierarchical matrices.
+///
 /// Array with element of type T, constructed using X and Y nodes of type S,
 /// stored in hierarchical format using rank default compression.
 ///
@@ -134,14 +200,6 @@ public:
     hmatrix(){};
     hmatrix(std::size_t m, std::size_t n, double tol, T v=0);
     template<typename S>
-    hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, double tol);
-    template<typename S>
-    hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, double tol, matrix<T>const& M);
-    template<typename S>
-    hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, double tol, smatrix<T>const& Ms);
-    template<typename S>
-    hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol);
-    template<typename S>
     hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol, matrix<T>const& M);
     template<typename S>
     hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol, smatrix<T>const& Ms);
@@ -149,12 +207,11 @@ public:
     hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol,
             std::function<matrix<T>(matrix<std::size_t>,matrix<std::size_t>)>const& fct);
     template<typename S>
-    hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol,
-            std::function<matrix<T>(matrix<std::size_t>,matrix<std::size_t>)>const& fct,
-            matrix<T>const& V, matrix<T>& MV);
+    hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, double tol);
+    template<typename S>
+    hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, double tol, smatrix<T>const& Ms);
     
     // FUNCTIONS
-    void check();
     void full2lowrank();
     void fusion();
     void hfull(matrix<T>& M, matrix<std::size_t> I={}, matrix<std::size_t> J={}) const;
@@ -169,8 +226,8 @@ public:
     void hrupsolve(matrix<T>& B, matrix<std::size_t> J={}) const;
     void htranspose();
     void leafptr(std::vector<hmatrix<T>*>& ptr,
-                 std::vector<matrix<std::size_t>>& idx, std::vector<matrix<std::size_t>>& jdx,
-                 matrix<std::size_t> I={}, matrix<std::size_t> J={});
+                     std::vector<matrix<std::size_t>>& idx, std::vector<matrix<std::size_t>>& jdx,
+                     matrix<std::size_t> I={}, matrix<std::size_t> J={});
     void recompress(double tol);
     void spydata(smatrix<logical>& Sf, smatrix<logical>& Sc, matrix<std::size_t> I={}, matrix<std::size_t> J={}) const;
     void stat(matrix<std::size_t>& info) const;
@@ -214,7 +271,7 @@ private:
 //==========================================================================//
 //==========================================================================
 // [.hmatrix]
-/// Single value constructor, fill leaf with low-rank. No tree is needed.
+/// Single value constructor, fill leaf with tensor product. No tree is needed.
 template<typename T>
 hmatrix<T>::hmatrix(std::size_t m, std::size_t n, double tol, T v)
 {
@@ -223,7 +280,81 @@ hmatrix<T>::hmatrix(std::size_t m, std::size_t n, double tol, T v)
     m_tol    = tol;
     m_dat[0] = matrix<T>(m,1,v);
     m_dat[1] = matrix<T>(1,n,1.);
-    check();
+}
+
+//==========================================================================
+// [.hmatrix]
+/// Dense matrix contructor using nodes, fill close interactions with dense
+/// matrix and far with compressed. Parallelized leaves constructor.
+template<typename T>
+template<typename S>
+hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol, matrix<T>const& M)
+{
+    auto fct = [&M](matrix<std::size_t> Ix, matrix<std::size_t> Iy)
+    {
+        return eval(M(Ix,Iy));
+    };
+    (*this) = hmatrix(X,Y,tol,fct);
+}
+
+//==========================================================================
+// [.hmatrix]
+/// Sparse matrix contructor using nodes, fill non-zeros leaves with full
+/// matrix and empty leaves with a zero tensor product. Recursive constructor.
+template<typename T>
+template<typename S>
+hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol, smatrix<T>const& Ms)
+{
+    (*this) = hmatrix<T>(bintree<S>(X),bintree<S>(Y),tol,Ms);
+}
+
+//==========================================================================
+// [.hmatrix]
+/// Lambda function contructor using nodes, fill close interactions with dense
+/// matrix and far with compressed. Parallelized leaves constructor.
+template<typename T>
+template<typename S>
+hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol,
+                   std::function<matrix<T>(matrix<std::size_t>,matrix<std::size_t>)>const& fct)
+{
+   // Build tree and block interactions
+   (*this) = hmatrix<T>(bintree<S>(X),bintree<S>(Y),tol);
+
+   // Get leaves references
+   std::vector<hmatrix<T>*> ptr;
+   std::vector<matrix<std::size_t>> idx;
+   std::vector<matrix<std::size_t>> jdx;
+   leafptr(ptr,idx,jdx);
+   bool flag;
+
+   // Build leaf data with partial pivoting
+   #pragma omp parallel
+   #pragma omp single
+   for (std::size_t l=0; l<ptr.size(); ++l)
+   {
+       if (ptr[l]->m_siz(0)!=numel(idx[l]) || ptr[l]->m_siz(1)!=numel(jdx[l]))
+       {
+           error(__FILE__, __LINE__, __FUNCTION__,"Dimensions must agree.");
+       }
+       if (ptr[l]->m_typ==1 && tol>0)
+       {
+           #pragma omp task
+           std::tie(ptr[l]->m_dat[0],ptr[l]->m_dat[1],flag) = aca(idx[l],jdx[l],fct,tol);
+           if (!flag)
+           {
+               error(__FILE__, __LINE__, __FUNCTION__,"ACA compression failed.");
+           }
+       }
+       else if (ptr[l]->m_typ==2 || tol<=0)
+       {
+           #pragma omp task
+           ptr[l]->m_dat[0] = fct(idx[l],jdx[l]);
+       }
+       else
+       {
+           error(__FILE__, __LINE__, __FUNCTION__,"Unavailable case.");
+       }
+   }
 }
 
 //==========================================================================
@@ -238,25 +369,19 @@ hmatrix<T>::hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, double tol)
     m_siz = {size(Xb.crd(),1),size(Yb.crd(),1)};
     m_tol = tol;
     
-    // Far test
-    matrix<S> XYctr = abs(Xb.ctr()-Yb.ctr());
-    matrix<S> XYedg = Xb.edg()+Yb.edg();
-    bool isfar = max( (XYctr>=0.75*XYedg) && (XYctr>=0.75*mean(XYedg)) );
-    
-    // Far leaf
-    if (isfar)
+    // Far leaves
+    if (Xb.box().isfar(Yb.box()))
     {
         m_typ = 1;
     }
-    // Full leaf
+    // Full leaves
     else if (Xb.isleaf() || Yb.isleaf())
     {
         m_typ = 2;
     }
-    // Recursion
+    // Recursive leaves
     else
     {
-        m_typ = 0;
         m_chd.resize(4,hmatrix<T>());
         for (int h=0; h<4; ++h)
         {
@@ -264,45 +389,7 @@ hmatrix<T>::hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, double tol)
             m_col[h] = Yb.ind(h%2);
             m_chd[h] = hmatrix<T>(Xb.sub(h/2),Yb.sub(h%2),tol);
         }
-    }
-}
-
-//==========================================================================
-// [.hmatrix]
-/// Dense matrix contructor using tree, fill all leaves with full matrix
-/// and try to recompress if low-rank representation is available.
-template<typename T>
-template<typename S>
-hmatrix<T>::hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, double tol, matrix<T>const& M)
-{
-    // Dimensions compatibility
-    if (size(Xb.crd(),1)!=size(M,1) || size(Yb.crd(),1)!=size(M,2))
-    {
-        error(__FILE__, __LINE__, __FUNCTION__,"Dimensions must agree.");
-    }
-    
-    // Global data
-    m_siz = size(M);
-    m_tol = tol;
-    
-    // Empty leaf
-    if (Xb.isleaf() || Yb.isleaf())
-    {
-        m_typ = 2;
-        m_dat[0] = M;
-        full2lowrank();
-    }
-    // Recursion
-    else
-    {
         m_typ = 0;
-        m_chd.resize(4,hmatrix<T>());
-        for (int h=0; h<4; ++h)
-        {
-            m_row[h] = Xb.ind(h/2);
-            m_col[h] = Yb.ind(h%2);
-            m_chd[h] = hmatrix<T>(Xb.sub(h/2),Yb.sub(h%2),tol,eval(M(m_row[h],m_col[h])));
-        }
     }
 }
 
@@ -327,16 +414,15 @@ hmatrix<T>::hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, double tol, smatri
     // Empty leaf
     if (nnz(Ms)==0)
     {
-        m_typ = 1;
+        m_typ    = 1;
         m_dat[0] = zeros<T>(m_siz(0),1);
         m_dat[1] = zeros<T>(1,m_siz(1));
     }
     // Full leaf
     else if (Xb.isleaf() || Yb.isleaf())
     {
-        m_typ = 2;
+        m_typ    = 2;
         m_dat[0] = full(Ms);
-        full2lowrank();
     }
     // Recursion
     else
@@ -352,219 +438,26 @@ hmatrix<T>::hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, double tol, smatri
     }
 }
 
-//==========================================================================
-// [.hmatrix]
-/// Empty contructor using nodes, define far leaves as compressed and close
-/// leaves as dense, fill with nothing.
-template<typename T>
-template<typename S>
-hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol)
-{
-    (*this) = hmatrix<T>(bintree<S>(X),bintree<S>(Y),tol);
-}
-
-//==========================================================================
-// [.hmatrix]
-/// Dense matrix contructor using nodes, fill all leaves with full matrix
-/// and try to recompress if low-rank representation is available.
-template<typename T>
-template<typename S>
-hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol, matrix<T>const& M)
-{
-    (*this) = hmatrix(bintree<S>(X),bintree<S>(Y),tol,M);
-    check();
-}
-
-//==========================================================================
-// [.hmatrix]
-/// Sparse matrix contructor using nodes, fill non-zeros leaves with full
-/// matrix and empty leaves with low-rank representation of a zeros block.
-template<typename T>
-template<typename S>
-hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol, smatrix<T>const& Ms)
-{
-    (*this) = hmatrix<T>(bintree<S>(X),bintree<S>(Y),tol,Ms);
-    check();
-}
-
-//==========================================================================
-// [.hmatrix]
-/// Lambda function contructor using nodes, fill close interactions with dense
-/// matrix and far with compressed. Try to recompressed dense leaves if
-/// rank default. Parallelization using open-MP.
-template<typename T>
-template<typename S>
-hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol,
-                    std::function<matrix<T>(matrix<std::size_t>,matrix<std::size_t>)>const& fct)
-{
-    // Build tree and block interactions
-    (*this) = hmatrix<T>(bintree<S>(X),bintree<S>(Y),tol);
-    
-    // Get leaves references
-    std::vector<hmatrix<T>*> ptr;
-    std::vector<matrix<std::size_t>> idx;
-    std::vector<matrix<std::size_t>> jdx;
-    leafptr(ptr,idx,jdx);
-    bool flag;
-    
-    // Build leaf data with partial pivoting
-#pragma omp parallel for
-    for (std::size_t l=0; l<ptr.size(); ++l)
-    {
-        if (ptr[l]->m_siz(0)!=numel(idx[l]) || ptr[l]->m_siz(1)!=numel(jdx[l]))
-        {
-            error(__FILE__, __LINE__, __FUNCTION__,"Dimensions must agree.");
-        }
-        if (ptr[l]->m_typ==1 && tol>0)
-        {
-            std::tie(ptr[l]->m_dat[0],ptr[l]->m_dat[1],flag) = aca(idx[l],jdx[l],fct,tol);
-            if (!flag)
-            {
-                error(__FILE__, __LINE__, __FUNCTION__,"ACA compression failed.");
-            }
-        }
-        else if (ptr[l]->m_typ==2 || tol<=0)
-        {
-            ptr[l]->m_dat[0] = fct(idx[l],jdx[l]);
-            ptr[l]->m_typ = 2;
-            ptr[l]->full2lowrank();
-        }
-        else
-        {
-            error(__FILE__, __LINE__, __FUNCTION__,"Unavailable case.");
-        }
-    }
-    
-    // Check and fusion
-    check();
-}
-
-//==========================================================================
-// [.hmatrix]
-/// Matrix-vector product constructor using nodes, fill nothing but add
-/// hierarchical matrix-vector product to input value MV.
-/// Parallelization using open-MP.
-template<typename T>
-template<typename S>
-hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol,
-                    std::function<matrix<T>(matrix<std::size_t>,matrix<std::size_t>)>const& fct,
-                    matrix<T>const& V, matrix<T>& MV)
-{
-    // Check input
-    if (size(V,1)!=size(Y,1) || size(MV,1)!=size(X,1) || size(V,2)!=size(MV,2))
-    {
-        error(__FILE__, __LINE__, __FUNCTION__,"Dimensions must agree.");
-    }
-    
-    // Build tree and block interactions
-    (*this) = hmatrix<T>(bintree<S>(X),bintree<S>(Y),tol);
-    
-    // Get leaves references
-    std::vector<hmatrix<T>*> ptr;
-    std::vector<matrix<std::size_t>> idx;
-    std::vector<matrix<std::size_t>> jdx;
-    leafptr(ptr,idx,jdx);
-    
-    // Temporary data
-    matrix<std::size_t> C = col(V);
-    matrix<T> A, B, M;
-    bool flag;
-    
-    // Build leaf data with partial pivoting
-#pragma omp parallel for
-    for (std::size_t l=0; l<ptr.size(); ++l)
-    {
-        if (ptr[l]->m_siz(0)!=numel(idx[l]) || ptr[l]->m_siz(1)!=numel(jdx[l]))
-        {
-            error(__FILE__, __LINE__, __FUNCTION__,"Dimensions must agree.");
-        }
-        if (ptr[l]->m_typ==1 && tol>0)
-        {
-            std::tie(A,B,flag) = aca(idx[l],jdx[l],fct,tol);
-            if (!flag)
-            {
-                error(__FILE__, __LINE__, __FUNCTION__,"ACA compression failed.");
-            }
-            MV(idx[l],C) = eval(MV(idx[l],C)) + mtimes(A,mtimes(B,eval(V(jdx[l],C))));
-        }
-        else if (ptr[l]->m_typ==2 || tol<=0)
-        {
-            M = fct(idx[l],jdx[l]);
-            MV(idx[l],C) = eval(MV(idx[l],C)) + mtimes(M,eval(V(jdx[l],C)));
-        }
-        else
-        {
-            error(__FILE__, __LINE__, __FUNCTION__,"Unavailable case.");
-        }
-    }
-}
-
 
 //==========================================================================//
 //                               FUNCTIONS                                  //
 //==========================================================================//
 //==========================================================================
-// [hmatrix.check]
-/// Check leaves data conformity and make low-rank fusion if possible.
-template<typename T>
-void hmatrix<T>::check()
-{
-    if (m_typ==0)
-    {
-        for (int h=0; h<4; ++h)
-        {
-            m_chd[h].check();
-        }
-        fusion();
-    }
-    else if (m_typ==1)
-    {
-        if (size(m_dat[0],1)!=m_siz(0) || size(m_dat[1],2)!=m_siz(1))
-        {
-            error(__FILE__, __LINE__, __FUNCTION__,"Compressed leaf is empty.");
-        }
-        if (size(m_dat[0],2)!=size(m_dat[1],1))
-        {
-            error(__FILE__, __LINE__, __FUNCTION__,"Compressed leaf has uncompatible rank.");
-        }
-    }
-    else if (m_typ==2)
-    {
-        if (size(m_dat[0],1)!=m_siz(0) || size(m_dat[0],2)!=m_siz(1))
-        {
-            error(__FILE__, __LINE__, __FUNCTION__,"Full leaf is empty.");
-        }
-    }
-    else
-    {
-        error(__FILE__, __LINE__, __FUNCTION__,"Unavailable case.");
-    }
-}
-
-//==========================================================================
 // [hmatrix.full2lowrank]
-/// Convert full leaf to low-rank using SVD compression.
+/// Convert full leaf to low-rank using ACA compression.
 template<typename T>
 void hmatrix<T>::full2lowrank()
 {
     if (m_typ==2 && m_tol>0)
     {
-        using T2 = decltype(std::abs(m_dat[0](0)));
-        matrix<T2> S;
-        matrix<T> U, Vt;
-        std::size_t rk;
-        std::tie(S,U,Vt) = svd(m_dat[0],"vect");
-        rk = sum(S>=S(0)*m_tol);
-        if (S(numel(S)-1)<max(size(m_dat[0]))*M_EPS(T2) && rk<min(size(m_dat[0]))/4)
+        matrix<T> A, B;
+        bool flag;
+        std::tie(A,B,flag) = aca(m_dat[0],m_tol);
+        if (flag)
         {
+            m_dat[0] = A;
+            m_dat[1] = B;
             m_typ    = 1;
-            m_dat[0] = zeros<T>(size(U,1),rk);
-            m_dat[1] = zeros<T>(rk,size(Vt,2));
-            for (std::size_t r=0; r<rk; ++r)
-            {
-                for (std::size_t i=0; i<size(U,1); ++i)  {m_dat[0](i,r) = U(i,r)*S(r);}
-                for (std::size_t j=0; j<size(Vt,2); ++j) {m_dat[1](r,j) = Vt(r,j);}
-            }
         }
     }
 }
@@ -584,7 +477,7 @@ void hmatrix<T>::fusion()
         {
             leaf(h) = m_chd[h].m_typ;
         }
-        
+
         // Low-rank fusion
         if (nnz(leaf==1)==4)
         {
@@ -614,7 +507,6 @@ void hmatrix<T>::fusion()
                     m_col[h].resize(0,0);
                 }
                 m_chd.clear();
-                check();
             }
         }
     }
@@ -1071,6 +963,7 @@ void hmatrix<T>::htranspose()
     }
 }
 
+
 //==========================================================================
 // [hmatrix.leafptr]
 /// Extract leaves pointers to compute externaly leaves data.
@@ -1096,6 +989,7 @@ void hmatrix<T>::leafptr(std::vector<hmatrix<T>*>& ptr,
     }
 }
 
+
 //==========================================================================
 // [hmatrix.recompress]
 /// Recompression of dense and low-rank leaves with fusion.
@@ -1117,7 +1011,7 @@ void hmatrix<T>::recompress(double tol)
     }
     else if (m_typ==2)
     {
-        full2lowrank();
+//        full2lowrank();
     }
     else
     {
@@ -1226,7 +1120,6 @@ void hmatrix<T>::tgeabhm(T alpha, matrix<T>const& A, matrix<T>const& B, T beta, 
         matrix<std::size_t> c = col(A);
         m_dat[0] *= beta;
         m_dat[0] += mtimes(alpha*eval(A(I,c)),eval(B(c,J)));
-        full2lowrank();
     }
     else
     {
@@ -1289,7 +1182,7 @@ void hmatrix<T>::tgehmhm(T alpha, hmatrix<T>const& Ah, hmatrix<T>const& Bh, T be
     }
     
     // -------------------------------------------------------------- Ch is compr
-    // alpha * hmatrix * hmatrix + beta * compr -> compr
+    // alpha * hmatrix * hmatrix + beta * compr -> h-matrix
     else if (Ah.getType()==0 && Bh.getType()==0 && m_typ==1)
     {
         //        std::cout << " C1 ";
@@ -1356,7 +1249,6 @@ void hmatrix<T>::tgehmhm(T alpha, hmatrix<T>const& Ah, hmatrix<T>const& Bh, T be
         //        std::cout << " F1 ";
         matrix<T> tmp = mtimes(Ah.getData(0),mtimes(Ah.getData(1),Bh.getData(0)));
         tgemm(alpha,tmp,Bh.getData(1),beta,m_dat[0]);
-        full2lowrank();
     }
     // alpha * full * compr + beta * full -> full
     else if (Ah.getType()==2 && Bh.getType()==1 && m_typ==2)
@@ -1364,7 +1256,6 @@ void hmatrix<T>::tgehmhm(T alpha, hmatrix<T>const& Ah, hmatrix<T>const& Bh, T be
         //        std::cout << " F2 ";
         matrix<T> tmp = mtimes(Ah.getData(0),Bh.getData(0));
         tgemm(alpha,tmp,Bh.getData(1),beta,m_dat[0]);
-        full2lowrank();
     }
     // alpha * compr * full + beta * full -> full
     else if (Ah.getType()==1 && Bh.getType()==2 && m_typ==2)
@@ -1372,7 +1263,6 @@ void hmatrix<T>::tgehmhm(T alpha, hmatrix<T>const& Ah, hmatrix<T>const& Bh, T be
         //        std::cout << " F3 ";
         matrix<T> tmp = mtimes(Ah.getData(1),Bh.getData(0));
         tgemm(alpha,Ah.getData(0),tmp,beta,m_dat[0]);
-        full2lowrank();
     }
     // alpha * full * full + beta * full -> full
     else if (Ah.getType()==2 && Bh.getType()==2 && m_typ==2)
@@ -1617,6 +1507,26 @@ std::ostream& operator<<(std::ostream& flux, hmatrix<T> const& Ah)
 //==========================================================================//
 //                       MATLAB-LIKE FUNCTION                               //
 //==========================================================================//
+//==========================================================================
+// [disp]
+/// Display H-Matrix informations
+template<typename T>
+void disp(hmatrix<T>const& Ah, int info=2, std::ostream& flux=std::cout)
+{
+    if (info<=0)
+    {
+        flux << Ah;
+    }
+    else if (info==1)
+    {
+        flux << Ah << std::endl;
+    }
+    else if (info>=2)
+    {
+        flux << Ah << std::endl;
+    }
+}
+
 //==========================================================================
 // [full]
 /// Hierarchical to dense matrix conversion.
