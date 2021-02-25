@@ -10,7 +10,9 @@ The functions from the **Geometry** category are useful to perform transformatio
 
 cart2pol
 --------
-.. doxygenfunction:: cart2pol
+.. doxygenfunction:: cart2pol(R const &X, S const &Y)
+   :project: castor
+.. doxygenfunction:: cart2pol(matrix<R> const &X, matrix<S> const &Y)
    :project: castor
 
 See :ref:`label-pol2cart`, :ref:`label-cart2sph`, :ref:`label-sph2cart`.
@@ -19,7 +21,9 @@ See :ref:`label-pol2cart`, :ref:`label-cart2sph`, :ref:`label-sph2cart`.
 
 cart2sph
 --------
-.. doxygenfunction:: cart2sph
+.. doxygenfunction:: cart2sph(Q const &X, R const &Y, S const &Z)
+   :project: castor
+.. doxygenfunction:: cart2sph(matrix<Q> const &X, matrix<R> const &Y, matrix<S> const &Z)
    :project: castor
 
 See :ref:`label-sph2cart`, :ref:`label-cart2pol`, :ref:`label-pol2cart`.
@@ -46,7 +50,9 @@ See :ref:`label-kron`.
 
 pol2cart
 --------
-.. doxygenfunction:: pol2cart
+.. doxygenfunction:: pol2cart(R const &THE, S const &RHO)
+   :project: castor
+.. doxygenfunction:: pol2cart(matrix<R> const &THE, matrix<S> const &RHO)
    :project: castor
 
 See :ref:`label-cart2pol`, :ref:`label-cart2sph`, :ref:`label-sph2cart`.
@@ -55,7 +61,9 @@ See :ref:`label-cart2pol`, :ref:`label-cart2sph`, :ref:`label-sph2cart`.
 
 sph2cart
 --------
-.. doxygenfunction:: sph2cart
+.. doxygenfunction:: sph2cart(Q const &THE, R const &PHI, S const &RHO)
+   :project: castor
+.. doxygenfunction:: sph2cart(matrix<Q> const &THE, matrix<R> const &PHI, matrix<S> const &RHO)
    :project: castor
 
 See :ref:`label-cart2sph`, :ref:`label-cart2pol`, :ref:`label-pol2cart`.

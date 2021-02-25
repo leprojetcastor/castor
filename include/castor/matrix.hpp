@@ -2079,6 +2079,14 @@ auto cart2pol(matrix<R>const& X, matrix<S>const& Y)
     }
     return std::make_tuple(THE,RHO);
 }
+template<typename R, typename S>
+inline auto cart2pol(R const &X, S const &Y)
+{
+    using T = decltype(X + Y);
+    T theta = std::sqrt(X*X + Y*Y);
+    T rho   = std::atan2(Y,X);
+    return std::make_tuple(theta,rho);
+}
 
 //==========================================================================
 // [cart2sph]
@@ -2122,6 +2130,15 @@ auto cart2sph(matrix<Q>const& X, matrix<R>const& Y, matrix<S>const& Z)
         THE(l) = std::atan2(Y(l),X(l));
     }
     return std::make_tuple(THE,PHI,RHO);
+}
+template<typename Q, typename R, typename S>
+inline auto cart2sph(Q const &X, R const &Y, S const &Z)
+{
+    using T = decltype(X+Y+Z);
+    T rho = std::sqrt(X*X + Y*Y + Z*Z);
+    T phi = std::asin(Z/rho);
+    T the = std::atan2(Y/X);
+    return std::make_tuple(theta,phi,rho);
 }
 
 //==========================================================================
@@ -4575,6 +4592,14 @@ auto pol2cart(matrix<R>const& THE, matrix<S>const& RHO)
     }
     return std::make_tuple(X,Y);
 }
+template<typename R, typename S>
+inline auto pol2cart(R const &THE, S const &RHO)
+{
+    using T = decltype(THE + RHO);
+    T X = RHO*std::cos(THETA);
+    T Y = RHO*std::sin(THETA);
+    return std::make_tuple(X,Y);
+}
 
 //==========================================================================
 // [pow]
@@ -5320,6 +5345,15 @@ auto sph2cart(matrix<Q>const& THE, matrix<R>const& PHI, matrix<S>const& RHO)
         Y(l) = RHO(l) * std::sin(THE(l)) * std::cos(PHI(l));
         Z(l) = RHO(l) * std::sin(PHI(l));
     }
+    return std::make_tuple(X,Y,Z);
+}
+template<typename Q, typename R, typename S>
+inline auto sph2cart(Q const &THE, R const &PHI, S const &RHO)
+{
+    using T = decltype(THE+PHI+RHO);
+    T X = RHO*std::cos(THE)*std::cos(PHI);
+    T Y = RHO*std::sin(THE)*std::cos(PHI);
+    T Z = RHO*std::sin(PHI);
     return std::make_tuple(X,Y,Z);
 }
 
