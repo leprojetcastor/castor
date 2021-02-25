@@ -2138,7 +2138,7 @@ inline auto cart2sph(Q const &X, R const &Y, S const &Z)
     T rho = std::sqrt(X*X + Y*Y + Z*Z);
     T phi = std::asin(Z/rho);
     T the = std::atan2(Y/X);
-    return std::make_tuple(theta,phi,rho);
+    return std::make_tuple(the,phi,rho);
 }
 
 //==========================================================================
@@ -4596,8 +4596,8 @@ template<typename R, typename S>
 inline auto pol2cart(R const &THE, S const &RHO)
 {
     using T = decltype(THE + RHO);
-    T X = RHO*std::cos(THETA);
-    T Y = RHO*std::sin(THETA);
+    T X = RHO*std::cos(THE);
+    T Y = RHO*std::sin(THE);
     return std::make_tuple(X,Y);
 }
 
