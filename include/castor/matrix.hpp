@@ -2083,8 +2083,8 @@ template<typename R, typename S>
 inline auto cart2pol(R const &X, S const &Y)
 {
     using T = decltype(X + Y);
-    T theta = std::sqrt(X*X + Y*Y);
-    T rho   = std::atan2(Y,X);
+    auto rho     = std::sqrt(X*X + Y*Y);
+    auto theta   = std::atan2(Y,X);
     return std::make_tuple(theta,rho);
 }
 
