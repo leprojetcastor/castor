@@ -2053,6 +2053,8 @@ auto atanh(matrix<S>const& X)
 /// The arrays X and Y must be the same size and angle THE is returned
 /// in radians.
 ///
+/// <b>Remark:</b> This function supports scalar arguments.
+///
 /// \code{.cpp}
 ///    matrix<> X = {1,-1,-1,1};
 ///    matrix<> Y = {1,1,-1,-1};
@@ -2101,6 +2103,8 @@ inline auto cart2pol(R const &X, S const &Y)
 /// The arrays X,Y and Z must be the same size and angles (THE,PHI) are
 /// returned in radians.
 ///
+/// <b>Remark:</b> This function supports scalar arguments.
+///
 /// \code{.cpp}
 ///    matrix<> X = {1,-1,-1,1};
 ///    matrix<> Y = {1,1,-1,-1};
@@ -2137,7 +2141,7 @@ inline auto cart2sph(Q const &X, R const &Y, S const &Z)
     using T = decltype(X+Y+Z);
     T rho = std::sqrt(X*X + Y*Y + Z*Z);
     T phi = std::asin(Z/rho);
-    T the = std::atan2(Y/X);
+    T the = std::atan2(Y,X);
     return std::make_tuple(the,phi,rho);
 }
 
@@ -4566,6 +4570,8 @@ matrix<T> ones(matrix<std::size_t>const& S)
 /// stored in polar coordinates (THE,RHO) to Cartesian coordinates (X,Y).
 /// The arrays THE and RHO must the same size and angle THE must be in radians.
 ///
+/// <b>Remark:</b> This function supports scalar arguments.
+///
 /// \code{.cpp}
 ///    matrix<> THE = {0,M_PI/2,M_PI,-M_PI/2};
 ///    matrix<> RHO = {1,1,1,1};
@@ -5316,6 +5322,8 @@ matrix<T> sort(matrix<T> const& A, int dim=0)
 ///
 /// THE is the counterclockwise angle in the xy plane measured from the
 /// positive x axis. PHI is the elevation angle from the xy plane.
+///
+/// <b>Remark:</b> This function supports scalar arguments.
 ///
 /// \code{.cpp}
 ///    matrix<> THE = {0,M_PI/2,M_PI,-M_PI/2};

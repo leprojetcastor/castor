@@ -526,6 +526,8 @@ int main (int argc, char* argv[])
 
     matrix<> x = {1,-1,-1,1,1,-1,-1,1}, y={1,1,-1,-1,1,1,-1,-1}, z={1,1,1,1,-1,-1,-1,-1};
     matrix<> th, ph, r;
+    double s_x=-1.0, s_y=1.0, s_z=1.0;
+    double s_th=0.0, s_ph = 0.0, s_r = 0.0;
 
     // POLAR <-> CARTHESIAN
     disp(cat(1,x,y));
@@ -533,6 +535,11 @@ int main (int argc, char* argv[])
     disp(cat(1,rad2deg(th),r));
     std::tie(x,y) = pol2cart(th,r);
     disp(cat(1,x,y));
+    disp(matrix<>({s_x,s_y}));
+    std::tie(s_th,s_r) = cart2pol(s_x,s_y);
+    disp(matrix<>({rad2deg(s_th),s_r}));
+    std::tie(s_x,s_y) = pol2cart(s_th,s_r);
+    disp(matrix<>({s_x,s_y}));
 
     // SPHERICAL <-> CARTHESIAN
     disp(cat(1,cat(1,x,y),z));
@@ -540,6 +547,11 @@ int main (int argc, char* argv[])
     disp(cat(1,cat(1,rad2deg(th),rad2deg(ph)),r));
     std::tie(x,y,z) = sph2cart(th,ph,r);
     disp(cat(1,cat(1,x,y),z));
+    disp(matrix<>({s_x,s_y,s_z}));
+    std::tie(s_th,s_ph,s_r) = cart2sph(s_x,s_y,s_z);
+    disp(matrix<>({rad2deg(s_th),rad2deg(s_ph),s_r}));
+    std::tie(s_x,s_y,s_z) = sph2cart(s_th,s_ph,s_r);
+    disp(matrix<>({s_x,s_y,s_z}));
 
     // SPHERE GENERATOR
     std::tie(x,y,z) = sphere(6);

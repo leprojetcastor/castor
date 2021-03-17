@@ -29,6 +29,9 @@ int main (int argc, char* argv[])
     matrix<> x2, y2, z2;
     matrix<> th, ph, r;
     matrix<> azm, elv;
+
+    double s_x=-1.0, s_y=1.0, s_z=1.0, s_x2=0.0, s_y2=0.0, s_z2=0.0;
+    double s_th=0.0, s_ph = 0.0, s_r = 0.0;
     
     disp("Carthesian coordinates of the vertices of a 3D cube :");
     disp(x);
@@ -37,22 +40,33 @@ int main (int argc, char* argv[])
     
     disp("Convert carthesian coordinates to polar (degrees):");
     std::tie(th,r) = cart2pol(x,y);
+    std::tie(s_th,s_r) = cart2pol(s_x,s_y);
     disp(rad2deg(th));
     disp(r);
+    disp(rad2deg(s_th));
+    disp(s_r);
     
     disp("Convert polar coordinates to carthesian (error) :");
     std::tie(x2,y2) = pol2cart(th,r);
+    std::tie(s_x2,s_y2) = pol2cart(s_th,s_r);
     disp(max(cat(2,x-x2,y-y2)));
+    disp(std::max(std::abs(s_x-s_x2),std::abs(s_y-s_y2)));
     
     disp("Convert carthesian coordinates to spherical (degrees) :");
     std::tie(th,ph,r) = cart2sph(x,y,z);
+    std::tie(s_th,s_ph,s_r) = cart2sph(s_x,s_y,s_z);
     disp(rad2deg(th));
     disp(rad2deg(ph));
     disp(r);
+    disp(rad2deg(s_th));
+    disp(rad2deg(s_ph));
+    disp(rad2deg(s_r));
     
     disp("Convert spherical coordinates to carthesian (error) :");
     std::tie(x2,y2,z2) = sph2cart(th,ph,r);
+    std::tie(s_x2,s_y2,s_z2) = sph2cart(s_th,s_ph,s_r);
     disp(max(cat(2,cat(2,x-x2,y-y2),z-z2)));
+    disp(std::max({std::abs(s_x-s_x2),std::abs(s_y-s_y2),std::abs(s_z-s_z2)}));
         
     disp("Azimut and elevation coordinates of a sphere :");
     std::tie(x,y,z) = sphere(6);
