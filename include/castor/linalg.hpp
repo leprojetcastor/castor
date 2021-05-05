@@ -771,12 +771,12 @@ void tgetrf(int& m, int& n, std::vector<T>& A, std::vector<T>& P, matrix<S>& U)
 // \see svd, rank.
 auto aca(matrix<std::size_t> I, matrix<std::size_t> J,
          std::function<matrix<double>(matrix<std::size_t>,matrix<std::size_t>)>const& fct,
-         double tol=1e-6, std::size_t rmax=1e6);
+         double tol=1e-6, std::size_t rmax=1e6, bool acaplus=true);
 auto aca(matrix<std::size_t> I, matrix<std::size_t> J,
          std::function<matrix<std::complex<double>>(matrix<std::size_t>,matrix<std::size_t>)>const& fct,
-         double tol=1e-6, std::size_t rmax=1e6);
+         double tol=1e-6, std::size_t rmax=1e6, bool acaplus=true);
 template<typename T>
-auto aca(matrix<T>const& M, double tol=1e-6, std::size_t rmax=1e6)
+auto aca(matrix<T>const& M, double tol=1e-6, std::size_t rmax=1e6, bool acaplus=true)
 {
     matrix<std::size_t> I=range(0,size(M,1)), J=range(0,size(M,2));
     std::function<matrix<T>(matrix<std::size_t>,matrix<std::size_t>)> fct;
@@ -784,10 +784,10 @@ auto aca(matrix<T>const& M, double tol=1e-6, std::size_t rmax=1e6)
     {
         return eval(M(I,J));
     };
-    return aca(I,J,fct,tol,rmax);
+    return aca(I,J,fct,tol,rmax,acaplus);
 }
 template<typename T>
-auto aca(matrix<T>const& A, matrix<T>const& B, double tol=1e-6, std::size_t rmax=1e6)
+auto aca(matrix<T>const& A, matrix<T>const& B, double tol=1e-6, std::size_t rmax=1e6, bool acaplus=true)
 {
     matrix<std::size_t> I=range(0,size(A,1)), J=range(0,size(B,2));
     std::function<matrix<T>(matrix<std::size_t>,matrix<std::size_t>)> fct;
@@ -806,7 +806,7 @@ auto aca(matrix<T>const& A, matrix<T>const& B, double tol=1e-6, std::size_t rmax
         }
         return C;
     };
-    return aca(I,J,fct,tol,rmax);
+    return aca(I,J,fct,tol,rmax,acaplus);
 }
 
 //==========================================================================
@@ -1325,7 +1325,7 @@ auto svd(matrix<T>const& A)
 //========================================================================
 auto aca(matrix<std::size_t> I, matrix<std::size_t> J,
          std::function<matrix<double>(matrix<std::size_t>,matrix<std::size_t>)>const& fct,
-         double tol, std::size_t rmax)
+         double tol, std::size_t rmax, bool acaplus)
 {
     // Declarations
     auto row = [&fct,&I,&J](std::size_t i) {return fct(I(i),J);};
@@ -1334,7 +1334,7 @@ auto aca(matrix<std::size_t> I, matrix<std::size_t> J,
     std::vector<std::size_t> Ir(Nr), Ic(Nc);
     double alpha, beta, aa, ab, bb, res, err, tmp;
     std::vector<double> a(Nr), b(Nc), anp1(Nr), bnp1(Nc), u(10), v(10);
-    bool flag = true;
+    bool flag = true, maxsearch = true;
     matrix<double> A, Bt;
     
     // Initialize indices for row and columns pivots
@@ -1348,7 +1348,7 @@ auto aca(matrix<std::size_t> I, matrix<std::size_t> J,
     
     // Row pivot
     c    = 0;
-    beta = 1e-12;
+    beta = 0;
     for(std::size_t l=0; l<Nc; ++l)
     {
         if(std::abs(b[l])>std::abs(beta)) {beta=b[l]; c=l;}
@@ -1385,12 +1385,25 @@ auto aca(matrix<std::size_t> I, matrix<std::size_t> J,
         v.resize(n);
         
         // Column pivot with previous last column
-        k     = 0;
-        alpha = 1e-12;
-        for(std::size_t l=0; l<Ir.size(); ++l)
+        k = 0;
+        if (maxsearch) // Look for max
         {
-            tmp = anp1[Ir[l]];
-            if(std::abs(tmp)>std::abs(alpha)) {alpha=tmp; k=l;}
+            alpha = 0;
+            for(std::size_t l=0; l<Ir.size(); ++l)
+            {
+                tmp = anp1[Ir[l]];
+                if(std::abs(tmp)>std::abs(alpha)) {alpha=tmp; k=l;}
+            }
+        }
+        else // Look for min
+        {
+            alpha = 1e308;
+            for(std::size_t l=0; l<Ir.size(); ++l)
+            {
+                tmp = anp1[Ir[l]];
+                if(std::abs(tmp)<std::abs(alpha)) {alpha=tmp; k=l;}
+            }
+            maxsearch = true;
         }
         r = Ir[k];
         Ir.erase(Ir.begin()+k);
@@ -1403,7 +1416,7 @@ auto aca(matrix<std::size_t> I, matrix<std::size_t> J,
         
         // Row pivot
         k    = 0;
-        beta = 1e-12;
+        beta = 0;
         for(std::size_t l=0; l<Ic.size(); ++l)
         {
             tmp = bnp1[Ic[l]];
@@ -1444,6 +1457,14 @@ auto aca(matrix<std::size_t> I, matrix<std::size_t> J,
         
         // Incrementation
         ++n;
+        
+        // ACA plus activation
+        if (err<=tol && acaplus)
+        {
+            err       = 1;
+            maxsearch = false;
+            acaplus   = false;
+        }
     }
     
     // Matrix format (A,Bt)
@@ -1458,7 +1479,7 @@ auto aca(matrix<std::size_t> I, matrix<std::size_t> J,
 //========================================================================
 auto aca(matrix<std::size_t> I, matrix<std::size_t> J,
          std::function<matrix<std::complex<double>>(matrix<std::size_t>,matrix<std::size_t>)>const& fct,
-         double tol, std::size_t rmax)
+         double tol, std::size_t rmax, bool acaplus)
 {
     // Declarations
     auto row = [&fct,&I,&J](std::size_t i) {return fct(I(i),J);};
@@ -1467,7 +1488,7 @@ auto aca(matrix<std::size_t> I, matrix<std::size_t> J,
     std::vector<std::size_t> Ir(Nr), Ic(Nc);
     std::complex<double> alpha, beta, aa, ab, bb, res, err, tmp;
     std::vector<std::complex<double>> a(Nr), b(Nc), anp1(Nr), bnp1(Nc), u(10), v(10);
-    bool flag = true;
+    bool flag = true, maxsearch = true;
     matrix<std::complex<double>> A, Bt;
     
     // cblas_zgemv constantes
@@ -1484,7 +1505,7 @@ auto aca(matrix<std::size_t> I, matrix<std::size_t> J,
     
     // Row pivot
     c    = 0;
-    beta = 1e-12;
+    beta = 0;
     for(std::size_t l=0; l<Nc; ++l)
     {
         if(std::abs(b[l])>std::abs(beta)) {beta=b[l]; c=l;}
@@ -1521,12 +1542,25 @@ auto aca(matrix<std::size_t> I, matrix<std::size_t> J,
         v.resize(n);
         
         // Column pivot with previous last column
-        k     = 0;
-        alpha = 1e-12;
-        for(std::size_t l=0; l<Ir.size(); ++l)
+        k = 0;
+        if (maxsearch) // Look for max
         {
-            tmp = anp1[Ir[l]];
-            if(std::abs(tmp)>std::abs(alpha)) {alpha=tmp; k=l;}
+            alpha = 0;
+            for(std::size_t l=0; l<Ir.size(); ++l)
+            {
+                tmp = anp1[Ir[l]];
+                if(std::abs(tmp)>std::abs(alpha)) {alpha=tmp; k=l;}
+            }
+        }
+        else // Look for min
+        {
+            alpha = 1e308;
+            for(std::size_t l=0; l<Ir.size(); ++l)
+            {
+                tmp = anp1[Ir[l]];
+                if(std::abs(tmp)<std::abs(alpha)) {alpha=tmp; k=l;}
+            }
+            maxsearch = true;
         }
         r = Ir[k];
         Ir.erase(Ir.begin()+k);
@@ -1539,7 +1573,7 @@ auto aca(matrix<std::size_t> I, matrix<std::size_t> J,
         
         // Row pivot
         k    = 0;
-        beta = 1e-12;
+        beta = 0;
         for(std::size_t l=0; l<Ic.size(); ++l)
         {
             tmp = bnp1[Ic[l]];
@@ -1580,6 +1614,14 @@ auto aca(matrix<std::size_t> I, matrix<std::size_t> J,
         
         // Incrementation
         ++n;
+        
+        // ACA plus activation
+        if (err.real()<=tol && acaplus)
+        {
+            err       = 1;
+            maxsearch = false;
+            acaplus   = false;
+        }
     }
     
     // Matrix format (A,Bt)
