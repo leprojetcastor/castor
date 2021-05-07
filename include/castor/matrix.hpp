@@ -145,7 +145,10 @@ template<typename T>
 matrix<std::size_t> col(matrix<T>const& A);
 
 template<typename T>
-void disp(T A, int info=1, std::ostream& flux=std::cout);
+void disp(T const& A, int info=1, std::ostream& flux=std::cout);
+
+template<typename T>
+void disp(T const* A, int info=1, std::ostream& flux=std::cout);
 
 template<typename T>
 void disp(matrix<T>const& A, int info=2, std::ostream& flux=std::cout, std::size_t m=3, std::size_t n=3);
@@ -2949,7 +2952,24 @@ inline matrix<T> diff(matrix<T>const& A) {return diff(A,0);}
 ///
 // \see help, error, warning.
 template<typename T>
-void disp(T A, int info, std::ostream& flux)
+void disp(T const& A, int info, std::ostream& flux)
+{
+    if (info<=0)
+    {
+        flux << A;
+    }
+    else if (info==1)
+    {
+        flux << A << std::endl;
+    }
+    else if (info>=2)
+    {
+        flux << "Object of type '" << typeid(T).name() << "':" <<std::endl;
+        flux << A << std::endl;
+    }
+}
+template<typename T>
+void disp(T const* A, int info, std::ostream& flux)
 {
     if (info<=0)
     {
