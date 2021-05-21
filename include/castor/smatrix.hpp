@@ -1895,6 +1895,46 @@ template<typename T>
 inline smatrix<T>const& sparse(smatrix<T>const& As) {return As;}
 
 //==========================================================================
+// [spdiags]
+/// Sparse matrix formed from diagonals.
+///
+/// A = spdiags(B,d,m,n) creates an m-by-n sparse matrix from the
+/// columns of B and places them along the diagonals specified by d.
+///
+/// \code{.cpp}
+///    std::size_t n = 3;
+///    matrix<>    e = ones(n,1);
+///    matrix<>    A = cat(2,cat(2,e,-2*e),e);
+///    smatrix<>  As = spdiags(A,colon(-1,1),n,n);
+///    disp(As);
+/// \endcode
+///
+// \see diag, speye, sparse.
+template<typename T>
+smatrix<T> spdiags(matrix<T>const& A, matrix<long>const& d, std::size_t m, std::size_t n)
+{
+    std::vector<std::size_t> I, J;
+    std::vector<T> V;
+    if (size(A,1)<m || size(A,2)!=numel(d))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"A, d and size m-by-n are not consistents.");
+    }
+    for (std::size_t i=0; i<m; ++i)
+    {
+        for (std::size_t l=0; l<numel(d); ++l)
+        {
+            if (d(l)+i>=0 && d(l)+i<n)
+            {
+                I.push_back(i);
+                J.push_back(d(l)+i);
+                V.push_back(A(i,l));
+            }
+        }
+    }
+    return smatrix<T>(m,n,I,J,V);
+}
+
+//==========================================================================
 // [speye]
 /// Identity sparse matrix.
 ///

@@ -216,6 +216,11 @@ int main (int argc, char* argv[])
     smatrix<> Asm1 = gmres(As,eye(100));
     X = gmres(As,B,1e-3,10,Asm1,X);
     disp(norm(mtimes(As,X)-B,"inf"));
+    
+    // Spdiags
+    std::size_t n = 3;
+    matrix<>    e = ones(n,1);
+    disp(spdiags(cat(2,cat(2,e,-2*e),e),{-2,0,2},3,5));    
 
     //===============================================================
     std::cout << "+=================+" << std::endl;
