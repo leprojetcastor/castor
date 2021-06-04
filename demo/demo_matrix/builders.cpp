@@ -24,7 +24,7 @@ int main (int argc, char* argv[])
     disp("+=====================+");
 
     disp("Build scalar logical matrix :");
-    matrix<logical> s = true;
+    matrix<logical> s = (logical)true;
     disp(s);
     
     disp("Build row int vector :");
