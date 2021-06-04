@@ -1195,7 +1195,7 @@ auto qrsvd(matrix<T>const& A, matrix<T>const& B, float tol)
     std::tie(Qa,Ra) = qr(A);
     std::tie(Qb,Rb) = qr(transpose(B));
     std::tie(Sab,Uab,Vab) = svd(mtimes(Ra,transpose(Rb)),"vect");
-    std::size_t n = sum(Sab>=tol*Sab(0));
+    std::size_t n = sum<std::size_t>(Sab>=tol*Sab(0));
     Sab = diag(eval(Sab(range(0,n))));
     Uab = eval(Uab(row(Uab),range(0,n)));
     Vab = eval(Vab(range(0,n),col(Vab)));
@@ -1228,7 +1228,7 @@ std::size_t rank(matrix<T>const& A, float tol=0)
     matrix<S> s = svd(A);
     if (tol==0) {tol = std::max(size(A,1),size(A,2)) * M_EPS(S);}
     else {tol *= s(0);}
-    return sum(s>tol);
+    return sum<std::size_t>(s>tol);
 }
 
 //==========================================================================

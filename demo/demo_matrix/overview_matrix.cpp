@@ -43,6 +43,22 @@ int main (int argc, char* argv[])
     disp(100*eye(10,10) + M_1I*eye(10,10));
 
     warning(__FILE__, __LINE__, __FUNCTION__,"This is just a funny warning, enjoy!.");
+    
+    // =============================================================== LOGICAL
+    std::cout << "+===============+" << std::endl;
+    std::cout << "|    LOGICAL    |" << std::endl;
+    std::cout << "+===============+" << std::endl;
+
+    logical yes=true, no=0.;
+    disp(yes,2);
+    disp(no,2);
+    disp(yes+no,2);
+    disp(yes*no,2);
+    disp(yes&&no,2);
+    disp(yes||no,2);
+    disp(yes+1,2);
+    yes = yes + 1;
+    disp(yes,2);
 
     //================================================== CONSTRUCTORS
     std::cout << "+=====================+" << std::endl;
@@ -68,11 +84,13 @@ int main (int argc, char* argv[])
     matrix<int> A9(A8);
     disp(A9);
 
-    matrix<logical> s = M_PI;
+    matrix<int> s = M_PI;
     int u = (double)s;
     disp(u);
     matrix<int> X = {0,1,2,3};
     disp(X);
+    matrix<logical> Y = X;
+    disp(Y);
     matrix<> A = {{0,1,2,M_PI},
         {4,5,6,7},
         {8,9,10,11}};
@@ -331,6 +349,7 @@ int main (int argc, char* argv[])
 
     disp(cast<int>(A));
     disp(cast(A,int()));
+    disp(cast(A,logical()));
     disp(cat(1,0,0));
     disp(cat(2,0,0));
     disp(cat(1,0,ones(3,1)));
@@ -433,6 +452,7 @@ int main (int argc, char* argv[])
     disp(sum(A));
     disp(sum(A,1));
     disp(sum(A,2));
+    disp(sum<int>(cast(A,logical())));
     disp(cumsum(A));
     disp(cumsum(A,1));
     disp(cumsum(A,2));
@@ -496,6 +516,7 @@ int main (int argc, char* argv[])
     std::cout << "tan      : " << tan(V) << std::endl;
     std::cout << "tand     : " << tand(V*180/M_PI) << std::endl;
     std::cout << "tanh     : " << tanh(V) << std::endl;
+    disp(abs<logical>(V));
 
     // =============================================================== COMPLEX
     std::cout << "+================+" << std::endl;

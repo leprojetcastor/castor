@@ -339,10 +339,12 @@ hmatrix<T>::hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol,
        if (ptr[l]->m_typ==1 && tol>0)
        {
            #pragma omp task
+           {
            std::tie(ptr[l]->m_dat[0],ptr[l]->m_dat[1],flag) = aca(idx[l],jdx[l],fct,tol);
            if (!flag)
            {
                error(__FILE__, __LINE__, __FUNCTION__,"ACA compression failed.");
+           }
            }
        }
        else if (ptr[l]->m_typ==2 || tol<=0)

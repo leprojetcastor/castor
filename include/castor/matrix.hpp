@@ -59,7 +59,19 @@ static std::vector<std::string> documentationFiles =
 
 static auto ticTimer = std::chrono::high_resolution_clock::now();
 
-using logical = std::uint8_t;
+class logical
+{
+public:
+    logical():m_val(){};
+    logical(bool v):m_val(v){};
+    operator bool() const {return m_val;};
+    template<typename T>
+    operator std::complex<T>() const {return m_val;}
+    bool* operator&() {return &m_val;}
+    const bool* operator&() const {return &m_val;}
+private:
+    bool m_val;
+};
 
 template<typename T>
 class view;
@@ -3050,7 +3062,7 @@ void disp(matrix<T>const& A, int info, std::ostream& flux, std::size_t r, std::s
                 // Logical
                 if (std::is_same<T,logical>::value)
                 {
-                    flux << (int)std::abs<int>(B(i,j)) << "  ";
+                    flux << B(i,j) << "  ";
                 }
                 // Integral (int, long, size_t, etc.)
                 else if (std::is_integral<T>::value)
@@ -3743,7 +3755,23 @@ inline bool isempty(matrix<T>const& X) {return numel(X)==0;}
 ///
 // \see isempty, isvector.
 template<typename R, typename S>
-inline bool isequal(matrix<R>const& A, matrix<S>const& B) {return prod(A==B);}
+bool isequal(matrix<R>const& A, matrix<S>const& B)
+{
+    if (size(A,1)!=size(B,1) || size(A,2)!=size(B,2))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
+    bool b = true;
+    for (std::size_t l=0; l<numel(A); ++l)
+    {
+        if (A(l)!=B(l))
+        {
+            b = false;
+            break;
+        }
+    }
+    return b;
+}
 
 //==========================================================================
 // [isfinite]
