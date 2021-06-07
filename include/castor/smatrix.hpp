@@ -1509,20 +1509,20 @@ template<typename T>
 matrix<T> gmres(smatrix<T>const& As, matrix<T>const& B,
                 double tol = 1e-6, std::size_t maxit = 10,
                 std::function<matrix<T>(matrix<T>const&)>const& Am1 = std::function<matrix<T>(matrix<T>const&)>(),
-                matrix<T>const& X0 = matrix<T>())
+                matrix<T>const& X0 = matrix<T>(), int info=1)
 {
     std::function<matrix<T>(matrix<T>const&)> Afct;
     Afct = [&As](matrix<T>const& X) {return mtimes(As,X);};
-    return gmres(Afct,B,tol,maxit,Am1,X0);
+    return gmres(Afct,B,tol,maxit,Am1,X0,info);
 }
 template<typename T>
 matrix<T> gmres(smatrix<T>const& As, matrix<T>const& B, double tol, std::size_t maxit,
-                smatrix<T>const& Asm1, matrix<T>const& X0 = matrix<T>())
+                smatrix<T>const& Asm1, matrix<T>const& X0 = matrix<T>(), int info=1)
 {
     std::function<matrix<T>(matrix<T>const&)> Afct, Am1fct;
     Afct   = [&As](matrix<T>const& X) {return mtimes(As,X);};
     Am1fct = [&Asm1](matrix<T>const& X) {return mtimes(Asm1,X);};
-    return gmres(Afct,B,tol,maxit,Am1fct,X0);
+    return gmres(Afct,B,tol,maxit,Am1fct,X0,info);
 }
 
 //==========================================================================
@@ -1564,6 +1564,36 @@ std::size_t length(smatrix<T>const& As)
 {
     return std::max(size(As,1),size(As,2));
 }
+
+//==========================================================================
+// [linsolve]
+/// linsolve Solve linear system As*X=B.
+///
+/// X = linsolve(As,B) solves the sparse linear system As*X=B using GMRES
+/// iterative solver without preconditionner.
+/// Linsolve warns if GMRES did not converge.
+///
+/// \code{.cpp}
+///    smatrix<> As = rand(3,3);
+///    matrix<>   B = eye(3,3);
+///    matrix<>   X = linsolve(As,B);
+///    disp(mtimes(X,As));
+/// \endcode
+///
+// \see linsolve, gmres.
+template<typename T>
+auto linsolve(smatrix<T>const& As, matrix<T>const& B)
+{
+    if (size(As,1)!=size(B,1))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
+    std::function<matrix<T>(matrix<T>const&)> Afct, Am1fct;
+    Afct = [&As](matrix<T>const& X) {return mtimes(As,X);};
+    double tol = M_EPS(T)*max(size(As));
+    std::size_t maxit = max(size(As));
+    matrix<T> X0;
+    return gmres(Afct,B,tol,maxit,Am1fct,X0,0);}
 
 //==========================================================================
 // [mtimes]

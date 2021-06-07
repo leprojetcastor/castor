@@ -3370,10 +3370,13 @@ template<typename T>
 matrix<T> gmres(std::function<matrix<T>(matrix<T>const&)>const& A, matrix<T>const& B,
                 double tol = 1e-6, std::size_t maxit = 10,
                 std::function<matrix<T>(matrix<T>const&)>const& Am1 = std::function<matrix<T>(matrix<T>const&)>(),
-                matrix<T>const& X0 = matrix<T>())
+                matrix<T>const& X0 = matrix<T>(), int info=1)
 {
     // Initialize
-    disp("Start GMRES using MGCR implementation (Multiple Generalized Conjugate Residual):");
+    if (info>0)
+    {
+        disp("Start GMRES using MGCR implementation (Multiple Generalized Conjugate Residual).");
+    }
     std::size_t nrhs=size(B,2), kmax, iter = 0;
     matrix<std::size_t> I = row(B);
     matrix<T> xk, rk, nrk0, nrk, alphak(1,nrhs), p, Ap, n2Ap, Ar, sigma, tmp;
@@ -3398,7 +3401,10 @@ matrix<T> gmres(std::function<matrix<T>(matrix<T>const&)>const& A, matrix<T>cons
     while (std::abs(err)>tol && iter<maxit)
     {
         // Clock
-        tic();
+        if (info>1)
+        {
+            tic();
+        }
         
         // Update all RHS
         alphak = - mtimes(transpose(conj(eval(Ap(I,iter)))),rk) / n2Ap(iter);
@@ -3424,16 +3430,22 @@ matrix<T> gmres(std::function<matrix<T>(matrix<T>const&)>const& A, matrix<T>cons
         ++iter;
         
         // Infos
-        std::cout << " + Iteration " << iter << " in " << toc(0) <<
-        " seconds with relative residual " << err << "." << std::endl;
+        if (info>1)
+        {
+            std::cout << " + Iteration " << iter << " in " << toc(0) <<
+            " seconds with relative residual " << err << "." << std::endl;
+        }
     }
 
     // Infos
     if (std::abs(err)<=tol)
     {
-        std::cout << "GMRES converged at iteration " << iter <<
-        " to a solution with relative residual " << err << std::endl;
-        std::cout << "and relative error " << max(abs(A(xk)-B))/max(abs(B)) << "." << std::endl;
+        if (info>0)
+        {
+            std::cout << "GMRES converged at iteration " << iter <<
+            " to a solution with relative residual " << err << std::endl;
+            std::cout << "and relative error " << max(abs(A(xk)-B))/max(abs(B)) << "." << std::endl;
+        }
     }
     else
     {
@@ -3446,24 +3458,32 @@ matrix<T> gmres(std::function<matrix<T>(matrix<T>const&)>const& A, matrix<T>cons
     return xk;
 }
 template<typename T>
+matrix<T> gmres(std::function<matrix<T>(matrix<T>const&)>const& A, matrix<T>const& B,
+                double tol = 1e-6, std::size_t maxit = 10,
+                matrix<T>const& Am1 = matrix<T>(), matrix<T>const& X0 = matrix<T>(), int info=1)
+{
+    std::function<matrix<T>(matrix<T>const&)> Am1fct;
+    if (!isempty(Am1)) {Am1fct = [&Am1](matrix<T>const& X) {return mtimes(Am1,X);};}
+    return gmres(A,B,tol,maxit,Am1fct,X0,info);
+}
+template<typename T>
 matrix<T> gmres(matrix<T>const& A, matrix<T>const& B,
                 double tol = 1e-6, std::size_t maxit = 10,
                 std::function<matrix<T>(matrix<T>const&)>const& Am1 = std::function<matrix<T>(matrix<T>const&)>(),
-                matrix<T>const& X0 = matrix<T>())
+                matrix<T>const& X0 = matrix<T>(), int info=1)
 {
     std::function<matrix<T>(matrix<T>const&)> Afct;
     Afct = [&A](matrix<T>const& X) {return mtimes(A,X);};
-    return gmres(Afct,B,tol,maxit,Am1,X0);
+    return gmres(Afct,B,tol,maxit,Am1,X0,info);
 }
-
 template<typename T>
 matrix<T> gmres(matrix<T>const& A, matrix<T>const& B, double tol, std::size_t maxit,
-                matrix<T>const& Am1, matrix<T>const& X0 = matrix<T>())
+                matrix<T>const& Am1, matrix<T>const& X0 = matrix<T>(), int info=1)
 {
     std::function<matrix<T>(matrix<T>const&)> Afct, Am1fct;
-    Afct   = [&A](matrix<T>const& X) {return mtimes(A,X);};
-    Am1fct = [&Am1](matrix<T>const& X) {return mtimes(Am1,X);};
-    return gmres(Afct,B,tol,maxit,Am1fct,X0);
+    Afct = [&A](matrix<T>const& X) {return mtimes(A,X);};
+    if (!isempty(Am1)) {Am1fct = [&Am1](matrix<T>const& X) {return mtimes(Am1,X);};}
+    return gmres(Afct,B,tol,maxit,Am1fct,X0,info);
 }
 
 //==========================================================================

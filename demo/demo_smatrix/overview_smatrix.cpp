@@ -217,6 +217,10 @@ int main (int argc, char* argv[])
     X = gmres(As,B,1e-3,10,Asm1,X);
     disp(norm(mtimes(As,X)-B,"inf"));
     
+    // Linsolve
+    X = linsolve(As,B);
+    disp(norm(mtimes(As,X)-B,"inf"));
+    
     // Spdiags
     std::size_t n = 3;
     matrix<>    e = ones(n,1);

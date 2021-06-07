@@ -345,6 +345,10 @@ int main (int argc, char* argv[])
     matrix<> Am1 = gmres(A,eye(100));
     C = gmres(A,B,1e-3,10,Am1,C);
     disp( norm(mtimes(A,C)-B,"inf") );
+    C = gmres(A,B,1e-3,10,matrix<>(),matrix<>(),2);
+    disp( norm(mtimes(A,C)-B,"inf") );
+    C = gmres(A,B,1e-3,10,matrix<>(),matrix<>(),0);
+    disp( norm(mtimes(A,C)-B,"inf") );
     
     disp("+--------------------+");
     disp("|     CONVOLUTION    |");
