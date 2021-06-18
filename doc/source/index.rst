@@ -43,6 +43,15 @@ Boundary element computation using le projet castor. Simulation of acoustic scat
 
    installation
 
+.. toctree::
+   :caption: Examples
+   :maxdepth: 1
+   :hidden:
+
+   heat
+   eigenmode
+
+
 .. _label-user-guide:
 
 .. toctree::
