@@ -1424,6 +1424,7 @@ auto aca(matrix<std::size_t> I, matrix<std::size_t> J,
         }
         c = Ic[k];
         Ic.erase(Ic.begin()+k);
+        if (beta==0) {break;}
         
         // New column
         for(std::size_t l=0; l<n; ++l)  {v[l]    = b[l*Nc+c];}
@@ -1581,6 +1582,7 @@ auto aca(matrix<std::size_t> I, matrix<std::size_t> J,
         }
         c = Ic[k];
         Ic.erase(Ic.begin()+k);
+        if (std::abs(beta)==0) {break;}
         
         // New column
         for(std::size_t l=0; l<n; ++l)  {v[l]    = b[l*Nc+c];}

@@ -165,6 +165,9 @@ void disp(T const* A, int info=1, std::ostream& flux=std::cout);
 template<typename T>
 void disp(matrix<T>const& A, int info=2, std::ostream& flux=std::cout, std::size_t m=3, std::size_t n=3);
 
+template<typename T>
+inline void disp(matrix<T>const& A, std::size_t m, std::size_t n) {disp(A,2,std::cout,m,n);};
+
 inline void error(std::string file, int line, std::string function, std::string comment);
 
 inline void help(std::string name="help", std::vector<std::string> filename=documentationFiles);

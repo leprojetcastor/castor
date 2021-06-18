@@ -43,7 +43,11 @@ int main (int argc, char* argv[])
     disp(s);
     s = 1;
     disp(s);
-    smatrix<> As(3,4);
+    smatrix<> As = {1,2,3};
+    disp(As);
+    As = {{1,2,3},{4,5,6}};
+    disp(As);
+    As = smatrix<>(3,4);
     disp(As);
     As = smatrix<>(3,4,5);
     disp(As);
@@ -222,9 +226,10 @@ int main (int argc, char* argv[])
     disp(norm(mtimes(As,X)-B,"inf"));
     
     // Spdiags
-    std::size_t n = 3;
-    matrix<>    e = ones(n,1);
-    disp(spdiags(cat(2,cat(2,e,-2*e),e),{-2,0,2},3,5));    
+    matrix<> e = reshape(colon(1,9),3,3);
+    disp(full(spdiags(e,{-2,0,2},3,6)));
+    disp(full(spdiags(e,{-2,0,2},3,3)));
+    disp(full(spdiags(e,{-2,0,2},6,3)));
 
     //===============================================================
     std::cout << "+=================+" << std::endl;

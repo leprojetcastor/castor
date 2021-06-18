@@ -59,6 +59,8 @@ public:
     // CONSTRUCTORS
     smatrix();                                              // DEFAULT
     smatrix(T v);                                           // SCALAR
+    smatrix(std::initializer_list<T>const& v);              // 1D INITIALIZATION LIST
+    smatrix(std::initializer_list<std::vector<T>>const& v); // 2D INITIALIZATION LIST
     smatrix(std::size_t m, std::size_t n);                  // DIMENSIONS
     smatrix(std::size_t m, std::size_t n, std::size_t nnz); // DIMENSION AND NNZ
     template<typename S>
@@ -220,6 +222,28 @@ m_row(0), m_col(0) {};
 template<typename T>
 smatrix<T>::smatrix(T v):
 m_row(1), m_col(1), m_ind(1,0), m_val(1,v) {check();}
+
+/// Builds a row matrix from initializer list.
+/// \code{.cpp}
+///    smatrix<float> As({0,1,2,M_PI});
+///    disp(As);
+/// \endcode
+template<typename T>
+smatrix<T>::smatrix(std::initializer_list<T>const& v)
+{
+    (*this) = matrix<T>(v);
+}
+
+/// Builds a matrix from nested initializer list.
+/// \code{.cpp}
+///    smatrix<double> As({{0,1,2,M_PI},{4,5,6,7},{8,9,10,11}});
+///    disp(As);
+/// \endcode
+template<typename T>
+smatrix<T>::smatrix(std::initializer_list<std::vector<T>>const& v)
+{
+    (*this) = matrix<T>(v);
+}
 
 /// Builds a sparse matrix from dimensions
 /// \code{.cpp}
@@ -1941,23 +1965,30 @@ inline smatrix<T>const& sparse(smatrix<T>const& As) {return As;}
 ///
 // \see diag, speye, sparse.
 template<typename T>
-smatrix<T> spdiags(matrix<T>const& A, matrix<long>const& d, std::size_t m, std::size_t n)
+smatrix<T> spdiags(matrix<T>const& A, matrix<long>const& d, long m, long n)
 {
     std::vector<std::size_t> I, J;
     std::vector<T> V;
-    if (size(A,1)<m || size(A,2)!=numel(d))
+    if (size(A,1)!=std::min(m,n) || size(A,2)!=numel(d))
     {
-        error(__FILE__, __LINE__, __FUNCTION__,"A, d and size m-by-n are not consistents.");
+        error(__FILE__, __LINE__, __FUNCTION__,"For the syntax spdiags(A,d,m,n), the size of A must be min(m,n)-by-length(d).");
     }
-    for (std::size_t i=0; i<m; ++i)
+    for (long i=0; i<m; ++i)
     {
-        for (std::size_t l=0; l<numel(d); ++l)
+        for (long l=0; l<numel(d); ++l)
         {
             if (d(l)+i>=0 && d(l)+i<n)
             {
                 I.push_back(i);
                 J.push_back(d(l)+i);
-                V.push_back(A(i,l));
+                if (m<n)
+                {
+                    V.push_back(A(i,l));
+                }
+                else
+                {
+                    V.push_back(A(d(l)+i,l));
+                }
             }
         }
     }
