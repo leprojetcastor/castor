@@ -36,7 +36,7 @@ We discretize our space domain ``L`` with ``dx`` steps which results in the mesh
 
 .. math:: 
 
-    \begin{matrix} x_{m} = m \delta x \text{ for } m = 1,..., n_{x}\\ y_{n} = n \delta x \text{ for } n = 1,..., n_{y} \end{matrix}
+    \begin{matrix} x_{i} = i \delta x \text{ for } i = 1,..., n_{x}\\ y_{j} = j \delta x \text{ for } j = 1,..., n_{y} \end{matrix}
 
 .. code-block:: c++
 
@@ -68,7 +68,7 @@ The Laplacian operator can be approximated as
     \begin{matrix}
     \Delta_{\textbf{x}}u(x,y) & = & \displaystyle \frac{\partial^2 u}{\partial x^2}(x,y) + \frac{\partial^2 u}{\partial y^2}(x,y) 
     \\ 
-    \Delta_{\textbf{x}}u_{m,n} & \approx & \displaystyle \frac{u_{m+1,n}+u_{m,n+1}-4u_{m,n}+u_{m-1,n}+u_{m,n-1}}{\delta_{\textbf{x}}^2}
+    \Delta_{\textbf{x}}u_{i,j} & \approx & \displaystyle \frac{u_{i+1,j}+u_{i,j+1}-4u_{i,j}+u_{i-1,j}+u_{i,j-1}}{\delta_{\textbf{x}}^2}
     \end{matrix}
 
 
@@ -131,7 +131,7 @@ and the corresponding eigenmode are
     {
         for (int n = 0; n < ny; n++)
         {
-            Dth(m * nx + n) = c*M_PI * sqrt(pow(m + 1 / L(0), 2) + pow(n + 1 / L(1), 2));
+            Dth(m * nx + n) = c*M_PI * sqrt(pow((m + 1) / L(0), 2) + pow((n + 1) / L(1), 2));
         }
     }
 
@@ -228,7 +228,7 @@ Here you have all the code at once :
         {
             for (int n = 0; n < ny; n++)
             {
-                Dth(m * nx + n) = c*M_PI * sqrt(pow(m + 1 / L(0), 2) + pow(n + 1 / L(1), 2));
+                Dth(m * ny + n) = M_PI * sqrt(pow((m + 1) / L(0), 2) + pow((n + 1) / L(1), 2));
             }
         }
 
@@ -255,10 +255,13 @@ Here you have all the code at once :
         }
 
         // Results
+        std::cout << "-- Numerical eigenvalues --" << endl;
         disp(sqrt(real(eval(D(range(0, fig.size()))))), 1, fig.size());
+        std::cout << "-- Analytical eigenvalues --" << endl;
         disp(eval(Dth(range(0, fig.size()))), 1, fig.size());
+        std::cout << "-- Relative errors --" << endl;
         auto errRelative = abs((sqrt(real(eval(D(range(0, fig.size()))))) - eval(Dth(range(0, fig.size())))) / eval(Dth(range(0, fig.size())))) * 100;
-        disp(errRelative);
+        disp(errRelative, 1, fig.size());
 
         drawnow(fig1);
 
@@ -268,7 +271,22 @@ Here you have all the code at once :
 
 With this code you should get these outputs :
 
+.. code-block:: text
 
+    -- Numerical eigenvalues --
+    Matrix 1x5 of type 'd' (40 B):
+        3.50946      4.43845      5.65288      6.45167      7.00046  
+    -- Analytical eigenvalues --
+    Matrix 1x5 of type 'd' (40 B):
+        3.51241      4.44288      5.66359      6.47656      7.02481  
+    -- Relative errors --
+    Matrix 1x5 of type 'd' (40 B):
+        0.08379      0.09980      0.18906      0.38427      0.34671 
+
+
+.. image:: img/results5eigenmodes.png
+    :width: 1200
+    :align: center
 
 
 References
