@@ -9,7 +9,7 @@ On this page you will find how to code using **Castor** an example as simple as 
 
 .. math:: 
     
-    \left\{ \begin{matrix}\frac{\partial u }{\partial t} = d \frac{\partial^2 u}{\partial x^2} 
+    \left\{ \begin{matrix} \displaystyle \frac{\partial u }{\partial t} = d \frac{\partial^2 u}{\partial x^2} 
     \\ u(x_{min},t) = u(x_{max}, t) = 0 
     \\ u(x,0) = sin(x\pi )^{2}  \end{matrix} \right.
 
