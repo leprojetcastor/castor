@@ -1,0 +1,275 @@
+Eigenmodes of Helmholtz
+=======================
+
+*Shared by Antoine Rideau*
+
+On this page you will find how to show using **Castor** the eigenmodes of the wave equation on a rectangle with fixed edges.
+
+We start from the following D'Alembert equation with zero Dirichlet boundary on the contour :math:`\Gamma = \left \{ x \in [0,x_{0}], y \in [0,y_{0}] \right \}` .
+
+.. math:: 
+
+    \left\{\begin{matrix}
+    - \displaystyle \frac{1}{c} \frac{\partial^2 u }{\partial t^2} + \Delta u = 0
+    \\ 
+    u(x \in \Gamma , \cdot   ) = 0
+    \end{matrix}\right.
+
+Considering we focus on the eignenmodes, we postulate 
+
+.. math::
+
+    u (\mathbf{x},t) = V(\mathbf{x})e^{i \omega t} \text{ with } \mathbf{x} = (x,y)
+
+Which leads to the Helmholtz equation 
+
+.. math::
+
+    \left\{\begin{matrix}
+    k^{2}V(\mathbf{x}) + \Delta_{\mathbf{x}} V(\mathbf{x}) = 0 \text{ with } k = \frac{\omega}{c}
+   \\
+   V(\mathbf{x}) = 0 \text{ for } \mathbf{x} \in \Gamma
+   \end{matrix}\right.
+
+
+We discretize our space domain ``L`` with ``dx`` steps which results in the meshgrid described by ``X`` and ``Y`` .
+
+.. math:: 
+
+    \begin{matrix} x_{m} = m \delta x \text{ for } m = 1,..., n_{x}\\ y_{n} = n \delta x \text{ for } n = 1,..., n_{y} \end{matrix}
+
+.. code-block:: c++
+
+    // Parameters
+    matrix<> L = {1, 2}; // Dimensions
+    double dx = 0.05;    // Space discretization
+
+    // Discretization
+    matrix<> X, Y;
+    std::tie(X, Y) = meshgrid(colon(0, dx, L(0)), colon(0, dx, L(1)));
+
+See :ref:`label-meshgrid`.
+
+Laplacian
+---------
+
+The Helmholtz equation can now be written in vector form 
+
+.. math::
+
+    - K V(\mathbf{x}) = k^{2} V(\mathbf{x}) 
+
+where ``K`` is the matrix of the Laplacian operator.
+
+The Laplacian operator can be approximated as 
+
+.. math::
+
+    \begin{matrix}
+    \Delta_{\textbf{x}}u(x,y) & = & \displaystyle \frac{\partial^2 u}{\partial x^2}(x,y) + \frac{\partial^2 u}{\partial y^2}(x,y) 
+    \\ 
+    \Delta_{\textbf{x}}u_{m,n} & \approx & \displaystyle \frac{u_{m+1,n}+u_{m,n+1}-4u_{m,n}+u_{m-1,n}+u_{m,n-1}}{\delta_{\textbf{x}}^2}
+    \end{matrix}
+
+
+This expression leads to this form for ``K``
+
+.. math::
+
+    K = \frac{1}{\delta_{\textbf{x}}^2} \begin{pmatrix}
+    -4 & 1 & 0 & \cdots & 0 & 1 & 0 & \cdots & 0\\ 
+     1 & -4 & 1 & 0 & \cdots & 0 & 1 & \ddots  & \vdots \\ 
+     0 & 1  & \ddots & \ddots & \ddots &  & \ddots & \ddots & 0\\ 
+     \vdots& \ddots & \ddots & -4 & 1 & 0 &  & \ddots & 1\\ 
+    0 &  & 0 & 1 & -4 & 1 & 0 &  & 0\\ 
+     1& \ddots &  & 0 & 1 & -4 & \ddots & \ddots & \vdots \\ 
+    0 & \ddots & \ddots &  & \ddots & \ddots & \ddots & 1 & 0 \\ 
+     \vdots& \ddots & 1 & 0 & \cdots & 0 & 1 & -4 & 1 \\ 
+    0 & \cdots & 0 & 1 & 0 & \cdots & 0 & 1 & -4
+    \end{pmatrix}
+
+.. code-block:: c++
+
+    // Laplacian
+    long nx = size(X, 2), ny = size(X, 1);
+    matrix<> e = ones(nx * ny, 5);
+    e(row(e), 2) = -4;
+    matrix<> K = full(spdiags(1. / (dx * dx) * e, {-nx, -1, 0, 1, nx}, nx * ny, nx * ny));
+
+In order to take into account the homogeneous Dirichlet condition on the boundary, we use penalization on the index where the boundaries are : index ``i`` such as ``X(i)==0``, ``X(i)==L(0)``, ``Y(i)==0`` and ``Y(i)==L(1)`` .
+
+.. code-block:: c++
+
+    // Penalization on boundary (Homogeneous Dirichlet condition)
+    matrix<std::size_t> Ibnd;
+    Ibnd = find((X == 0) || (X == L(0)) || (Y == 0) || (Y == L(1)));
+    K(sub2ind(size(K), Ibnd, Ibnd)) = 1e6;
+
+See :ref:`label-find-smatrix`, :ref:`label-sub2ind`.
+    
+Analytical solution
+-------------------
+
+An eigenmodes is caracterize by 2 integers :math:`m` and :math:`n` . Thus the eigenvalues are 
+
+.. math:: 
+
+    \lambda_{m,n} = c\Pi \sqrt{\frac{m^2}{x_{0}}+\frac{n^2}{y_{0}}}
+
+and the corresponding eigenmode are 
+
+.. math::
+
+    u_{m,n} = sin(\frac{m\Pi x}{x_{0}})sin(\frac{n\Pi y}{y_{0}})
+
+
+.. code-block:: c++
+
+    // Analytical
+    auto Dth = zeros(1, ny * nx);
+    for (int m = 0; m < nx; m++)
+    {
+        for (int n = 0; n < ny; n++)
+        {
+            Dth(m * nx + n) = c*M_PI * sqrt(pow(m + 1 / L(0), 2) + pow(n + 1 / L(1), 2));
+        }
+    }
+
+Eigenmodes
+-----------
+
+Once we have built the Laplacian matrix, we easily get eigenvalues in the ``1`` by ``nx*ny`` vector ``D`` and eigenvectors in the ``nx*ny`` by ``nx*ny`` matrix ``V`` using the ``eig`` function
+
+.. math:: 
+
+    K V(\mathbf{x}) = D V(\mathbf{x}) 
+
+.. code-block:: c++
+
+    // Numerical eigen values and vectors
+    matrix<std::complex<double>> D, V;
+    std::tie(D, V) = eig(-K, "right");
+
+See :ref:`label-eig` .
+
+We are interested in the eigenvalues with an imaginary part null and a real part minimal. To do so eigenvalues and eigenvectors are sorted by ascending eigenvalues.
+
+.. code-block:: c++
+
+    // Sort
+    matrix<std::size_t> I;
+    I = argsort(abs(real(D)));
+    D = eval(D(I));
+    V = eval(V(row(V), I));
+    matrix<std::size_t> Ith;
+    Ith = argsort(abs(real(Dth)));
+    Dth = eval(Dth(Ith));
+
+See :ref:`label-argsort` , :ref:`label-row` . 
+
+Then we just take the real part of the eigenvector corresponding to the eigenmode we want to show, here ``f`` .
+
+.. code-block:: c++
+
+    // Visu
+    std::vector<figure> fig(4);
+    for (int f = 0; f < fig.size(); ++f)
+    {
+        // matrix<double> Z = real(eval(V(row(V), f)));
+        matrix<double> Z = reshape(real(eval(V(row(V), f))), size(X, 1), size(X, 2));
+        mesh(fig[f], X, Y, Z);
+    }
+
+
+See :ref:`label-reshape` , :ref:`label-mesh` . 
+
+Code
+----
+
+Here you have all the code at once :
+
+.. code-block:: c++
+
+    #include "castor/matrix.hpp"
+    #include "castor/smatrix.hpp"
+    #include "castor/linalg.hpp"
+    #include "castor/graphics.hpp"
+
+    using namespace castor;
+
+    int main(int argc, char const *argv[])
+    {
+        // Parameters
+        matrix<> L = {1, 2}; // Dimensions
+        double dx = 0.05;    // Space discretization
+
+        // Discretization
+        matrix<> X, Y;
+        std::tie(X, Y) = meshgrid(colon(0, dx, L(0)), colon(0, dx, L(1)));
+
+        // Visu mesh
+        figure fig1;
+        mesh(fig1, X, Y, zeros(size(X)));
+
+        // Laplacian
+        long nx = size(X, 2), ny = size(X, 1);
+        matrix<> e = ones(nx * ny, 5);
+        e(row(e), 2) = -4;
+        matrix<> K = full(spdiags(1. / (dx * dx) * e, {-nx, -1, 0, 1, nx}, nx * ny, nx * ny));
+
+        // Penalization on boundary (Homogeneous Dirichlet condition)
+        matrix<std::size_t> Ibnd;
+        Ibnd = find((X == 0) || (X == L(0)) || (Y == 0) || (Y == L(1)));
+        K(sub2ind(size(K), Ibnd, Ibnd)) = 1e6;
+
+        // Analytical
+        auto Dth = zeros(1, ny * nx);
+        for (int m = 0; m < nx; m++)
+        {
+            for (int n = 0; n < ny; n++)
+            {
+                Dth(m * nx + n) = c*M_PI * sqrt(pow(m + 1 / L(0), 2) + pow(n + 1 / L(1), 2));
+            }
+        }
+
+        // Numerical eigen values and vectors
+        matrix<std::complex<double>> D, V;
+        std::tie(D, V) = eig(-K, "right");
+
+        // Sort
+        matrix<std::size_t> I;
+        I = argsort(abs(real(D)));
+        D = eval(D(I));
+        V = eval(V(row(V), I));
+        matrix<std::size_t> Ith;
+        Ith = argsort(abs(real(Dth)));
+        Dth = eval(Dth(Ith));
+
+        // Visu
+        std::vector<figure> fig(4);
+        for (int f = 0; f < fig.size(); ++f)
+        {
+            // matrix<double> Z = real(eval(V(row(V), f)));
+            matrix<double> Z = reshape(real(eval(V(row(V), f))), size(X, 1), size(X, 2));
+            mesh(fig[f], X, Y, Z);
+        }
+
+        // Results
+        disp(sqrt(real(eval(D(range(0, fig.size()))))), 1, fig.size());
+        disp(eval(Dth(range(0, fig.size()))), 1, fig.size());
+        auto errRelative = abs((sqrt(real(eval(D(range(0, fig.size()))))) - eval(Dth(range(0, fig.size())))) / eval(Dth(range(0, fig.size())))) * 100;
+        disp(errRelative);
+
+        drawnow(fig1);
+
+        return 0;
+    }
+
+
+With this code you should get these outputs :
+
+
+
+
+References
+----------
