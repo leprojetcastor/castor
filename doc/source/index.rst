@@ -50,6 +50,7 @@ Boundary element computation using le projet castor. Simulation of acoustic scat
 
    heat
    eigenmode
+   montecarlo
 
 
 .. _label-user-guide:
