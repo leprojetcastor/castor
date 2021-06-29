@@ -47,6 +47,7 @@ So, we count the number of points inside the quadrant i.e points with :math:`x^2
 
 .. code-block:: c++
     
+    // Pi computation
     matrix<std::size_t> Incircle;
     Incircle = find(pow(MX, 2) + pow(MY, 2) <= 1);
     double Pi = 4. * (size(Incircle)(1) / n);
@@ -80,6 +81,7 @@ Code
         auto MX = rand(1, n);
         auto MY = rand(1, n);
 
+        // Pi computation
         matrix<std::size_t> Incircle;
         Incircle = find(pow(MX, 2) + pow(MY, 2) <= 1);
         double Pi = 4. * (size(Incircle)(1) / n);
