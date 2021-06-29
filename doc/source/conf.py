@@ -7,7 +7,7 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 def setup(app):
     app.add_css_file("main_stylesheet.css")
 
-extensions = ['breathe']
+extensions = ['breathe', 'sphinx_copybutton']
 breathe_projects = { 'castor': '../xml' }
 templates_path = ['_templates']
 html_static_path = ['_static']
