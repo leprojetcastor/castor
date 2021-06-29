@@ -32,17 +32,17 @@ We discretize the space with ``dx`` steps and the time with ``dt`` steps.
 
     \begin{matrix} x_{i} = i \Delta x \\ t_{n} = n \Delta t \end{matrix}
 
-The ``X`` vector stores the space grid.
+The ``X`` vector stores the space grid
 
 .. math:: 
     
-    X = \begin{pmatrix} x_{0}\\ x_{1} \\ \vdots \\ x_{N_{x}-1} \end{pmatrix}
+    X = \begin{pmatrix} x_{0}\\ x_{1} \\ \vdots \\ x_{N_{x}-1} \end{pmatrix} ,
 
-And the vector ``U0`` contains the initial heat repartition 
+and the vector ``U0`` contains the initial heat repartition 
 
 .. math:: 
 
-    U_{0} = \begin{pmatrix} u_{0}^{0} \\ u_{1}^{0} \\ \vdots \\ u_{N_{x}-1}^{0} \end{pmatrix} \text{ with } u_{i}^{0} = sin(x_{i})^{2} \text{ for } i=0,...,N_{x}
+    U_{0} = \begin{pmatrix} u_{0}^{0} \\ u_{1}^{0} \\ \vdots \\ u_{N_{x}-1}^{0} \end{pmatrix} \text{ with } u_{i}^{0} = sin(x_{i})^{2} \text{ for } i=0,...,N_{x} .
 
 
 .. code-block:: c++
@@ -61,14 +61,14 @@ The second space derivative is approximated by :
     \frac{\partial^2 u_{i}^{n}}{\partial x^2}\approx \frac{u_{i+1}^{n}-2u_{i}^{n}+u_{i-1}^{n}}{\Delta x^{2}} 
 
 
-Analytical solution
--------------------
+.. Analytical solution
+.. -------------------
 
-With those parameters, the analytical solution is :
+.. With those parameters, the analytical solution is :
 
-.. math::
+.. .. math::
 
-    \text{ MATHS }
+..     \text{ MATHS }
 
 
 Explicit Euler
@@ -137,9 +137,6 @@ Here you have all the code at once :
         matrix<> X = linspace(xmin, xmax, Nx);
         matrix<> U0 = pow(sin(X * M_PI), 2);
 
-        //Analytic solution
-        auto S = analyticalsolution(xmin,xmax,Nx,dx,tend,d);
-
         std::cout << "--- Start explicit Euler scheme ---" << endl;
         tic();
         auto U = U0;
@@ -151,9 +148,6 @@ Here you have all the code at once :
             }
         }
         toc();
-
-        double errRelative = max(abs(U - S)) / max(S);
-        std::cout << "Relative error :" << errRelative << endl;
 
         //Plot
         figure fig;
@@ -171,7 +165,6 @@ With this code you should get these outputs :
 
     --- Start explicit Euler scheme ---
     Elapsed time is 0.213486 seconds.
-    Relative error :0.24303
 
 .. image:: img/heatexplicit.png
     :width: 400
@@ -187,12 +180,12 @@ The specifity of the implicit Euler scheme is that the time derivative is calcul
     
     \frac{\partial u_{i}^{n}}{\partial t} \approx \frac{u_{i}^{n}-u_{i}^{n-1}}{\Delta t}
 
-This scheme is stable for any ``dt`` .
-The scheme can be written using vectors
+| This scheme is stable for any ``dt`` .
+| The scheme can be written using vectors
 
 .. math:: 
 
-    \frac{U^{n+1}-U^{n}}{\Delta t} + \frac{d}{\Delta x}AU^{n+1} = 0
+    \frac{U^{n+1}-U^{n}}{\Delta t} + \frac{d}{\Delta x}AU^{n+1} = 0 ,
 
 where A is the :math:`N_{x}` x :math:`N_{x}` tridiagonal matrix 
 
@@ -202,14 +195,14 @@ where A is the :math:`N_{x}` x :math:`N_{x}` tridiagonal matrix
     \\ 1 & -2 & 1 & \cdots  & 0 
     \\ \vdots & \ddots  & \ddots  & \ddots  & \vdots 
     \\ 0 & \cdots  & 1 & -2 & 1 
-    \\ 0 & \cdots  & 0 & 1 & -2 \end{pmatrix}
+    \\ 0 & \cdots  & 0 & 1 & -2 \end{pmatrix} .
     
 
 This equation leads to the following linear equation 
 
 .. math::
     
-    BU^{n+1} = U^{n} \text{ with } B = (I_{N_{x}} - \alpha A)
+    BU^{n+1} = U^{n} \text{ with } B = (I_{N_{x}} - \alpha A) .
 
 
 .. code-block:: c++
@@ -252,9 +245,6 @@ Here you have all the code at once :
         matrix<> X = linspace(xmin, xmax, Nx);
         matrix<> U0 = pow(sin(X * M_PI), 2);
 
-        //Analytic solution
-        auto S = analyticalsolution(xmin, xmax, Nx, dx, tend, d);
-
         std::cout << "--- Start implicit Euler scheme ---" << endl;
         auto U = transpose(U0);
         tic();
@@ -268,8 +258,6 @@ Here you have all the code at once :
         toc();
 
         U = transpose(U);
-        double errRelative = max(abs(U - S) / max(S));
-        std::cout << "Relative error :" << errRelative << endl;
 
         //Plot
         figure fig;
@@ -287,7 +275,6 @@ With this code you should get these results :
 
     --- Start implicit Euler scheme ---
     Elapsed time is 4.11192 seconds.
-    Relative error :0.0045158
 
 .. image:: img/heatimplicit.png
     :width: 400
@@ -295,3 +282,5 @@ With this code you should get these results :
 
 References
 ----------
+
+https://www.ljll.math.upmc.fr/ledret/M1English/M1ApproxPDE_Chapter6-2.pdf

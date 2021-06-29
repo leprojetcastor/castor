@@ -5,38 +5,41 @@ Eigenmodes of Helmholtz
 
 On this page you will find how to show using **Castor** the eigenmodes of the wave equation on a rectangle with fixed edges.
 
-We start from the following D'Alembert equation with zero Dirichlet boundary on the contour :math:`\Gamma = \left \{ x \in [0,x_{0}], y \in [0,y_{0}] \right \}` .
+We start from the following D'Alembert equation on :math:`\Omega = \left [ 0, x_{0} \right ] \times \left [ 0, y_{0} \right ]` with Dirichlet boundary condition on :math:`\Gamma = \partial \Omega` 
 
 .. math:: 
 
     \left\{\begin{matrix}
-    - \displaystyle \frac{1}{c} \frac{\partial^2 u }{\partial t^2} + \Delta u = 0
+    - \displaystyle \frac{1}{c} \frac{\partial^2 u }{\partial t^2}(\mathbf{x}) + \Delta u (\mathbf{x}) = 0 & , & \mathbf{x} \in \Omega \setminus \Gamma
     \\ 
-    u(x \in \Gamma , \cdot   ) = 0
+    u(\mathbf{x} , \cdot   ) = 0 & , & \mathbf{x} \in \Gamma 
     \end{matrix}\right.
+    ,
 
-Considering we focus on the eignenmodes, we postulate 
+considering
 
 .. math::
 
-    u (\mathbf{x},t) = V(\mathbf{x})e^{i \omega t} \text{ with } \mathbf{x} = (x,y)
+    u (\mathbf{x},t) = V(\mathbf{x})e^{i \omega t} ,
 
-Which leads to the Helmholtz equation 
+gives the Helmholtz equation 
 
 .. math::
 
     \left\{\begin{matrix}
-    k^{2}V(\mathbf{x}) + \Delta_{\mathbf{x}} V(\mathbf{x}) = 0 \text{ with } k = \frac{\omega}{c}
+    k^{2}V(\mathbf{x}) + \Delta V(\mathbf{x}) = 0 & , & \mathbf{x} \in \Omega \setminus \Gamma
    \\
-   V(\mathbf{x}) = 0 \text{ for } \mathbf{x} \in \Gamma
-   \end{matrix}\right.
+   V(\mathbf{x}) = 0 & , & \mathbf{x} \in \Gamma
+   \end{matrix}\right. 
+    ,
 
-
-We discretize our space domain ``L`` with ``dx`` steps which results in the meshgrid described by ``X`` and ``Y`` .
+| with :math:`k = \frac{\omega}{c}` .
+| 
+| We discretize our space domain ``L`` with ``dx`` steps which results in the meshgrid described by ``X`` and ``Y`` 
 
 .. math:: 
 
-    \begin{matrix} x_{i} = i \delta x \text{ for } i = 1,..., n_{x}\\ y_{j} = j \delta x \text{ for } j = 1,..., n_{y} \end{matrix}
+    \begin{matrix} x_{i} = i \delta x & \text{ for } i = \left [ \! \left [ 0, n_{x}-1 \right ] \! \right ]\\ y_{j} = j \delta x & \text{ for } j = \left [ \! \left [ 0, n_{y}-1 \right ] \! \right ] \end{matrix}
 
 .. code-block:: c++
 
@@ -57,9 +60,9 @@ The Helmholtz equation can now be written in vector form
 
 .. math::
 
-    - K V(\mathbf{x}) = k^{2} V(\mathbf{x}) 
+    - K V(\mathbf{x}) = k^{2} V(\mathbf{x}) ,
 
-where ``K`` is the matrix of the Laplacian operator.
+where ``K`` stands for the matrix of the Laplacian operator.
 
 The Laplacian operator can be approximated as 
 
@@ -68,8 +71,9 @@ The Laplacian operator can be approximated as
     \begin{matrix}
     \Delta_{\textbf{x}}u(x,y) & = & \displaystyle \frac{\partial^2 u}{\partial x^2}(x,y) + \frac{\partial^2 u}{\partial y^2}(x,y) 
     \\ 
-    \Delta_{\textbf{x}}u_{i,j} & \approx & \displaystyle \frac{u_{i+1,j}+u_{i,j+1}-4u_{i,j}+u_{i-1,j}+u_{i,j-1}}{\delta_{\textbf{x}}^2}
+    \Delta_{\textbf{x}}u_{i,j} & \approx & \displaystyle \frac{u_{i+1,j}+u_{i,j+1}-4u_{i,j}+u_{i-1,j}+u_{i,j-1}}{\delta_{\textbf{x}}^2} & .
     \end{matrix}
+    
 
 
 This expression leads to this form for ``K``
@@ -87,6 +91,7 @@ This expression leads to this form for ``K``
      \vdots& \ddots & 1 & 0 & \cdots & 0 & 1 & -4 & 1 \\ 
     0 & \cdots & 0 & 1 & 0 & \cdots & 0 & 1 & -4
     \end{pmatrix}
+    .
 
 .. code-block:: c++
 
@@ -96,7 +101,11 @@ This expression leads to this form for ``K``
     e(row(e), 2) = -4;
     matrix<> K = full(spdiags(1. / (dx * dx) * e, {-nx, -1, 0, 1, nx}, nx * ny, nx * ny));
 
-In order to take into account the homogeneous Dirichlet condition on the boundary, we use penalization on the index where the boundaries are : index ``i`` such as ``X(i)==0``, ``X(i)==L(0)``, ``Y(i)==0`` and ``Y(i)==L(1)`` .
+See :ref:`label-spdiags`
+
+| Here, we build K as a sparse matrix using `spdiags` because it is easier to do so but we convert it into a dense matrix because **Castor** don't have a sparse solver yet.
+|
+| In order to take into account the homogeneous Dirichlet condition on the boundary, we use penalization on the index where the boundaries are : index ``i`` such as ``X(i)==0``, ``X(i)==L(0)``, ``Y(i)==0`` and ``Y(i)==L(1)`` .
 
 .. code-block:: c++
 
@@ -110,28 +119,28 @@ See :ref:`label-find-smatrix`, :ref:`label-sub2ind`.
 Analytical solution
 -------------------
 
-An eigenmodes is caracterize by 2 integers :math:`m` and :math:`n` . Thus the eigenvalues are 
+An eigenmodes is caracterize by 2 positive integers :math:`m` and :math:`n` . Thus the eigenvalues are 
 
 .. math:: 
 
-    \lambda_{m,n} = c\Pi \sqrt{\frac{m^2}{x_{0}}+\frac{n^2}{y_{0}}}
+    \lambda_{m,n} = c\pi \sqrt{\frac{m^2}{x_{0}}+\frac{n^2}{y_{0}}}
 
 and the corresponding eigenmode are 
 
 .. math::
 
-    u_{m,n} = sin(\frac{m\Pi x}{x_{0}})sin(\frac{n\Pi y}{y_{0}})
+    u_{m,n} = sin(\frac{m\pi x}{x_{0}})sin(\frac{n\pi y}{y_{0}})
 
 
 .. code-block:: c++
 
     // Analytical
-    auto Dth = zeros(1, ny * nx);
+    auto Dth = zeros(nx, ny);
     for (int m = 0; m < nx; m++)
     {
         for (int n = 0; n < ny; n++)
         {
-            Dth(m * nx + n) = c*M_PI * sqrt(pow((m + 1) / L(0), 2) + pow((n + 1) / L(1), 2));
+            Dth(m, n) = M_PI * sqrt(pow((m + 1) / L(0), 2) + pow((n + 1) / L(1), 2));
         }
     }
 
@@ -142,7 +151,7 @@ Once we have built the Laplacian matrix, we easily get eigenvalues in the ``1`` 
 
 .. math:: 
 
-    K V(\mathbf{x}) = D V(\mathbf{x}) 
+    - K V(\mathbf{x}) = D V(\mathbf{x}) 
 
 .. code-block:: c++
 
@@ -175,7 +184,6 @@ Then we just take the real part of the eigenvector corresponding to the eigenmod
     std::vector<figure> fig(4);
     for (int f = 0; f < fig.size(); ++f)
     {
-        // matrix<double> Z = real(eval(V(row(V), f)));
         matrix<double> Z = reshape(real(eval(V(row(V), f))), size(X, 1), size(X, 2));
         mesh(fig[f], X, Y, Z);
     }
@@ -223,12 +231,12 @@ Here you have all the code at once :
         K(sub2ind(size(K), Ibnd, Ibnd)) = 1e6;
 
         // Analytical
-        auto Dth = zeros(1, ny * nx);
+        auto Dth = zeros(nx, ny);
         for (int m = 0; m < nx; m++)
         {
             for (int n = 0; n < ny; n++)
             {
-                Dth(m * ny + n) = M_PI * sqrt(pow((m + 1) / L(0), 2) + pow((n + 1) / L(1), 2));
+                Dth(m, n) = M_PI * sqrt(pow((m + 1) / L(0), 2) + pow((n + 1) / L(1), 2));
             }
         }
 
@@ -249,7 +257,6 @@ Here you have all the code at once :
         std::vector<figure> fig(4);
         for (int f = 0; f < fig.size(); ++f)
         {
-            // matrix<double> Z = real(eval(V(row(V), f)));
             matrix<double> Z = reshape(real(eval(V(row(V), f))), size(X, 1), size(X, 2));
             mesh(fig[f], X, Y, Z);
         }
@@ -284,6 +291,9 @@ With this code you should get these outputs :
         0.08379      0.09980      0.18906      0.38427      0.34671 
 
 
+
+You should get 6 figures : the meshgrid and the five first eigenmodes.
+
 .. image:: img/results5eigenmodes.png
     :width: 1200
     :align: center
@@ -291,3 +301,7 @@ With this code you should get these outputs :
 
 References
 ----------
+
+http://ramanujan.math.trinity.edu/rdaileda/teach/s14/m3357/lectures/lecture_3_4_slides.pdf
+
+http://www.cmap.polytechnique.fr/~jingrebeccali/frenchvietnammaster2_files/2017/LectureNotes/pde3d_mit.pdf

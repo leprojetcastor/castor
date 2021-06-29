@@ -2,12 +2,12 @@ Monte Carlo method
 ==================
 *Shared by Antoine Rideau*
 
-On this page you will find how to calculate using **Castor** the value of pi with Monte Carlo method.
+On this page you will find how to calculate using **Castor** the value of :math:`\pi` with Monte Carlo method.
 
 We consider a 1 by 1 square and we inscribe a quadrant within it.
 
 
-We scatter uniformly ``n`` points with :math:`(x,y)` coordinate over the square.
+We scatter randomly ``n`` points with :math:`(x,y)` coordinate over the square.
 
 .. code-block:: c++
 
@@ -21,15 +21,15 @@ As the quadrant's surface is equal to
 
 .. math::
 
-    \sigma = \frac{R^2 \pi}{4} = \frac{\pi}{4} \text{ as } R = 1
+    \sigma = \frac{R^2 \pi}{4} = \frac{\pi}{4} \text{ as } R = 1 ,
 
-And the square's surface is 
+and the square's surface is 
 
 .. math::
 
-    S = R^2 = 1
+    S = R^2 = 1 ,
 
-The probability to be in the quadrant is
+the probability to be in the quadrant is
 
 .. math::
 
@@ -40,7 +40,7 @@ The probability to be in the quadrant is
 
 .. math::
 
-    \pi = 4 * \frac{N_{in}}{n}
+    \pi = 4 * \frac{N_{in}}{n} .
 
 
 So, we count the number of points inside the quadrant i.e points with :math:`x^2 + y^2 \leq 1` .
@@ -52,6 +52,15 @@ So, we count the number of points inside the quadrant i.e points with :math:`x^2
     double Pi = 4. * (size(Incircle)(1) / n);
 
 See :ref:`label-find-smatrix`
+
+Another way of doing it is by using ``sum``
+
+.. code-block:: c++
+
+    size_t Nin = sum<size_t>(pow(MX, 2) + pow(MY, 2) <= 1);
+    double Pi = 4. * (Nin / n);
+
+See :ref:`label-sum`
 
 Code
 ----
@@ -103,3 +112,4 @@ With this code you should get these outputs :
 References
 ----------
 
+https://en.wikipedia.org/wiki/Monte_Carlo_method
