@@ -7,6 +7,6 @@ dependencies:
   - make
   - doxygen
   - sphinx
-  - sphinx-copybutton
+  - sphinx_copybutton
   - sphinx_rtd_theme
   - breathe
