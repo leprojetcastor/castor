@@ -33,7 +33,7 @@ the probability to be in the quadrant is
 
 .. math::
 
-    \mathbb{P} = \frac{N_{in}}{n} = \frac{\sigma}{S} = \frac{\pi}{4}
+    \mathbb{P} = \frac{N_{in}}{n} = \frac{\sigma}{S} = \frac{\pi}{4} ,
 
 | with :math:`N_{in}` number of points inside the quadrant.
 | Hence,
