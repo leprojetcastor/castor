@@ -52,7 +52,7 @@ So, we count the number of points inside the quadrant i.e points with :math:`x^2
     Incircle = find(pow(MX, 2) + pow(MY, 2) <= 1);
     double Pi = 4. * (size(Incircle)(1) / n);
 
-See :ref:`label-find-smatrix`
+See :ref:`label-find-smatrix` , :ref:`label-size` 
 
 Another way of doing it is by using ``sum``
 
