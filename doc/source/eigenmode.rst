@@ -33,7 +33,7 @@ gives the Helmholtz equation
    \end{matrix}\right. 
     ,
 
-| with :math:`k = \frac{\omega}{c}` .
+| with :math:`k = \displaystyle \frac{\omega}{c}` .
 | 
 | We discretize our space domain ``L`` with ``dx`` steps which results in the meshgrid described by ``X`` and ``Y`` 
 
@@ -129,7 +129,7 @@ and the corresponding eigenmode are
 
 .. math::
 
-    u_{m,n} = sin(\frac{m\pi x}{x_{0}})sin(\frac{n\pi y}{y_{0}})
+    u_{m,n} = \sin \bigg(\frac{m\pi x}{x_{0}}\bigg) \sin \bigg(\frac{n\pi y}{y_{0}}\bigg)
 
 
 .. code-block:: c++
@@ -292,11 +292,14 @@ With this code you should get these outputs :
 
 
 
-You should get 6 figures : the meshgrid and the five first eigenmodes.
-
-.. image:: img/results5eigenmodes.png
+.. figure:: img/results5eigenmodes.png
     :width: 1200
     :align: center
+    :figclass: align-center
+    
+    From up left corner to bottom right corner : the meshgrid and the five first eigenmodes.
+
+
 
 
 References

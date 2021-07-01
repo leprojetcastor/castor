@@ -11,7 +11,7 @@ On this page you will find how to code using **Castor** an example as simple as 
     
     \left\{ \begin{matrix} \displaystyle \frac{\partial u }{\partial t} = d \frac{\partial^2 u}{\partial x^2} 
     \\ u(x_{min},t) = u(x_{max}, t) = 0 
-    \\ u(x,0) = sin(x\pi )^{2}  \end{matrix} \right.
+    \\ u(x,0) = \sin(x\pi )^{2}  \end{matrix} \right.
 
 
 We focuse on the interval :math:`\left [ x_{min}, x_{max}\right ]=\left [ 0,2 \right ]` for the space domain which we divided between ``Nx = 1000`` points .
@@ -42,7 +42,7 @@ and the vector ``U0`` contains the initial heat repartition
 
 .. math:: 
 
-    U_{0} = \begin{pmatrix} u_{0}^{0} \\ u_{1}^{0} \\ \vdots \\ u_{N_{x}-1}^{0} \end{pmatrix} \text{ with } u_{i}^{0} = sin(x_{i})^{2} \text{ for } i=0,...,N_{x} .
+    U_{0} = \begin{pmatrix} u_{0}^{0} \\ u_{1}^{0} \\ \vdots \\ u_{N_{x}-1}^{0} \end{pmatrix} \text{ with } u_{i}^{0} = \sin(x_{i})^{2} \text{ for } i=0,...,N_{x} .
 
 
 .. code-block:: c++
