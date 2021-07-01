@@ -6,6 +6,7 @@ channels:
 dependencies:
   - make
   - doxygen
-  - sphinx 
+  - sphinx
+  - sphinx-copybutton
   - sphinx_rtd_theme
   - breathe
