@@ -1893,7 +1893,7 @@ matrix<std::size_t> argsort(matrix<T>const& A, int dim=0)
 // [argunique]
 /// Index of unique.
 /// 
-/// [IA,IB] = unique(A) returns index vectors IA and IC such that
+/// [IA,IB] = unique(A) returns index vectors IA and IB such that
 /// B = A(IA) and A = B(IB).
 ///
 /// \code{.cpp}
