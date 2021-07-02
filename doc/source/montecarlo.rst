@@ -50,7 +50,7 @@ So, we count the number of points inside the quadrant i.e points with :math:`x^2
     // Pi computation
     matrix<std::size_t> Incircle;
     Incircle = find(pow(MX, 2) + pow(MY, 2) <= 1);
-    double Pi = 4. * (size(Incircle)(1) / n);
+    double Pi = 4. * (size(Incircle,2) / n);
 
 See :ref:`label-find-smatrix` , :ref:`label-size` 
 
@@ -84,7 +84,7 @@ Code
         // Pi computation
         matrix<std::size_t> Incircle;
         Incircle = find(pow(MX, 2) + pow(MY, 2) <= 1);
-        double Pi = 4. * (size(Incircle)(1) / n);
+        double Pi = 4. * (size(Incircle,2) / n);
         std::cout << "Calculated value of pi: " << Pi << endl;
 
         // Visu
