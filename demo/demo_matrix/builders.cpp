@@ -51,10 +51,23 @@ int main (int argc, char* argv[])
     disp("Ones matrix of double:");
     disp(ones(4,3));
 
-    disp("Random matrix of float with same size as A:");
+    disp("Uniform random matrix of float with same size as A:");
     disp(rand<float>(size(A)));
-    disp("Random matrix of double:");
+    disp("Uniform random matrix of double:");
     disp(rand(4,3));
+    
+    disp("Normal random matrix of float with same size as A:");
+    disp(randn<float>(size(A)));
+    disp("Normal random matrix of double:");
+    disp(randn(4,3));
+
+    disp("Random permutation:");
+    disp(randperm(5));
+    disp(randperm(5,3));
+    disp(randperm(5,3,true));
+    
+    disp("Range :");
+    disp(range(0,4));
 
     disp("Zeros matrix of int with same size as A:");
     disp(rand<int>(size(A)));

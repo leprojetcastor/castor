@@ -213,6 +213,7 @@ int main (int argc, char* argv[])
     matrix<>const M = eye(3,4);
     disp(eval(M(all(M))));
     disp(eval(M(row(M),col(M))));
+    disp(eval(M(randperm(3,3,true),col(M))));
 
     // =============================================================== EXTERNAL OPERATORS
     std::cout << "+====================+" << std::endl;
@@ -324,6 +325,12 @@ int main (int argc, char* argv[])
     disp(ones(3,4));
     disp(rand<float>(size(A)));
     disp(rand(3,4));
+    disp(randperm(5));
+    disp(randperm(5,3));
+    disp(randperm(5,3,true));
+    disp(randn<float>(size(A)));
+    disp(randn(3,4));
+    disp(range(0,4));
     disp(zeros<logical>(size(A)));
     disp(zeros(3,4));
 
