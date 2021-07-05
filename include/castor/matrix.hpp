@@ -4855,6 +4855,84 @@ matrix<T> rand(matrix<std::size_t>const& S, bool seed=false)
 }
 
 //==========================================================================
+// [randn]
+/// matrix of normally distributed pseudorandom number.
+///
+/// rand(N) returns an N-by-N matrix containing pseudorandom values drawn
+/// from the standard normal distribution using Box-Muller algorithm.
+///
+/// rand(M,N) or rand({M,N}) returns an M-by-N matrix.
+///
+/// rand(M,N,true) use standard time to initialize seed.
+///
+/// \code{.cpp}
+///    matrix<> A = randn(2);
+///    matrix<> B = randn(2,3);
+///    matrix<> C = randn(size(B));
+///    matrix<> D = randn(2,3,true);
+///    disp(A);
+///    disp(B);
+///    disp(C);
+///    disp(D);
+/// \endcode
+///
+// \see zeros, eye, ones.
+template<typename T=double>
+matrix<T> randn(std::size_t m, long n=-1, bool seed=false)
+{
+    matrix<T> U = rand<T>(m,n,seed);
+    matrix<T> V = rand<T>(m,n,seed);
+    matrix<T> A(size(U,1),size(U,2));
+    for (std::size_t l=0; l<numel(A); ++l)
+    {
+        A(l) = std::sqrt(-2.*std::log(U(l))) * std::cos(2.*M_PI*V(l));
+    }
+    return A;
+}
+template<typename T=double>
+matrix<T> randn(matrix<std::size_t>const& S, bool seed=false)
+{
+    return randn<T>(S(0),S(1),seed);
+}
+
+//==========================================================================
+// [randperm]
+/// Random permutation.
+///
+/// randperm(N) returns a random permutation of the integers 0 to N-1 using
+/// Fisher-Yates shuffles.
+///
+/// randperm(N,K) returns K unique integers selected randomly from 0 to N-1.
+///
+/// randperm(N,K,true) use standard time to initialize seed.
+///
+/// \code{.cpp}
+///    matrix<std::size_t> I = randperm(5);
+///    matrix<std::size_t> J = randperm(4,2);
+///    matrix<std::size_t> K = randperm(4,2,true);
+///    disp(I);
+///    disp(J);
+///    disp(K);
+/// \endcode
+///
+// \see range, colon.
+inline matrix<std::size_t> randperm(std::size_t n, long k=-1, bool seed=false)
+{
+    if (k==-1) {k=n;}
+    matrix<std::size_t> I = colon(0,1,n-1);
+    double tmp = RAND_MAX;
+    if (seed) {std::srand((int)std::time(0));}
+    for (std::size_t i=0; i<k; ++i)
+    {
+        std::size_t j = std::min<std::size_t>(i+(n-i)*(std::rand()/tmp),n-1);
+        std::size_t v = I(i);
+        I(i) = I(j);
+        I(j) = v;
+    }
+    return eval(I(range(0,k)));
+}
+
+//==========================================================================
 // [range]
 /// Indices for matrix views.
 ///
@@ -4866,7 +4944,7 @@ matrix<T> rand(matrix<std::size_t>const& S, bool seed=false)
 ///    disp(A);
 /// \endcode
 ///
-// \see colon, get, set, view.
+// \see colon, randperm, get, set, view.
 inline matrix<std::size_t> range(std::size_t j, std::size_t k)
 {
     return colon(j,1,k-1);
