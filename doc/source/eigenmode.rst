@@ -182,7 +182,7 @@ Then we just take the real part of the eigenvector corresponding to the eigenmod
 
     // Visu
     std::vector<figure> fig(5);
-    for (int f = 0; f < fig.size(); ++f)
+    for (int f = 0; f < fig.size(); f++)
     {
         matrix<double> Z = reshape(real(eval(V(row(V), f))), size(X, 1), size(X, 2));
         mesh(fig[f], X, Y, Z);
@@ -255,7 +255,7 @@ Here you have all the code at once :
 
         // Visu
         std::vector<figure> fig(5);
-        for (int f = 0; f < fig.size(); ++f)
+        for (int f = 0; f < fig.size(); f++)
         {
             matrix<double> Z = reshape(real(eval(V(row(V), f))), size(X, 1), size(X, 2));
             mesh(fig[f], X, Y, Z);
