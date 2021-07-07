@@ -50,7 +50,7 @@ See :ref:`label-randn` .
 
 Each generation :
 
-#. Each individuals has a probability :math:`\mathbb{P} = (x_{i})_{+} \times \Delta t` ,where :math:`(x_{i})_{+}` stands for the positive part of :math:`x_{i}` , to give birth to a child
+1. Each individuals has a probability :math:`\mathbb{P} = (x_{i})_{+} \times \Delta t` ,where :math:`(x_{i})_{+}` stands for the positive part of :math:`x_{i}` , to give birth to a child
 
 .. code-block:: c++
 
@@ -75,7 +75,7 @@ who will inherit a fitness of :math:`x_{i} + X` with :math:`X \sim \mathcal{N}(0
 
 See :ref:`label-find` , :ref:`label-view` , :ref:`label-cat` . 
 
-#. ``N`` individuals are uniformly choosen  to survive.
+2. ``N`` individuals are uniformly choosen  to survive.
 
 .. code-block:: c++
 
