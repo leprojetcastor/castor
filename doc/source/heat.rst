@@ -14,7 +14,7 @@ On this page you will find how to code using **Castor** an example as simple as 
     \\ u(x,0) = \sin(x\pi )^{2}  \end{matrix} \right.
 
 
-We focuse on the interval :math:`\left [ x_{min}, x_{max}\right ]=\left [ 0,2 \right ]` for the space domain which we divided between ``Nx = 1000`` points .
+The simulation is focuses on the interval :math:`\left [ x_{min}, x_{max}\right ]=\left [ 0,2 \right ]` for the space domain which is divided between ``Nx = 1000`` points .
 
 .. code-block:: c++
     
@@ -26,7 +26,7 @@ We focuse on the interval :math:`\left [ x_{min}, x_{max}\right ]=\left [ 0,2 \r
     double ti = 0;
 
     
-We discretize the space with ``dx`` steps and the time with ``dt`` steps. 
+The space is discretized with ``dx`` steps and the time with ``dt`` steps. 
 
 .. math:: 
 
@@ -80,19 +80,19 @@ The specifity of the explicit Euler scheme is that the time derivative is calcul
 
     \frac{\partial u_{i}^{n}}{\partial t}\approx \frac{u_{i}^{n+1}-u_{i}^{n}}{\Delta t}
 
-So as to maintain the stability of our simulation, our time step ``dt`` has to respect the following inequality
+So as to maintain the stability of the simulation, the time step ``dt`` has to respect the following inequality
 
 .. math:: 
 
     d \frac{\Delta t}{\Delta x^{2}} \leq \frac{1}{2}
 
-Finally, we have the following numerical scheme :
+Finally, the following numerical scheme is obtained :
 
 .. math:: 
 
     \frac{u_{i}^{n+1}-u_{i}^{n}}{\Delta t}- d \frac{u_{i+1}^{n}-2u_{i}^{n}+u_{i-1}^{n}}{\Delta x^{2}}=0 
 
-When coming to the code, we express :math:`u_{i}^{n+1}` in function of the other dependencies of :math:`u` :
+When coming to the code, :math:`u_{i}^{n+1}` is expressed in function of the other dependencies of :math:`u` :
 
 .. math:: 
     

@@ -4,10 +4,10 @@ Monte Carlo method
 
 On this page you will find how to calculate using **Castor** the value of :math:`\pi` with Monte Carlo method.
 
-We consider a 1 by 1 square and we inscribe a quadrant within it.
+First, draw 1 by 1 square and inscribe a quadrant within it.
 
 
-We scatter randomly ``n`` points with :math:`(x,y)` coordinate over the square.
+Then ``n`` points are scattered randomly  with :math:`(x,y)` coordinate over the square.
 
 .. code-block:: c++
 
@@ -43,16 +43,16 @@ the probability to be in the quadrant is
     \pi = 4 * \frac{N_{in}}{n} .
 
 
-So, we count the number of points inside the quadrant i.e points with :math:`x^2 + y^2 \leq 1` .
+So, points inside the quadrant i.e points with :math:`x^2 + y^2 \leq 1` are counted.
 
 .. code-block:: c++
     
     // Pi computation
     matrix<std::size_t> Incircle;
     Incircle = find(pow(MX, 2) + pow(MY, 2) <= 1);
-    double Pi = 4. * (size(Incircle,2) / n);
+    double Pi = 4. * (numel(Incircle) / n);
 
-See :ref:`label-find-smatrix` , :ref:`label-size` 
+See :ref:`label-find-smatrix` , :ref:`label-numel` 
 
 Another way of doing it is by using ``sum``
 
@@ -84,7 +84,7 @@ Code
         // Pi computation
         matrix<std::size_t> Incircle;
         Incircle = find(pow(MX, 2) + pow(MY, 2) <= 1);
-        double Pi = 4. * (size(Incircle,2) / n);
+        double Pi = 4. * (numel(Incircle) / n);
         std::cout << "Calculated value of pi: " << Pi << endl;
 
         // Visu
