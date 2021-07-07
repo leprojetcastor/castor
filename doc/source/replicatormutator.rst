@@ -1,5 +1,5 @@
-Replicator mutator
-==================
+Replicator mutator Equation
+===========================
 
 *Shared by Antoine Rideau thanks to Gael Raoul*
 
@@ -34,7 +34,7 @@ Numeric simulation
     // Parameters
     int N = 1e3;        // Population
     int gmax = 1e4;     // Number of generations
-    int Nplot = 10;     // Number of generations plotted
+    int Nplot = 1000;     // Number of generations plotted
     double dt = 0.01;   // Time disretization
     double sigma = 0.5; // Mutation
 
@@ -99,7 +99,7 @@ Code
         // Parameters
         int N = 1e3;        // Population
         int gmax = 1e4;     // Number of generations
-        int Nplot = 10;     // Number of generations plotted
+        int Nplot = 1000;     // Number of generations plotted
         double dt = 0.01;   // Time disretization
         double sigma = 0.5; // Mutation
 
@@ -142,6 +142,13 @@ Code
         return 0;
     }
 
+
+.. figure:: img/replicatormutator.png
+    :width: 1200
+    :align: center
+    :figclass: align-center
+    
+    Fitness evolution of a 1 000 individuals' population during 10 000 generations.
 
 Reference
 ---------
