@@ -1,4 +1,4 @@
-Replicator mutator Equation
+Replicator mutator equation
 ===========================
 
 *Shared by Antoine Rideau thanks to Gael Raoul*
@@ -144,7 +144,7 @@ Code
 
 
 .. figure:: img/replicatormutator.png
-    :width: 1200
+    :width: 800
     :align: center
     :figclass: align-center
     
