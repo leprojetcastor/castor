@@ -47,7 +47,7 @@ N-body problem
 +-------------------------------------------------------------------+
 
 
-Those constants are stored within a data strucuture named ``DATA``
+Those constants are stored within a data structure named ``DATA``
 
 .. code-block:: c++
 
@@ -143,6 +143,10 @@ where AU stands for astronomical unit and :math:`1 AU = 1.495 978 707 \times 10^
 
 Time is discretized into ``nt`` steps 
 
+.. math::
+
+    t_{i} = it \times \delta t \text{ for } it = \left [ \! \left [ 0, nt-1 \right ] \! \right ]
+
 .. code-block:: c++
 
     // Disretization
@@ -154,9 +158,155 @@ Time is discretized into ``nt`` steps
 Scheme
 ------
 
+| A symplectic Euler scheme is used in this simulation because it preserved the energy of the system unlike either forward and backward Euler scheme.
+| 
+| As the system is conservative the Hamiltonian can be separated in a cinetical part :math:`K(p)` and a potential part :math:`V(q)` :
+
+.. math::
+
+    H(q,p) = K(p) + V(q)
+
+
+With such a separation, Hamilton equation are given by 
+
+.. math::
+
+    \begin{matrix}
+    \displaystyle \frac{\mathrm{d} q}{\mathrm{d} t} = + \frac{\mathrm{d} K}{\mathrm{d} p}
+    \\
+    \\
+    \displaystyle \frac{\mathrm{d} p}{\mathrm{d} t} = - \frac{\mathrm{d} V}{\mathrm{d} q}
+    \end{matrix}
+
+which result to the symplectic Euler scheme :
+
+.. math::
+
+    \begin{matrix}
+    \displaystyle q_{n+1} = q_{n} + \frac{\mathrm{d} K}{\mathrm{d} p}(p_{n})
+    \\
+    \\
+    \displaystyle p_{n+1} = p_{n} - \frac{\mathrm{d} V}{\mathrm{d} q}(q_{n+1})
+    \end{matrix}
+
+.. code-block:: c++
+
+    // Scheme
+    auto Q = zeros(nt, numel(qini));
+    Q(0, col(Q)) = qini;
+    auto P = zeros(nt, numel(pini));
+    P(0, col(P)) = pini;
+    // Symplectic Euler
+    for (int it = 0; it < nt - 1; it++)
+    {
+        matrix<> q_n = eval(Q(it, col(Q)));
+        matrix<> p_n = eval(P(it, col(P)));
+        Q(it + 1, col(Q)) = q_n + dt * H_p(cst, p_n);
+        P(it + 1, col(P)) = p_n - dt * H_q(cst, eval(Q(it + 1, col(Q))));
+    }
+
+In the code, :math:`\displaystyle \frac{\mathrm{d} K}{\mathrm{d} p}(p)` is represented by the function ``H_p`` 
+
+.. code-block:: c++
+
+    matrix<> H_p(DATA cst, matrix<> p)
+    {
+        auto Hp = zeros(1, 9);
+        Hp(range(0, 3)) = eval(p(range(0, 3))) / cst.m0;
+        Hp(range(3, 6)) = eval(p(range(3, 6))) / cst.m1;
+        Hp(range(6, 9)) = eval(p(range(6, 9))) / cst.m2;
+        return Hp;
+    }
+
+and :math:`\displaystyle \frac{\mathrm{d} V}{\mathrm{d} q}(q)` by the function ``H_q``
+
+.. code-block:: c++
+
+    matrix<> H_q(DATA cst, matrix<> q)
+    {
+        double m0 = cst.m0;
+        double m1 = cst.m1;
+        double m2 = cst.m2;
+        double G = cst.G;
+        auto q0 = eval(q(range(0, 3)));
+        auto q1 = eval(q(range(3, 6)));
+        auto q2 = eval(q(range(6, 9)));
+        auto Hq = zeros(1, 9);
+        Hq(range(0, 3)) = (G * m0 * m1 * ((q0 - q1) / pow(norm(q0 - q1), 3)) + G * m0 * m2 * ((q0 - q2) / pow(norm(q0 - q2), 3)));
+        Hq(range(3, 6)) = (G * m1 * m0 * ((q1 - q0) / pow(norm(q1 - q0), 3)) + G * m1 * m2 * ((q1 - q2) / pow(norm(q1 - q2), 3)));
+        Hq(range(6, 9)) = (G * m2 * m0 * ((q2 - q0) / pow(norm(q2 - q0), 3)) + G * m2 * m1 * ((q2 - q1) / pow(norm(q2 - q1), 3)));
+        return Hq;
+    }
+
 
 Code
 ----
+
+Here is all the code at once, without the functions ``H_q`` and ``H_p``  written above :
+
+.. code-block:: c++
+
+    #include "castor/matrix.hpp"
+    #include "castor/graphics.hpp"
+    #include "castor/linalg.hpp"
+
+    using namespace castor;
+
+    struct DATA
+    {
+        double m0;
+        double m1;
+        double m2;
+        double G;
+    };
+
+    int main(int argc, char const *argv[])
+    {
+        // Parameters
+        DATA cst;
+        cst.m0 = 1.00000597682;    // Sun's mass
+        cst.m1 = 9.54786104043e-4; // Jupiter's mass
+        cst.m2 = 2.85583733151e-4; // Saturn's mass
+        cst.G = 2.95912208286e-4;  // Gravitation's constant
+
+        matrix<> qini = {0, 0, 0,                                                       // Sun's initial position
+                        -3.5023653, -3.8169847, -1.5507963,                             // Jupiter's initial position
+                        9.0755314, -3.0458353, -1.6483708};                             // Saturn's initial position
+        matrix<> pini = {0, 0, 0,                                                       // Sun's initial momentum
+                        0.00565429 * cst.m1, -0.00412490 * cst.m1, -0.00190589 * cst.m1,// Jupiter's initial momentum
+                        0.00168318 * cst.m2, 0.00483525 * cst.m2, 0.00192462 * cst.m2}; // Saturn's initial momentum
+
+        double tini = 0.;
+        double tend = 12500.;
+        
+        // Disretization
+        int nt = 1501;
+        double dt = (tend - tini) / (nt - 1);
+        auto T = linspace(tini, tend, nt); 
+
+        // Symplectic Euler scheme
+        auto Q = zeros(nt, numel(qini));    // Matrix of positions over time
+        Q(0, col(Q)) = qini;                // Initialization 
+        auto P = zeros(nt, numel(pini));    // Matrix of momentum over time
+        P(0, col(P)) = pini;                // Initialization
+        for (int it = 0; it < nt - 1; it++)
+        {
+            matrix<> q_n = eval(Q(it, col(Q)));
+            matrix<> p_n = eval(P(it, col(P)));
+            Q(it + 1, col(Q)) = q_n + dt * H_p(cst, p_n);
+            P(it + 1, col(P)) = p_n - dt * H_q(cst, eval(Q(it + 1, col(Q))));
+        }
+        auto Y = cat(1, Q, P);
+
+        // Visu
+        figure fig;
+        plot3(fig, transpose(eval(Y(row(Y), 3)) - eval(Y(row(Y), 0))), transpose(eval(Y(row(Y), 4)) - eval(Y(row(Y), 1))), transpose(eval(Y(row(Y), 5)) - eval(Y(row(Y), 2))), {"c"});
+        plot3(fig, transpose(eval(Y(row(Y), 6)) - eval(Y(row(Y), 0))), transpose(eval(Y(row(Y), 7)) - eval(Y(row(Y), 1))), transpose(eval(Y(row(Y), 8)) - eval(Y(row(Y), 2))), {"b"});
+
+        drawnow(fig);
+
+        return 0;
+    }
 
 
 References
@@ -164,4 +314,4 @@ References
 
 | https://interstices.info/les-planetes-tournent-elles-rond/
 |
-| https://www.f-legrand.fr/scidoc/srcdoc/numerique/symplectic/verlet/verlet-pdf.pdf
+| https://www.f-legrand.fr/scidoc/docimg/numerique/euler/symplectic/symplectic.html
