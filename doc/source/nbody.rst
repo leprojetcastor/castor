@@ -308,10 +308,18 @@ Here is all the code at once, without the functions ``H_q`` and ``H_p``  written
         return 0;
     }
 
+.. figure:: img/3body.png
+    :width: 1200
+    :align: center
+    :figclass: align-center
+    
+    Orbit of Jupiter (cyan) and Saturn (blue) around the Sun in the center.
+
+
 
 References
 ----------
 
 | https://interstices.info/les-planetes-tournent-elles-rond/
 |
-| https://www.f-legrand.fr/scidoc/docimg/numerique/euler/symplectic/symplectic.html
+| http://www.unige.ch/~hairer/poly/chap3.pdf
