@@ -296,13 +296,13 @@ Here is all the code at once, without the functions ``H_q`` and ``H_p``  written
             Q(it + 1, col(Q)) = q_n + dt * H_p(cst, p_n);
             P(it + 1, col(P)) = p_n - dt * H_q(cst, eval(Q(it + 1, col(Q))));
         }
-        auto Y = cat(1, Q, P);
 
         // Visu
         figure fig;
-        plot3(fig, transpose(eval(Y(row(Y), 3)) - eval(Y(row(Y), 0))), transpose(eval(Y(row(Y), 4)) - eval(Y(row(Y), 1))), transpose(eval(Y(row(Y), 5)) - eval(Y(row(Y), 2))), {"c"});
-        plot3(fig, transpose(eval(Y(row(Y), 6)) - eval(Y(row(Y), 0))), transpose(eval(Y(row(Y), 7)) - eval(Y(row(Y), 1))), transpose(eval(Y(row(Y), 8)) - eval(Y(row(Y), 2))), {"b"});
-
+        plot3(fig, transpose(eval(Q(row(Q), 3)) - eval(Q(row(Q), 0))), transpose(eval(Q(row(Q), 4)) - eval(Q(row(Q), 1))), transpose(eval(Q(row(Q), 5)) - eval(Q(row(Q), 2))), {"c"});
+        plot3(fig, transpose(eval(Q(row(Q), 6)) - eval(Q(row(Q), 0))), transpose(eval(Q(row(Q), 7)) - eval(Q(row(Q), 1))), transpose(eval(Q(row(Q), 8)) - eval(Q(row(Q), 2))), {"b"});
+        plot3(fig, zeros(1, nt), zeros(1, nt), zeros(1, nt), {"y"});
+        
         drawnow(fig);
 
         return 0;

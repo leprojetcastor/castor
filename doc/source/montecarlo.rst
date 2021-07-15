@@ -4,6 +4,10 @@ Monte Carlo method
 
 On this page you will find how to calculate using **Castor** the value of :math:`\pi` with Monte Carlo method.
 
+Monte Carlo methods are a broad class of computational algorithms that rely on repeated random sampling to obtain numerical results.
+The underlying concept is to use randomness to solve problems that might be deterministic in principle.
+They are mainly used in physical and mathematical problems related to optimization, numerical integration, and generating draws from a probability distribution.
+
 First, draw 1 by 1 square and inscribe a quadrant within it.
 
 
