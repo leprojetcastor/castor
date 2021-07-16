@@ -397,7 +397,7 @@ Here is all the code at once, without the functions ``H_q`` and ``H_p``  written
 
     <video controls width="100%">
 
-    <source src="_static/3body.mp4"
+    <source src="./_static/3body.mp4"
             type="video/mp4">
 
     Sorry, your browser doesn't support embedded videos.
