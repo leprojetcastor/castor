@@ -154,6 +154,7 @@ Time is discretized into ``nt`` steps
     double dt = (tend - tini) / (nt - 1);
     auto T = linspace(tini, tend, nt);
 
+See :ref:`label-linspace`.
 
 Scheme
 ------
@@ -205,6 +206,8 @@ which result to the symplectic Euler scheme :
         P(it + 1, col(P)) = p_n - dt * H_q(cst, eval(Q(it + 1, col(Q))));
     }
 
+See :ref:`label-zeros`, :ref:`label-numel`, :ref:`label-col` , :ref:`label-view`.
+
 In the code, :math:`\displaystyle \frac{\mathrm{d} K}{\mathrm{d} p}(p)` is represented by the function ``H_p`` 
 
 .. code-block:: c++
@@ -217,6 +220,8 @@ In the code, :math:`\displaystyle \frac{\mathrm{d} K}{\mathrm{d} p}(p)` is repre
         Hp(range(6, 9)) = eval(p(range(6, 9))) / cst.m2;
         return Hp;
     }
+
+See :ref:`label-zeros`, :ref:`label-range` , :ref:`label-view`.
 
 and :math:`\displaystyle \frac{\mathrm{d} V}{\mathrm{d} q}(q)` by the function ``H_q``
 
@@ -237,6 +242,88 @@ and :math:`\displaystyle \frac{\mathrm{d} V}{\mathrm{d} q}(q)` by the function `
         Hq(range(6, 9)) = (G * m2 * m0 * ((q2 - q0) / pow(norm(q2 - q0), 3)) + G * m2 * m1 * ((q2 - q1) / pow(norm(q2 - q1), 3)));
         return Hq;
     }
+
+See :ref:`label-range`, :ref:`label-view`.
+
+
+Post processing
+---------------
+
+| In order to have a video of the orbiting planets, Python will be used instead of a simple ``plot`` function.
+|
+| To do so, first the positions in the matrix ``Q`` are stored using ``writetxt`` .
+
+.. code-block:: c++
+
+    // Output
+    writetxt("./", "dataJu.txt", cat(2, eval(Q(row(Q), 3)) - eval(Q(row(Q), 0)), eval(Q(row(Q), 4)) - eval(Q(row(Q), 1))));
+    writetxt("./", "dataSa.txt", cat(2, eval(Q(row(Q), 6)) - eval(Q(row(Q), 0)), eval(Q(row(Q), 7)) - eval(Q(row(Q), 1))));
+
+See :ref:`label-writetxt`, :ref:`label-row` .
+
+Then the following Python code shows the beautiful animation.
+
+.. code-block:: python
+
+    import matplotlib.pyplot as plt
+    import matplotlib.animation as animation
+    import numpy as np
+    from collections import deque
+
+    # Data input
+    dataJu = np.loadtxt("./build/dataJu.txt")
+    dataSa = np.loadtxt("./build/dataSa.txt")
+
+    # Parameters extraction
+    nt = int(dataJu[0, 0])
+
+    # Data processing
+    dataJu = np.delete(dataJu, 0, 0)
+    dataSa = np.delete(dataSa, 0, 0)
+
+    # Visu initialization
+    fig = plt.figure(figsize=(5, 4))
+    ax = fig.add_subplot(autoscale_on=False, xlim=(-10, 10), ylim=(-10, 10))
+    ax.set_aspect('equal')
+
+    line, = ax.plot([], [], 'o', lw=2)
+    traceJu, = ax.plot([], [], ',-', lw=1)
+    traceSa, = ax.plot([], [], ',-', lw=1)
+    historyJu_x, historyJu_y = deque(maxlen=nt), deque(maxlen=nt)
+    historySa_x, historySa_y = deque(maxlen=nt), deque(maxlen=nt)
+
+
+    def animate(i):
+        # Get planets' current positions
+        thisx = [0, dataJu[i, 0], dataSa[i, 0]]
+        thisy = [0, dataJu[i, 1], dataSa[i, 1]]
+
+        # Clear the trace when the animation loops
+        if i == 0:
+            historyJu_x.clear()
+            historyJu_y.clear()
+            historySa_x.clear()
+            historySa_y.clear()
+
+        # Add the current position to the trace
+        historyJu_x.appendleft(thisx[1])
+        historyJu_y.appendleft(thisy[1])
+        historySa_x.appendleft(thisx[2])
+        historySa_y.appendleft(thisy[2])
+
+        line.set_data(thisx, thisy)  # Update planets' positions
+        # Update planets' traces
+        traceJu.set_data(historyJu_x, historyJu_y)
+        traceSa.set_data(historySa_x, historySa_y)
+        return line, traceJu, traceSa
+
+
+    # Creating the Animation object
+    ani = animation.FuncAnimation(
+        fig, animate, nt, interval=10, blit=True)
+    plt.show()
+
+
 
 
 Code
@@ -297,24 +384,18 @@ Here is all the code at once, without the functions ``H_q`` and ``H_p``  written
             P(it + 1, col(P)) = p_n - dt * H_q(cst, eval(Q(it + 1, col(Q))));
         }
 
-        // Visu
-        figure fig;
-        plot3(fig, transpose(eval(Q(row(Q), 3)) - eval(Q(row(Q), 0))), transpose(eval(Q(row(Q), 4)) - eval(Q(row(Q), 1))), transpose(eval(Q(row(Q), 5)) - eval(Q(row(Q), 2))), {"c"});
-        plot3(fig, transpose(eval(Q(row(Q), 6)) - eval(Q(row(Q), 0))), transpose(eval(Q(row(Q), 7)) - eval(Q(row(Q), 1))), transpose(eval(Q(row(Q), 8)) - eval(Q(row(Q), 2))), {"b"});
-        plot3(fig, zeros(1, nt), zeros(1, nt), zeros(1, nt), {"y"});
-        
-        drawnow(fig);
-
+        // Output
+        writetxt("./", "dataJu.txt", cat(2, eval(Q(row(Q), 3)) - eval(Q(row(Q), 0)), eval(Q(row(Q), 4)) - eval(Q(row(Q), 1))));
+        writetxt("./", "dataSa.txt", cat(2, eval(Q(row(Q), 6)) - eval(Q(row(Q), 0)), eval(Q(row(Q), 7)) - eval(Q(row(Q), 1))));
+    
         return 0;
     }
 
-.. figure:: img/3body.png
-    :width: 1200
-    :align: center
-    :figclass: align-center
-    
-    Orbit of Jupiter (cyan) and Saturn (blue) around the Sun in the center.
+    Orbit of Jupiter (orange) and Saturn (green) around the Sun in the center.
 
+.. raw:: html
+
+    <video autoplay loop controls src="_static/3body.mp4"></video> 
 
 
 References
