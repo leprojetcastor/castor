@@ -462,12 +462,12 @@ Here is all the code at once, without the functions ``H_q`` and ``H_p``  written
 
     using namespace castor;
 
-    int main(int argc, char const *argv[])
+        int main(int argc, char const *argv[])
     {
         // Parameters
         matrix<> m = {1.00000597682, 9.54786104043e-4, 2.85583733151e-4}; // Masses : Sun, Jupiter and Saturn
         double G = 2.95912208286e-4;                                      //Gravitation's constant
-    
+
         matrix<> qini = {0, 0, 0,                                                                // Sun's initial position
                          -3.5023653, -3.8169847, -1.5507963,                                     // Jupiter's initial position
                          9.0755314, -3.0458353, -1.6483708};                                     // Saturn's initial position
@@ -475,41 +475,72 @@ Here is all the code at once, without the functions ``H_q`` and ``H_p``  written
                          0.00565429, -0.00412490, -0.00190589,                                   // Jupiter's initial velocity
                          0.00168318, 0.00483525, 0.00192462};                                    // Saturn's initial velocity
         matrix<> pini = reshape(mtimes(transpose(m), ones(1, numel(m))), 1, numel(vini)) * vini; // Initial momentums
-    
+
         double tini = 0.;
         double tend = 12500.;
-    
+
         // Disretization
         int nt = 1501;
         double dt = (tend - tini) / (nt - 1);
         auto T = linspace(tini, tend, nt);
-    
+
+        // Initialize source and movie
+        vtkNew<vtkWindowToImageFilter> source;
+        vtkNew<vtkOggTheoraWriter> movie;
+        movie->SetInputConnection(source->GetOutputPort());
+        movie->SetFileName("nbody.avi");
+        movie->SetQuality(2); // in [0,2]
+        movie->SetRate(25);   // frame per seconds
+        int Nplot = 150;      // < 200
+
         // Scheme
         auto Q = zeros(nt, numel(qini));
         Q(0, col(Q)) = qini;
         auto P = zeros(nt, numel(pini));
         P(0, col(P)) = pini;
         // Symplectic Euler
+        tic();
+        int count = 0;
+        movie->Start();
         for (int it = 0; it < nt - 1; it++)
         {
+
             matrix<> q_n = eval(Q(it, col(Q)));
             matrix<> p_n = eval(P(it, col(P)));
             Q(it + 1, col(Q)) = q_n + dt * H_p(G, m, p_n);
             P(it + 1, col(P)) = p_n - dt * H_q(G, m, eval(Q(it + 1, col(Q))));
+
+            // Visu
+            if (it % (nt / Nplot) == 0)
+            {
+                count++;
+                figure fig;
+                matrix<> L({-10, 10, -10, 10}); // Axis dimensions 
+                plot(fig, Q(it, 3) - Q(it, 0) * ones(1), Q(it, 4) - Q(it, 1) * ones(1), L, {"c"});
+                plot(fig, Q(it, 6) - Q(it, 0) * ones(1), Q(it, 7) - Q(it, 1) * ones(1), L, {"b"});
+                plot(fig, zeros(1), zeros(1), {"y"});
+                source->SetInput(fig.GetView()->GetRenderWindow());
+                source->SetInputBufferTypeToRGB();
+                source->ReadFrontBufferOff();
+                movie->Write();
+            }
         }
-    
+        std::cout << count << endl;
+        movie->End();
+        toc();
+
         // Output
-        writetxt("./", "dataJu.txt", cat(2, eval(Q(row(Q), 3)) - eval(Q(row(Q), 0)), eval(Q(row(Q), 4)) - eval(Q(row(Q), 1))));
-        writetxt("./", "dataSa.txt", cat(2, eval(Q(row(Q), 6)) - eval(Q(row(Q), 0)), eval(Q(row(Q), 7)) - eval(Q(row(Q), 1))));
-    
+        // writetxt("./", "dataJu.txt", cat(2, eval(Q(row(Q), 3)) - eval(Q(row(Q), 0)), eval(Q(row(Q), 4)) - eval(Q(row(Q), 1))));
+        // writetxt("./", "dataSa.txt", cat(2, eval(Q(row(Q), 6)) - eval(Q(row(Q), 0)), eval(Q(row(Q), 7)) - eval(Q(row(Q), 1))));
+
         // Visu
-        figure fig;
-        plot3(fig, transpose(eval(Q(row(Q), 3)) - eval(Q(row(Q), 0))), transpose(eval(Q(row(Q), 4)) - eval(Q(row(Q), 1))), transpose(eval(Q(row(Q), 5)) - eval(Q(row(Q), 2))), {"c"});
-        plot3(fig, transpose(eval(Q(row(Q), 6)) - eval(Q(row(Q), 0))), transpose(eval(Q(row(Q), 7)) - eval(Q(row(Q), 1))), transpose(eval(Q(row(Q), 8)) - eval(Q(row(Q), 2))), {"b"});
-        plot3(fig, zeros(1, nt), zeros(1, nt), zeros(1, nt), {"y"});
-    
-        drawnow(fig);
-    
+        // figure fig;
+        // plot3(fig, transpose(eval(Q(row(Q), 3)) - eval(Q(row(Q), 0))), transpose(eval(Q(row(Q), 4)) - eval(Q(row(Q), 1))), transpose(eval(Q(row(Q), 5)) - eval(Q(row(Q), 2))), {"c"});
+        // plot3(fig, transpose(eval(Q(row(Q), 6)) - eval(Q(row(Q), 0))), transpose(eval(Q(row(Q), 7)) - eval(Q(row(Q), 1))), transpose(eval(Q(row(Q), 8)) - eval(Q(row(Q), 2))), {"b"});
+        // plot3(fig, zeros(1, nt), zeros(1, nt), zeros(1, nt), {"y"});
+
+        // drawnow(fig);
+
         return 0;
     }
 
