@@ -33,40 +33,28 @@ N-body problem
     \end{matrix}
 
 
-+------------+------------------------------------------------------+
-|   Bodies   |  Masses                                              |
-|            |  (relatively to the Sun)                             |
-+============+======================================================+
-| Sun        | :math:`m_{0}` = 1.00000597682                        |
-+------------+------------+-----------------------------------------+
-| Jupiter    | :math:`m_{1}` = 0.000954786104043                    |
-+------------+------------+-----------------------------------------+
-| Saturn     | :math:`m_{2}` = 0.000285583733151                    |
-+------------+------------+-----------------------------------------+
-| Gravitational constant :math:`G = 2.95912208286 \times 10^{-4}`   |
-+-------------------------------------------------------------------+
++------------+----------------------------------------------------------------+
+|   Bodies   |  Masses                                                        |
+|            |  (relatively to the Sun)                                       |
++======================+======================================================+
+| Sun and inner planet | :math:`m_{0}` = 1.00000597682                        |
++----------------------+------------+-----------------------------------------+
+|        Jupiter       | :math:`m_{1}` = 0.000954786104043                    |
++----------------------+------------+-----------------------------------------+
+|        Saturn        | :math:`m_{2}` = 0.000285583733151                    |
++----------------------+------------+-----------------------------------------+
+| Gravitational constant :math:`G = 2.95912208286 \times 10^{-4}`             |
++-----------------------------------------------------------------------------+
 
 
 Those constants are stored within a data structure named ``DATA``
 
-.. code-block:: c++
-
-    struct DATA
-    {
-        double m0;
-        double m1;
-        double m2;
-        double G;
-    };
 
 .. code-block:: c++
 
     // Parameters
-    DATA cst;
-    cst.m0 = 1.00000597682;    // Sun's mass
-    cst.m1 = 9.54786104043e-4; // Jupiter's mass
-    cst.m2 = 2.85583733151e-4; // Saturn's mass
-    cst.G = 2.95912208286e-4;  //Gravitation's constant
+    matrix<> m = {{1.00000597682}, {9.54786104043e-4}, {2.85583733151e-4}}; // Masses : Sun, Jupiter and Saturn
+    double G = 2.95912208286e-4;                                            //Gravitation's constant
 
 
 The position of a object over time is given by :math:`q(t)`.
@@ -112,7 +100,7 @@ where AU stands for astronomical unit and :math:`1 AU = 1.495 978 707 \times 10^
     \overrightarrow{p}_{S}(t) + \overrightarrow{p}_{Ju}(t) + \overrightarrow{p}_{Sa}(t) = Constant
 
 +------------+-----------------------------+
-|   Bodies   | Initial momentum (AU/day)   |
+|   Bodies   | Initial velocity (AU/day)   |
 +============+=============================+
 |            |               0             |
 |            +-----------------------------+
@@ -136,10 +124,12 @@ where AU stands for astronomical unit and :math:`1 AU = 1.495 978 707 \times 10^
 
 .. code-block:: c++
 
-    matrix<> pini = {0, 0, 0,                                                           // Sun's momentum
-                    0.00565429 * cst.m1, -0.00412490 * cst.m1, -0.00190589 * cst.m1,    // Jupiter's momentum
-                    0.00168318 * cst.m2, 0.00483525 * cst.m2, 0.00192462 * cst.m2};     // Saturn's momentum
+    matrix<> vini = {0, 0, 0,                                                                   // Sun's initial velocity
+    0.00565429, -0.00412490, -0.00190589,                                                       // Jupiter's initial velocity
+    0.00168318, 0.00483525, 0.00192462};                                                        // Saturn's initial velocity
+    matrix<> pini = reshape(mtimes(transpose(m), ones(1, numel(m))), 1, numel(vini)) * vini;    // Initial momentums
 
+See :ref:`label-reshape` , :ref:`label-mtimes`, :ref:`label-transpose`, :ref:`label-ones`, :ref:`label-numel`.
 
 Time is discretized into ``nt`` steps 
 
@@ -165,8 +155,18 @@ Scheme
 
 .. math::
 
-    H(q,p) = K(p) + V(q)
+    H(q,p) = K(p) + V(q) ,
 
+where
+
+.. math::
+
+    \begin{matrix}
+    \displaystyle K(p) = \frac{1}{2}\frac{p^2}{m}
+    \\ 
+    \\
+    \displaystyle V(q_{i}) = \sum_{j\neq i}- \frac{Gm_{j}m_{i}}{\left | q_{i}-q_{j} \right |} .
+    \end{matrix}
 
 With such a separation, Hamilton equation are given by 
 
@@ -176,7 +176,18 @@ With such a separation, Hamilton equation are given by
     \displaystyle \frac{\mathrm{d} q}{\mathrm{d} t} = + \frac{\mathrm{d} K}{\mathrm{d} p}
     \\
     \\
-    \displaystyle \frac{\mathrm{d} p}{\mathrm{d} t} = - \frac{\mathrm{d} V}{\mathrm{d} q}
+    \displaystyle \frac{\mathrm{d} p}{\mathrm{d} t} = - \frac{\mathrm{d} V}{\mathrm{d} q} ,
+    \end{matrix}
+
+where
+
+.. math::
+
+    \begin{matrix}
+    \displaystyle \frac{\mathrm{d} K(p)}{\mathrm{d} p} = \frac{p}{m}
+    \\ 
+    \\
+    \displaystyle \frac{\mathrm{d} V(q_{i})}{\mathrm{d} q} = \sum_{j\neq i} \frac{Gm_{j}m_{i}\left ( q_{i}-q_{j} \right )}{\left | q_{i}-q_{j} \right |^3}
     \end{matrix}
 
 which result to the symplectic Euler scheme :
@@ -202,8 +213,8 @@ which result to the symplectic Euler scheme :
     {
         matrix<> q_n = eval(Q(it, col(Q)));
         matrix<> p_n = eval(P(it, col(P)));
-        Q(it + 1, col(Q)) = q_n + dt * H_p(cst, p_n);
-        P(it + 1, col(P)) = p_n - dt * H_q(cst, eval(Q(it + 1, col(Q))));
+        Q(it + 1, col(Q)) = q_n + dt * H_p(G, m, p_n);
+        P(it + 1, col(P)) = p_n - dt * H_q(G, m, eval(Q(it + 1, col(Q))));
     }
 
 See :ref:`label-zeros`, :ref:`label-numel`, :ref:`label-col` , :ref:`label-view`.
@@ -212,46 +223,143 @@ In the code, :math:`\displaystyle \frac{\mathrm{d} K}{\mathrm{d} p}(p)` is repre
 
 .. code-block:: c++
 
-    matrix<> H_p(DATA cst, matrix<> p)
+    matrix<> H_p(double G, matrix<> m, matrix<> p)
     {
-        auto Hp = zeros(1, 9);
-        Hp(range(0, 3)) = eval(p(range(0, 3))) / cst.m0;
-        Hp(range(3, 6)) = eval(p(range(3, 6))) / cst.m1;
-        Hp(range(6, 9)) = eval(p(range(6, 9))) / cst.m2;
+
+        auto Hp = zeros(1, numel(p));
+        m = reshape(mtimes(transpose(m), ones(1, numel(m))), 1, numel(p));
+        Hp = p / m;
         return Hp;
     }
 
-See :ref:`label-zeros`, :ref:`label-range` , :ref:`label-view`.
+See :ref:`label-zeros`, :ref:`label-reshape` , :ref:`label-mtimes`, :ref:`label-transpose`, :ref:`label-ones`, :ref:`label-numel`.
 
 and :math:`\displaystyle \frac{\mathrm{d} V}{\mathrm{d} q}(q)` by the function ``H_q``
 
 .. code-block:: c++
 
-    matrix<> H_q(DATA cst, matrix<> q)
+    matrix<> H_q(double G, matrix<> m, matrix<> q)
     {
-        double m0 = cst.m0;
-        double m1 = cst.m1;
-        double m2 = cst.m2;
-        double G = cst.G;
+    
         auto q0 = eval(q(range(0, 3)));
         auto q1 = eval(q(range(3, 6)));
         auto q2 = eval(q(range(6, 9)));
         auto Hq = zeros(1, 9);
-        Hq(range(0, 3)) = (G * m0 * m1 * ((q0 - q1) / pow(norm(q0 - q1), 3)) + G * m0 * m2 * ((q0 - q2) / pow(norm(q0 - q2), 3)));
-        Hq(range(3, 6)) = (G * m1 * m0 * ((q1 - q0) / pow(norm(q1 - q0), 3)) + G * m1 * m2 * ((q1 - q2) / pow(norm(q1 - q2), 3)));
-        Hq(range(6, 9)) = (G * m2 * m0 * ((q2 - q0) / pow(norm(q2 - q0), 3)) + G * m2 * m1 * ((q2 - q1) / pow(norm(q2 - q1), 3)));
+        Hq(range(0, 3)) = (G * m(0) * m(1) * ((q0 - q1) / pow(norm(q0 - q1), 3)) + G * m(0) * m(2) * ((q0 - q2) / pow(norm(q0 - q2), 3)));
+        Hq(range(3, 6)) = (G * m(1) * m(0) * ((q1 - q0) / pow(norm(q1 - q0), 3)) + G * m(1) * m(2) * ((q1 - q2) / pow(norm(q1 - q2), 3)));
+        Hq(range(6, 9)) = (G * m(2) * m(0) * ((q2 - q0) / pow(norm(q2 - q0), 3)) + G * m(2) * m(1) * ((q2 - q1) / pow(norm(q2 - q1), 3)));
         return Hq;
     }
 
-See :ref:`label-range`, :ref:`label-view`.
+See :ref:`label-range`, :ref:`label-view`, :ref:`label-zeros`, :ref:`label-norm`.
 
 
-Post processing
----------------
+Visualization
+--------------
 
-| In order to have a video of the orbiting planets, Python will be used instead of a simple ``plot`` function.
-|
-| To do so, first the positions in the matrix ``Q`` are stored using ``writetxt`` .
+Simple figure with Castor
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+| The simplest method to visualize the results is to plot them using ``plot`` or ``plot3``, here ``plot3`` is used to show the motion in 3 dimensions.
+| 
+| For each coordinates x,y and z, the Sun's positions are subtracted in order to keep it still in the center.
+| Moreover, ``transpose`` is needed because of matrix ``Q`` 's dimensions.
+
+.. code-block:: c++
+
+    // Visu
+    figure fig;
+    plot3(fig, transpose(eval(Q(row(Q), 3)) - eval(Q(row(Q), 0))), transpose(eval(Q(row(Q), 4)) - eval(Q(row(Q), 1))), transpose(eval(Q(row(Q), 5)) - eval(Q(row(Q), 2))), {"c"});
+    plot3(fig, transpose(eval(Q(row(Q), 6)) - eval(Q(row(Q), 0))), transpose(eval(Q(row(Q), 7)) - eval(Q(row(Q), 1))), transpose(eval(Q(row(Q), 8)) - eval(Q(row(Q), 2))), {"b"});
+    plot3(fig, zeros(1, nt), zeros(1, nt), zeros(1, nt), {"y"});
+
+.. figure:: img/3body.png
+    :width: 800
+    :align: center
+    :figclass: align-center
+    
+    Orbit of Jupiter (cyan) and Saturn (blue) around the Sun (yellow) in the center.
+
+
+Video output with VTK
+^^^^^^^^^^^^^^^^^^^^^
+
+| A way to visualize the results through a video is by using C++ VTK video writer.
+| However, C++ VTK video writer's behavior is very OS dependent, it works perfectly fine on MAC but can cause some issues on Linux. (Windows ?)
+| 
+| First of all, the source and the writer need to be initialized with name of the output file, quality, framerate and connnected together.
+
+.. code-block:: c++
+
+    // Initialize source and movie
+    vtkNew<vtkWindowToImageFilter> source;
+    vtkNew<vtkOggTheoraWriter> movie;
+    movie->SetInputConnection(source->GetOutputPort());
+    movie->SetFileName("nbody.avi");
+    movie->SetQuality(2); // in [0,2]
+    movie->SetRate(25);   // frame per seconds
+    int Nplot = 150;      // < 200
+
+Afterwards, the writer is initiated before the loop over time. 
+
+.. code-block:: c++
+
+    movie->Start();
+    for (int it = 0; it < nt - 1; it++){...}
+
+Then each wanted frame is plotted and added to the final movie.
+
+.. code-block:: c++
+
+    // Visu
+    if (it % (nt / Nplot) == 0)
+    {
+        figure fig;
+        matrix<> L({-10, 10, -10, 10}); // Axis dimensions
+        // matrix<> Xju(Q(it, 3) - Q(it, 0));
+        // matrix<> Yju(Q(it, 4) - Q(it, 1));
+        // matrix<> Xsa(Q(it, 6) - Q(it, 0));
+        // matrix<> Ysa(Q(it, 7) - Q(it, 1));
+        plot(fig, Q(it, 3) - Q(it, 0) * ones(1), Q(it, 4) - Q(it, 1) * ones(1), L, {"c"});
+        plot(fig, Q(it, 6) - Q(it, 0) * ones(1), Q(it, 7) - Q(it, 1) * ones(1), L, {"b"});
+        plot(fig, zeros(1), zeros(1), {"y"});
+        source->SetInput(fig.GetView()->GetRenderWindow());
+        source->SetInputBufferTypeToRGB();
+        source->ReadFrontBufferOff();
+        movie->Write();
+    }
+
+Finally, the writer is closed after the loop over time.
+
+.. code-block:: c++
+
+    for (int it = 0; it < nt - 1; it++){...}
+    movie->End();
+
+
+
+.. raw:: html
+
+    <video controls width="100%">
+
+    <source src="./_static/3bodyvtk.mp4"
+            type="video/mp4">
+
+    Sorry, your browser doesn't support embedded videos.
+    </video>
+
+.. class:: center
+
+    Orbit of Jupiter (orange) and Saturn (green) around the Sun in the center.
+
+
+
+Video animation with Python
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+| Another way to get an animation of the orbiting planets is to output our data, and then post processing those with Python. 
+| To do so, first the positions in the matrix ``Q`` are stored in a .txt file using ``writetxt`` .
+| So as to keep the Sun still in the center, its positions are subtracted of Jupiter's and Saturn's positions. 
 
 .. code-block:: c++
 
@@ -325,6 +433,21 @@ Then the following Python code shows the beautiful animation.
 
 
 
+.. raw:: html
+
+    <video controls width="100%">
+
+    <source src="./_static/3body.mp4"
+            type="video/mp4">
+
+    Sorry, your browser doesn't support embedded videos.
+    </video>
+
+.. class:: center
+
+    Orbit of Jupiter (orange) and Saturn (green) around the Sun in the center.
+
+
 
 Code
 ----
@@ -339,69 +462,58 @@ Here is all the code at once, without the functions ``H_q`` and ``H_p``  written
 
     using namespace castor;
 
-    struct DATA
-    {
-        double m0;
-        double m1;
-        double m2;
-        double G;
-    };
-
     int main(int argc, char const *argv[])
     {
         // Parameters
-        DATA cst;
-        cst.m0 = 1.00000597682;    // Sun's mass
-        cst.m1 = 9.54786104043e-4; // Jupiter's mass
-        cst.m2 = 2.85583733151e-4; // Saturn's mass
-        cst.G = 2.95912208286e-4;  // Gravitation's constant
-
-        matrix<> qini = {0, 0, 0,                                                       // Sun's initial position
-                        -3.5023653, -3.8169847, -1.5507963,                             // Jupiter's initial position
-                        9.0755314, -3.0458353, -1.6483708};                             // Saturn's initial position
-        matrix<> pini = {0, 0, 0,                                                       // Sun's initial momentum
-                        0.00565429 * cst.m1, -0.00412490 * cst.m1, -0.00190589 * cst.m1,// Jupiter's initial momentum
-                        0.00168318 * cst.m2, 0.00483525 * cst.m2, 0.00192462 * cst.m2}; // Saturn's initial momentum
-
+        matrix<> m = {1.00000597682, 9.54786104043e-4, 2.85583733151e-4}; // Masses : Sun, Jupiter and Saturn
+        double G = 2.95912208286e-4;                                      //Gravitation's constant
+    
+        matrix<> qini = {0, 0, 0,                                                                // Sun's initial position
+                         -3.5023653, -3.8169847, -1.5507963,                                     // Jupiter's initial position
+                         9.0755314, -3.0458353, -1.6483708};                                     // Saturn's initial position
+        matrix<> vini = {0, 0, 0,                                                                // Sun's initial velocity
+                         0.00565429, -0.00412490, -0.00190589,                                   // Jupiter's initial velocity
+                         0.00168318, 0.00483525, 0.00192462};                                    // Saturn's initial velocity
+        matrix<> pini = reshape(mtimes(transpose(m), ones(1, numel(m))), 1, numel(vini)) * vini; // Initial momentums
+    
         double tini = 0.;
         double tend = 12500.;
-        
+    
         // Disretization
         int nt = 1501;
         double dt = (tend - tini) / (nt - 1);
-        auto T = linspace(tini, tend, nt); 
-
-        // Symplectic Euler scheme
-        auto Q = zeros(nt, numel(qini));    // Matrix of positions over time
-        Q(0, col(Q)) = qini;                // Initialization 
-        auto P = zeros(nt, numel(pini));    // Matrix of momentum over time
-        P(0, col(P)) = pini;                // Initialization
+        auto T = linspace(tini, tend, nt);
+    
+        // Scheme
+        auto Q = zeros(nt, numel(qini));
+        Q(0, col(Q)) = qini;
+        auto P = zeros(nt, numel(pini));
+        P(0, col(P)) = pini;
+        // Symplectic Euler
         for (int it = 0; it < nt - 1; it++)
         {
             matrix<> q_n = eval(Q(it, col(Q)));
             matrix<> p_n = eval(P(it, col(P)));
-            Q(it + 1, col(Q)) = q_n + dt * H_p(cst, p_n);
-            P(it + 1, col(P)) = p_n - dt * H_q(cst, eval(Q(it + 1, col(Q))));
+            Q(it + 1, col(Q)) = q_n + dt * H_p(G, m, p_n);
+            P(it + 1, col(P)) = p_n - dt * H_q(G, m, eval(Q(it + 1, col(Q))));
         }
-
+    
         // Output
         writetxt("./", "dataJu.txt", cat(2, eval(Q(row(Q), 3)) - eval(Q(row(Q), 0)), eval(Q(row(Q), 4)) - eval(Q(row(Q), 1))));
         writetxt("./", "dataSa.txt", cat(2, eval(Q(row(Q), 6)) - eval(Q(row(Q), 0)), eval(Q(row(Q), 7)) - eval(Q(row(Q), 1))));
     
+        // Visu
+        figure fig;
+        plot3(fig, transpose(eval(Q(row(Q), 3)) - eval(Q(row(Q), 0))), transpose(eval(Q(row(Q), 4)) - eval(Q(row(Q), 1))), transpose(eval(Q(row(Q), 5)) - eval(Q(row(Q), 2))), {"c"});
+        plot3(fig, transpose(eval(Q(row(Q), 6)) - eval(Q(row(Q), 0))), transpose(eval(Q(row(Q), 7)) - eval(Q(row(Q), 1))), transpose(eval(Q(row(Q), 8)) - eval(Q(row(Q), 2))), {"b"});
+        plot3(fig, zeros(1, nt), zeros(1, nt), zeros(1, nt), {"y"});
+    
+        drawnow(fig);
+    
         return 0;
     }
 
-    Orbit of Jupiter (orange) and Saturn (green) around the Sun in the center.
 
-.. raw:: html
-
-    <video controls width="100%">
-
-    <source src="./_static/3body.mp4"
-            type="video/mp4">
-
-    Sorry, your browser doesn't support embedded videos.
-    </video>
 
 
 
