@@ -348,9 +348,7 @@ Finally, the writer is closed after the loop over time.
     Sorry, your browser doesn't support embedded videos.
     </video>
 
-.. class:: center
-
-    Orbit of Jupiter (orange) and Saturn (green) around the Sun in the center.
+|                   Orbit of Jupiter (orange) and Saturn (green) around the Sun in the center.
 
 
 
@@ -443,9 +441,7 @@ Then the following Python code shows the beautiful animation.
     Sorry, your browser doesn't support embedded videos.
     </video>
 
-.. class:: center
-
-    Orbit of Jupiter (orange) and Saturn (green) around the Sun in the center.
+|                           Orbit of Jupiter (orange) and Saturn (green) around the Sun in the center.
 
 
 
