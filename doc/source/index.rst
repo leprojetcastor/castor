@@ -53,7 +53,7 @@ Boundary element computation using le projet castor. Simulation of acoustic scat
    montecarlo
    replicatormutator
    nbody
-
+   boids
 
 .. _label-user-guide:
 
