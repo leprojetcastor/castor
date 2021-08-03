@@ -38,7 +38,7 @@ The ``X`` vector stores the space grid
     
     X = \begin{pmatrix} x_{0}\\ x_{1} \\ \vdots \\ x_{N_{x}-1} \end{pmatrix} ,
 
-and the vector ``U0`` contains the initial heat repartition 
+and the vector ``U0`` contains the initial heat distribution 
 
 .. math:: 
 
