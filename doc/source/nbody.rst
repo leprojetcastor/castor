@@ -47,9 +47,6 @@ N-body problem
 +-----------------------------------------------------------------------------+
 
 
-Those constants are stored within a data structure named ``DATA``
-
-
 .. code-block:: c++
 
     // Parameters
@@ -155,7 +152,7 @@ Scheme
 
 .. math::
 
-    H(q,p) = K(p) + V(q) ,
+    {H(q,p) = K(p) + V(q) ,
 
 where
 
@@ -163,8 +160,7 @@ where
 
     \begin{matrix}
     \displaystyle K(p) = \frac{1}{2}\frac{p^2}{m}
-    \\ 
-    \\
+    & \text{ and } &
     \displaystyle V(q_{i}) = \sum_{j\neq i}- \frac{Gm_{j}m_{i}}{\left | q_{i}-q_{j} \right |} .
     \end{matrix}
 
@@ -174,8 +170,7 @@ With such a separation, Hamilton equation are given by
 
     \begin{matrix}
     \displaystyle \frac{\mathrm{d} q}{\mathrm{d} t} = + \frac{\mathrm{d} K}{\mathrm{d} p}
-    \\
-    \\
+    & \text{ and } &
     \displaystyle \frac{\mathrm{d} p}{\mathrm{d} t} = - \frac{\mathrm{d} V}{\mathrm{d} q} ,
     \end{matrix}
 
@@ -185,8 +180,7 @@ where
 
     \begin{matrix}
     \displaystyle \frac{\mathrm{d} K(p)}{\mathrm{d} p} = \frac{p}{m}
-    \\ 
-    \\
+    & \text{ and } &
     \displaystyle \frac{\mathrm{d} V(q_{i})}{\mathrm{d} q} = \sum_{j\neq i} \frac{Gm_{j}m_{i}\left ( q_{i}-q_{j} \right )}{\left | q_{i}-q_{j} \right |^3}
     \end{matrix}
 
@@ -196,8 +190,7 @@ which result to the symplectic Euler scheme :
 
     \begin{matrix}
     \displaystyle q_{n+1} = q_{n} + \frac{\mathrm{d} K}{\mathrm{d} p}(p_{n})
-    \\
-    \\
+    & \text{ and } &
     \displaystyle p_{n+1} = p_{n} - \frac{\mathrm{d} V}{\mathrm{d} q}(q_{n+1})
     \end{matrix}
 
@@ -254,7 +247,7 @@ and :math:`\displaystyle \frac{\mathrm{d} V}{\mathrm{d} q}(q)` by the function `
 See :ref:`label-range`, :ref:`label-view`, :ref:`label-zeros`, :ref:`label-norm`.
 
 
-Visualization
+Visualisation
 --------------
 
 Simple figure with Castor
@@ -278,7 +271,7 @@ Simple figure with Castor
     :align: center
     :figclass: align-center
     
-    Orbit of Jupiter (cyan) and Saturn (blue) around the Sun (yellow) in the center.
+    Orbits of Jupiter (cyan) and Saturn (blue) around the Sun (yellow) in the center.
 
 
 Video output with VTK

@@ -4,7 +4,7 @@ Boids
 *Shared by Antoine Rideau*
 
 | On this page you will find how to simulate using **Castor** the flocking behaviour of birds.
-| Boids - contraction of "bird-oid object" - refers to an artificial life program, developed by Craug Reynolds in 1986, simulating the flocking behaviour of birds.
+| Boids - contraction of "bird-oid object" - refers to an artificial life program, developed by Craig Reynolds in 1986, simulating the flocking behaviour of birds.
 |
 | The complex flocking behaviours arise from three simple rules describing the interaction between each boid:
 |       **Separation:** steer to avoid crowding local flockmates.
@@ -68,7 +68,7 @@ Borders
 
 | There are two boundaries conditions that can be applied :
 
-1. Boids must stay within the broders.
+1. Boids must stay within the borders.
 
     .. code-block:: c++
 
@@ -202,10 +202,10 @@ Once the rules are applied on the boids, their speed is limited to ``maxSpeed`` 
 
 See :ref:`label-sqrt` , :ref:`label-find` , :ref:`label-view`  .
 
-Visualization
+Visualisation
 -------------
 
-| In order to have a satisfaying animation of the flying boids Python wille be used.
+| In order to have a more satisfaying animation of the flying boids Python will be used.
 | Beforehand, the data stored in ``Out`` are written in text file.
 
 .. code-block:: c++
@@ -328,7 +328,6 @@ Here is all the code at once, without the functions written above :
             }
         }
         toc();
-        // disp(Out);
 
         writetxt("../", "data.txt", Out);
 
