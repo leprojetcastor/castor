@@ -144,6 +144,8 @@ and the corresponding eigenmode are
         }
     }
 
+See :ref:`label-zeros` .
+
 Eigenmodes
 -----------
 

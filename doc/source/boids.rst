@@ -124,7 +124,6 @@ For each boid, once flockmates within ``separationDistance`` are known, velocity
             auto FlockMates = boidsWithinDistance(Boids, i, separationDistance);
             if (numel(FlockMates) > 0)
             {
-
                 Boids[2](i) += sum(Boids[0](i) - eval(Boids[0](FlockMates))) * separationFactor;
                 Boids[3](i) += sum(Boids[1](i) - eval(Boids[1](FlockMates))) * separationFactor;
             }
