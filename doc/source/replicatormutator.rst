@@ -5,6 +5,24 @@ Replicator mutator equation
 
 On this page you will find how to simulate using **Castor** the replicator mutator equation
 
+The replicator-mutator equation is a classical model
+ from evolutionary biology that describes how a species reacts 
+ to selection by increasing a phenotypic 
+ trait :math:`x`. The selection is represented by a 
+ reproduction rate that increases linearly with :math:`x`,
+ while the population is kept constant thanks to the 
+ continuous removal of individuals (uniformly 
+ among the traits present in the population). This 
+ is completed by a mutation term: the traits constantly 
+ mutate which is described by a diffusion term. This model
+ is used to understand mutation-selection dynamics 
+ as a whole, even though it is more directly related to
+ experimental setups used in experimental evolutionary 
+ biology, based on chemostats. This model has been used 
+ by R. Fisher to derive the so-called 
+ *fundamental theorem of natural selection*.
+
+
 .. math:: 
 
     \partial_{t}u = \underbrace{\sigma \Delta_{x}u}_{mutations} + \underbrace{(x - \bar{x}(t))u}_{replication} \text{ , } t > 0, 
@@ -152,6 +170,8 @@ Code
 
 Reference
 ---------
+
+https://openlibrary.org/books/OL7084333M/The_genetical_theory_of_natural_selection.
 
 https://www.cirm-math.fr/RepRenc/1315/PDFfiles1315.pdf
 
