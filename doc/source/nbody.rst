@@ -152,7 +152,7 @@ Scheme
 
 .. math::
 
-    {H(q,p) = K(p) + V(q) ,
+    H(q,p) = K(p) + V(q) ,
 
 where
 

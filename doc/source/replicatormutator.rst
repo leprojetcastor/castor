@@ -5,22 +5,7 @@ Replicator mutator equation
 
 On this page you will find how to simulate using **Castor** the replicator mutator equation
 
-The replicator-mutator equation is a classical model
- from evolutionary biology that describes how a species reacts 
- to selection by increasing a phenotypic 
- trait :math:`x`. The selection is represented by a 
- reproduction rate that increases linearly with :math:`x`,
- while the population is kept constant thanks to the 
- continuous removal of individuals (uniformly 
- among the traits present in the population). This 
- is completed by a mutation term: the traits constantly 
- mutate which is described by a diffusion term. This model
- is used to understand mutation-selection dynamics 
- as a whole, even though it is more directly related to
- experimental setups used in experimental evolutionary 
- biology, based on chemostats. This model has been used 
- by R. Fisher to derive the so-called 
- *fundamental theorem of natural selection*.
+The replicator-mutator equation is a classical model from evolutionary biology that describes how a species reacts to selection by increasing a phenotypic trait :math:`x`. The selection is represented by a reproduction rate that increases linearly with :math:`x` (the phenotype is actually the  fitness of the individual), while the population is kept constant thanks to the continuous removal of individuals, uniformly among the traits present in the population. This is completed by a mutation term: the traits constantly mutate which is described by a diffusion term. This model is used to understand mutation-selection dynamics as a whole, even though it is more directly related to experimental setups used in experimental evolutionary biology, based on chemostats. This model has been used by R. Fisher to derive the so-called *fundamental theorem of natural selection*.
 
 
 .. math:: 
@@ -57,7 +42,7 @@ Numeric simulation
     double sigma = 0.5; // Mutation
 
 
-Initially, the population is distributed following a Gaussian using ``randn`` .
+Initially, the population is distributed following a Gaussian distribution using ``randn`` .
 
 .. code-block:: c++
 
@@ -68,7 +53,7 @@ See :ref:`label-randn` .
 
 Each generation :
 
-1. Each individuals has a probability :math:`\mathbb{P} = (x_{i})_{+} \times \Delta t` ,where :math:`(x_{i})_{+}` stands for the positive part of :math:`x_{i}` , to give birth to a child
+1. Each individual has a probability :math:`\mathbb{P} = (x_{i})_{+} \times \Delta t` ,where :math:`(x_{i})_{+}` stands for the positive part of :math:`x_{i}` , to give birth to a child
 
 .. code-block:: c++
 
