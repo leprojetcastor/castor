@@ -218,7 +218,6 @@ In the code, :math:`\displaystyle \frac{\mathrm{d} K}{\mathrm{d} p}(p)` is repre
 
     matrix<> H_p(double G, matrix<> m, matrix<> p)
     {
-
         auto Hp = zeros(1, numel(p));
         m = reshape(mtimes(transpose(m), ones(1, numel(m))), 1, numel(p));
         Hp = p / m;
@@ -309,10 +308,6 @@ Then each wanted frame is plotted and added to the final movie.
     {
         figure fig;
         matrix<> L({-10, 10, -10, 10}); // Axis dimensions
-        // matrix<> Xju(Q(it, 3) - Q(it, 0));
-        // matrix<> Yju(Q(it, 4) - Q(it, 1));
-        // matrix<> Xsa(Q(it, 6) - Q(it, 0));
-        // matrix<> Ysa(Q(it, 7) - Q(it, 1));
         plot(fig, Q(it, 3) - Q(it, 0) * ones(1), Q(it, 4) - Q(it, 1) * ones(1), L, {"c"});
         plot(fig, Q(it, 6) - Q(it, 0) * ones(1), Q(it, 7) - Q(it, 1) * ones(1), L, {"b"});
         plot(fig, zeros(1), zeros(1), {"y"});
