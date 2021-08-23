@@ -23,6 +23,7 @@
 #include <vtkArrowSource.h>
 #include <vtkAxesActor.h>
 #include <vtkAxis.h>
+#include <vtkBMPWriter.h>
 #include <vtkCellData.h>
 #include <vtkChartLegend.h>
 #include <vtkChartXY.h>
@@ -38,10 +39,13 @@
 #include <vtkDoubleArray.h>
 #include <vtkGenericDataObjectReader.h>
 #include <vtkGenericDataObjectWriter.h>
+#include <vtkImageWriter.h>
+#include <vtkJPEGWriter.h>
 #include <vtkLine.h>
 #include <vtkLookupTable.h>
 #include <vtkMapper.h>
 #include <vtkNew.h>
+#include <vtkOggTheoraWriter.h>
 #include <vtkPen.h>
 #include <vtkPlaneSource.h>
 #include <vtkPlotLine.h>
@@ -50,9 +54,12 @@
 #include <vtkPlotPoints3D.h>
 #include <vtkPLYReader.h>
 #include <vtkPLYWriter.h>
+#include <vtkPNGWriter.h>
+#include <vtkPNMWriter.h>
 #include <vtkPointData.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkPostScriptWriter.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
@@ -62,12 +69,14 @@
 #include <vtkTable.h>
 #include <vtkTetra.h>
 #include <vtkTextProperty.h>
+#include <vtkTIFFWriter.h>
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkTriangle.h>
 #include <vtkVertex.h>
 #include <vtkUnstructuredGrid.h>
 #include <vtkWindow.h>
+#include <vtkWindowToImageFilter.h>
 
 
 namespace castor
@@ -91,17 +100,19 @@ public:
     void colorbar(vtkMapper* mapper);
     void drawnow();
     void interactor();
-    
+    void xlim(matrix<double>const& limit);
+    void ylim(matrix<double>const& limit);
+
     template<typename T>
     void edgmesh(matrix<std::size_t>const& edg, matrix<T>const& vtx, matrix<T>const& val);
     template<typename T>
     void imagesc(matrix<T>const& M);
     template<typename T>
     void mesh(matrix<T>const& X, matrix<T>const& Y, matrix<T>const& Z, std::string const& options);
-    template<typename T>
+    template<typename T=double>
     void plot(matrix<T>const& X, matrix<T>const&Y, std::vector<std::string>const& style,
               std::vector<std::string>const& label);
-    template<typename T>
+    template<typename T=double>
     void plot3(matrix<T>const& X, matrix<T>const& Y, matrix<T>const& Z, std::string const& style);
     template<typename T>
     void quiver(matrix<T>const& vtx, matrix<T>const& dir, matrix<T>const& val);
@@ -111,6 +122,9 @@ public:
     void trimesh(matrix<std::size_t>const& tri, matrix<T>const& vtx, matrix<T>const& val);
     template<typename T>
     void vermesh(matrix<std::size_t>const& ver, matrix<T>const& vtx, matrix<T>const& val);
+    void writeimg(std::string const& filename) const;
+    
+    vtkSmartPointer<vtkContextView> GetView() {return m_view;}
     
 private:
     vtkSmartPointer<vtkScalarBarActor> m_bar;
@@ -151,21 +165,6 @@ figure::figure(int w, int h)
 }
 
 //==========================================================================
-// [figure.caxis]
-///
-void figure::caxis(matrix<double>const& val)
-{
-    if (numel(val)!=2)
-    {
-        error(__FILE__, __LINE__, __FUNCTION__,"Range values must be a two element vector.");
-    }
-    if (numel(m_range)==0)
-    {
-        m_range = val;
-    }
-}
-
-//==========================================================================
 // [figure.axes]
 ///
 void figure::axes()
@@ -177,6 +176,21 @@ void figure::axes()
         m_view->GetRenderer()->GradientBackgroundOn();
         m_view->GetRenderer()->SetBackground(1,1,1);
         m_view->GetRenderer()->SetBackground2(0.3,0.3,0.3);
+    }
+}
+
+//==========================================================================
+// [figure.caxis]
+///
+void figure::caxis(matrix<double>const& val)
+{
+    if (numel(val)!=2)
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Range values must be a two element vector.");
+    }
+    if (numel(m_range)==0)
+    {
+        m_range = val;
     }
 }
 
@@ -948,6 +962,101 @@ void figure::vermesh(matrix<std::size_t>const& ver, matrix<T>const& vtx, matrix<
     interactor();
 }
 
+//==========================================================================
+// [figure.writeimg]
+///
+void figure::writeimg(std::string const& filename) const
+{
+    if (!filename.empty())
+    {
+        // Check filename and extension (.png is default)
+        std::string fn = filename;
+        std::string ext;
+        auto found = fn.find_last_of(".");
+        if (found == std::string::npos)
+        {
+            ext = ".png";
+            fn += ext;
+        }
+        else
+        {
+            ext = filename.substr(found,filename.size());
+        }
+        std::locale loc;
+        std::transform(ext.begin(), ext.end(), ext.begin(),
+                       [=](char const& c) { return std::tolower(c, loc); });
+
+        // Select file write from extension
+        auto writer = vtkSmartPointer<vtkImageWriter>::New();
+        if (ext == ".bmp")
+        {
+            writer = vtkSmartPointer<vtkBMPWriter>::New();
+        }
+        else if (ext == ".jpg")
+        {
+            writer = vtkSmartPointer<vtkJPEGWriter>::New();
+        }
+        else if (ext == ".pnm")
+        {
+            writer = vtkSmartPointer<vtkPNMWriter>::New();
+        }
+        else if (ext == ".ps")
+        {
+            writer = vtkSmartPointer<vtkPostScriptWriter>::New();
+        }
+        else if (ext == ".tiff")
+        {
+            writer = vtkSmartPointer<vtkTIFFWriter>::New();
+        }
+        else
+        {
+            writer = vtkSmartPointer<vtkPNGWriter>::New();
+        }
+
+        // Image buffer
+        vtkNew<vtkWindowToImageFilter> window_to_image_filter;
+        window_to_image_filter->SetInput(m_view->GetRenderWindow());
+        window_to_image_filter->SetScale(1); // image quality
+        window_to_image_filter->SetInputBufferTypeToRGB();
+        window_to_image_filter->ReadFrontBufferOff();
+        window_to_image_filter->Update();
+        
+        // Write
+        writer->SetFileName(fn.c_str());
+        writer->SetInputConnection(window_to_image_filter->GetOutputPort());
+        writer->Write();
+    }
+    else
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"No filename provided.");
+    }
+}
+
+//==========================================================================
+// [figure.xlim]
+///
+void figure::xlim(matrix<double>const& limit)
+{
+    if (!isvector(limit) || numel(limit) != 2)
+    {
+        error(__FILE__, __LINE__, __FUNCTION__, "Limits must be a 2-element vector of increasing numeric values.");
+    }
+    m_chartXY->GetAxis(1)->SetBehavior(vtkAxis::FIXED);
+    m_chartXY->GetAxis(1)->SetRange(limit(0),limit(1));
+}
+
+//==========================================================================
+// [figure.ylim]
+///
+void figure::ylim(matrix<double>const& limit)
+{
+    if (!isvector(limit) || numel(limit) != 2)
+    {
+        error(__FILE__, __LINE__, __FUNCTION__, "Limits must be a 2-element vector of increasing numeric values.");
+    }
+    m_chartXY->GetAxis(0)->SetBehavior(vtkAxis::FIXED);
+    m_chartXY->GetAxis(0)->SetRange(limit(0),limit(1));
+}
 
 //==========================================================================//
 //                          MATLAB-LIKE FUNCTIONS                           //
@@ -956,14 +1065,14 @@ void figure::vermesh(matrix<std::size_t>const& ver, matrix<T>const& vtx, matrix<
 // [caxis]
 /// Sets the colormap limit for the current axis.
 ///
-/// \e fig is the figure object for which those limits must be set and \e val is 
+/// \e fig is the figure object for which those limits must be set and \e val is
 /// a two-element matrix containing the lower- and upper-bound.
 ///
 /// \code{.cpp}
 ///     matrix<> X,Y;
 ///     std::tie(X,Y) = meshgrid(linspace(-M_PI,M_PI,100));
 ///     auto Z = 2*sin(X)/X * sin(Y)/Y;
-///     
+///
 ///     figure fig;
 ///     caxis(fig,{-1,1});
 ///     mesh(fig,X,Y,Z);
@@ -976,12 +1085,12 @@ inline void caxis(figure& fig, matrix<double>const& val)
 
 //==========================================================================
 // [drawnow]
-/// Displays all the figure defined since the beginning of the program or 
+/// Displays all the figure defined since the beginning of the program or
 /// the last call to \e drawnow.
 ///
 /// Calling \e drawnow is \b blocking meaning that it will suspend the
 /// execution of the program. Plotting cannot be deported to another thread
-/// as it is not permitted by the VTK framework. The execution will resume 
+/// as it is not permitted by the VTK framework. The execution will resume
 /// all the currently displayed figures are closed.
 inline void drawnow(figure& fig)
 {
@@ -1046,15 +1155,15 @@ void mesh(figure& fig, matrix<T>const& M, std::string options="")
 // [plot]
 /// Plots a 2D-curve Y = f(X) with customizable options.
 ///
-/// Multiple plots can be given at once by giving Y as a multi-dimensional 
-/// array. In that case, each line corresponds to a different plot. The 
-/// customization options must be given as an array of strings (one string 
+/// Multiple plots can be given at once by giving Y as a multi-dimensional
+/// array. In that case, each line corresponds to a different plot. The
+/// customization options must be given as an array of strings (one string
 /// per plot). Each string \e may (but it is not mandatory) contain one of the
-/// following elements:\n 
+/// following elements:\n
 ///  - a line-style. If "-" is specified, the style is \e solid; otherwise
-/// the line will be \e dotted.\n 
-///  - a marker-style which can be any of the following : "x" (cross), "o" 
-/// (circle), "+" (plus sign), "d" (diamond), "s" (square).\n 
+/// the line will be \e dotted.\n
+///  - a marker-style which can be any of the following : "x" (cross), "o"
+/// (circle), "+" (plus sign), "d" (diamond), "s" (square).\n
 ///  - a color which can be any of the following : "r" (red), "g" (green),
 /// "b" (blue), "y" (yellow), "c" (cyan), "m" (magenta), "k" (black) or
 /// "w" (white).
@@ -1067,12 +1176,12 @@ void mesh(figure& fig, matrix<T>const& M, std::string options="")
 ///
 ///     // plot y=sin(x) as a red solid line with cross markers
 ///     figure fig;
-///     plot(X,Y,{"r-x"});
+///     plot(fig,X,Y,{"r-x"});
 ///     drawnow(fig);
 /// \endcode
 ///
 // \see plot3, spy.
-template<typename T>
+template<typename T=double>
 inline void plot(figure& fig, matrix<T>const& X, matrix<T>const&Y, std::vector<std::string>const& style={""},
                  std::vector<std::string>const& label={""})
 {
@@ -1087,7 +1196,7 @@ inline void plot(figure& fig, matrix<T>const& X, matrix<T>const&Y, std::vector<s
 /// On the contrary to \e plot, only one curve can be given at a time.
 ///
 // \see plot
-template<typename T>
+template<typename T=double>
 inline void plot3(figure& fig, matrix<T>const& X, matrix<T>const& Y, matrix<T>const& Z, std::string const& style="")
 {
     fig.plot3(X,Y,Z,style);
@@ -1097,7 +1206,7 @@ inline void plot3(figure& fig, matrix<T>const& X, matrix<T>const& Y, matrix<T>co
 //==========================================================================
 // [quiver]
 /// Plots a set of vectors.
-/// 
+///
 /// The vectors are defined by their origin \e vtx and their direction \e dir.
 ///
 /// \code{.cpp}
@@ -1561,5 +1670,37 @@ inline void vermesh(figure& fig, matrix<T>const& vtx)
     fig.vermesh(range(0,size(vtx,1)),vtx,{});
 }
 
+//==========================================================================
+// [writeimg]
+/// Selects what image writer to use based on the file extenstion and then
+/// writes the render window to the file. The following formats are supported:
+/// BMP, JPEG, PNM, PNG, PostScript, TIFF.
+///
+/// If no file extension is specified, PNG is assumed. Function derived from:
+/// https://kitware.github.io/vtk-examples/site/Cxx/IO/ImageWriter/
+///
+/// \code{.cpp}
+///     matrix<> X = linspace(0,10,100);
+///     matrix<> Y = cos(X);
+///
+///     figure fig;
+///     plot(fig,X,Y,{"r-x"});
+///     std::vector<std::string> ext = {{""},{".png"}, {".jpg"}, {".ps"},{".tiff"}, {".bmp"}, {".pnm"}};
+///     for (int i=0; i<ext.size(); ++i)
+///     {
+///         writeimg(fig,"output"+ext[i]);
+///     }
+///     drawnow(fig);
+/// \endcode
+///
+// \see figure.
+inline void writeimg(figure const& fig, std::string const& filename)
+{
+    fig.writeimg(filename);
+    fig.writeimg(filename);
+}
+
+
 // End of namespace
 }
+
