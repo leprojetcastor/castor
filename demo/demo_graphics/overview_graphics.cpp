@@ -46,6 +46,9 @@ int main (int argc, char* argv[])
     X = linspace(-2,2,30);
     plot(fig,X,sqrt(X),{"bx-"});
     plot(fig,X,X/2);
+    plot(fig,{10},{1});
+    fig.xlim({-4,10});
+    fig.ylim({-2,2});
     
     //===============================================================
     std::cout << "+=====================+" << std::endl;
@@ -68,7 +71,7 @@ int main (int argc, char* argv[])
     M = reshape(M,5,20);
     figure fig3;
     imagesc(fig3,M);
-    
+
     //===============================================================
     std::cout << "+=======================+" << std::endl;
     std::cout << "|          SPY          |" << std::endl;
@@ -88,11 +91,11 @@ int main (int argc, char* argv[])
 
     figure fig4;
     mesh(fig4,Z);
-    
+
     figure fig5;
     caxis(fig5,{-1,1});
     mesh(fig5,X,Y,Z);
-    mesh(fig5,X,Y,-Z);    
+    mesh(fig5,X,Y,-Z);
 
     //===============================================================
     std::cout << "+=======================+" << std::endl;
@@ -103,7 +106,7 @@ int main (int argc, char* argv[])
     matrix<> vtx = -1+2*rand(numel(elt),3);
     figure fig6;
     vermesh(fig6,elt,vtx,eval(vtx(row(vtx),0)));
-    
+
     //===============================================================
     std::cout << "+=======================+" << std::endl;
     std::cout << "|       EDGMESH         |" << std::endl;
@@ -191,12 +194,12 @@ int main (int argc, char* argv[])
     // Display
     figure fig11;
     trimesh(fig11,elt,vtx);
-    
+
     //===============================================================
     std::cout << "+=======================+" << std::endl;
     std::cout << "|        QUIVER         |" << std::endl;
     std::cout << "+=======================+" << std::endl;
-    
+
     matrix<> dir = vtx;
     figure fig12;
     trimesh(fig12,elt,vtx);
@@ -208,6 +211,46 @@ int main (int argc, char* argv[])
     std::cout << "+=======================+" << std::endl;
 
     drawnow(fig);
+
+    //===============================================================
+    std::cout << "+=======================+" << std::endl;
+    std::cout << "|     IMAGE WRITE       |" << std::endl;
+    std::cout << "+=======================+" << std::endl;
+
+    std::vector<std::string> ext = {{""},{".png"},{".jpg"},{".ps"},
+        {".tiff"},{".bmp"},{".pnm"}};
+    for (int i=0; i<ext.size(); ++i)
+    {
+        writeimg(fig,"testfile"+ext[i]);
+    }
+
+    //===============================================================
+    std::cout << "+=======================+" << std::endl;
+    std::cout << "|     MOVIE WRITE       |" << std::endl;
+    std::cout << "+=======================+" << std::endl;
+
+    // Initialize source and movie
+    vtkNew<vtkWindowToImageFilter> source;
+    vtkNew<vtkOggTheoraWriter> movie;
+    movie->SetInputConnection(source->GetOutputPort());
+    movie->SetFileName("testfile.avi");
+    movie->SetQuality(1); // in [0,2]
+    movie->SetRate(25);   // frame per seconds
+
+    // Recording frame by frame
+    movie->Start();
+    for (int i = 0; i < 50; i++)
+    {
+        figure fig13;
+        matrix<> X = linspace(0,10,100);
+        matrix<> Y = cos(X+i/10.);
+        plot(fig13,X,Y,{"r-x"});
+        source->SetInput(fig13.GetView()->GetRenderWindow());
+        source->SetInputBufferTypeToRGB();
+        source->ReadFrontBufferOff();
+        movie->Write();
+    }
+    movie->End();
     
     disp("done !");
     return 0;
