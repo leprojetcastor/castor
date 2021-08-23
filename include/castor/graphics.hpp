@@ -100,8 +100,8 @@ public:
     void colorbar(vtkMapper* mapper);
     void drawnow();
     void interactor();
-    void xlim(matrix<double>const& limit);
-    void ylim(matrix<double>const& limit);
+    void xlim(matrix<double>const& limits);
+    void ylim(matrix<double>const& limits);
 
     template<typename T>
     void edgmesh(matrix<std::size_t>const& edg, matrix<T>const& vtx, matrix<T>const& val);
@@ -1700,6 +1700,29 @@ inline void writeimg(figure const& fig, std::string const& filename)
     fig.writeimg(filename);
 }
 
+//==========================================================================
+// [xlim]
+/// Set x-axis limits
+///
+/// xlim(limits) specifies the x-axis limits for the current axes. Specify
+/// limits as a two-element vector of the form [xmin xmax], where xmax is a
+/// numeric value greater than xmin.
+inline void xlim(figure& fig, matrix<double>const& limits)
+{
+    fig.xlim(limits);
+}
+
+//==========================================================================
+// [ylim]
+/// Set y-axis limits
+///
+/// ylim(limits) specifies the y-axis limits for the current axes. Specify
+/// limits as a two-element vector of the form [ymin ymax], where ymax is a
+/// numeric value greater than ymin.
+inline void ylim(figure& fig, matrix<double>const& limits)
+{
+    fig.ylim(limits);
+}
 
 // End of namespace
 }
