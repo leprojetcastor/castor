@@ -307,10 +307,12 @@ Then each wanted frame is plotted and added to the final movie.
     if (it % (nt / Nplot) == 0)
     {
         figure fig;
-        matrix<> L({-10, 10, -10, 10}); // Axis dimensions
-        plot(fig, Q(it, 3) - Q(it, 0) * ones(1), Q(it, 4) - Q(it, 1) * ones(1), L, {"c"});
-        plot(fig, Q(it, 6) - Q(it, 0) * ones(1), Q(it, 7) - Q(it, 1) * ones(1), L, {"b"});
+        matrix<> limits = {-10, 10};
+        plot(fig, {Q(it, 3) - Q(it, 0)}, {Q(it, 4) - Q(it, 1)}, {"c"});
+        plot(fig, {Q(it, 6) - Q(it, 0)}, {Q(it, 7) - Q(it, 1)}, {"b"});
         plot(fig, zeros(1), zeros(1), {"y"});
+        xlim(fig, limits);
+        ylim(fig, limits);
         source->SetInput(fig.GetView()->GetRenderWindow());
         source->SetInputBufferTypeToRGB();
         source->ReadFrontBufferOff();
