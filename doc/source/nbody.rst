@@ -488,7 +488,6 @@ Here is all the code at once, without the functions ``H_q`` and ``H_p``  written
         P(0, col(P)) = pini;
         // Symplectic Euler
         tic();
-        int count = 0;
         movie->Start();
         for (int it = 0; it < nt - 1; it++)
         {
@@ -501,7 +500,6 @@ Here is all the code at once, without the functions ``H_q`` and ``H_p``  written
             // Visu
             if (it % (nt / Nplot) == 0)
             {
-                count++;
                 figure fig;
                 matrix<> L({-10, 10, -10, 10}); // Axis dimensions 
                 plot(fig, Q(it, 3) - Q(it, 0) * ones(1), Q(it, 4) - Q(it, 1) * ones(1), L, {"c"});
@@ -513,15 +511,14 @@ Here is all the code at once, without the functions ``H_q`` and ``H_p``  written
                 movie->Write();
             }
         }
-        std::cout << count << endl;
         movie->End();
         toc();
 
-        // Output
+        // Output for Python post-processing and visualisation
         // writetxt("./", "dataJu.txt", cat(2, eval(Q(row(Q), 3)) - eval(Q(row(Q), 0)), eval(Q(row(Q), 4)) - eval(Q(row(Q), 1))));
         // writetxt("./", "dataSa.txt", cat(2, eval(Q(row(Q), 6)) - eval(Q(row(Q), 0)), eval(Q(row(Q), 7)) - eval(Q(row(Q), 1))));
 
-        // Visu
+        // Visu in native Castor
         // figure fig;
         // plot3(fig, transpose(eval(Q(row(Q), 3)) - eval(Q(row(Q), 0))), transpose(eval(Q(row(Q), 4)) - eval(Q(row(Q), 1))), transpose(eval(Q(row(Q), 5)) - eval(Q(row(Q), 2))), {"c"});
         // plot3(fig, transpose(eval(Q(row(Q), 6)) - eval(Q(row(Q), 0))), transpose(eval(Q(row(Q), 7)) - eval(Q(row(Q), 1))), transpose(eval(Q(row(Q), 8)) - eval(Q(row(Q), 2))), {"b"});
