@@ -319,6 +319,8 @@ Then each wanted frame is plotted and added to the final movie.
         movie->Write();
     }
 
+See :ref:`label-plot`, :ref:`label-xlim`, :ref:`label-ylim`.
+
 Finally, the writer is closed after the loop over time.
 
 .. code-block:: c++
