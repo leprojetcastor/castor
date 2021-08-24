@@ -35,7 +35,7 @@ gives the Helmholtz equation
 
 | with :math:`k = \displaystyle \frac{\omega}{c}` .
 | 
-| We discretize our space domain ``L`` with ``dx`` steps which results in the meshgrid described by ``X`` and ``Y`` 
+| The space domain ``L`` is discretized with ``dx`` steps which results in the meshgrid described by ``X`` and ``Y`` 
 
 .. math:: 
 
@@ -103,9 +103,9 @@ This expression leads to this form for ``K``
 
 See :ref:`label-spdiags`
 
-| Here, we build K as a sparse matrix using `spdiags` because it is easier to do so but we convert it into a dense matrix because **Castor** don't have a sparse solver yet.
+| Here, K is built as a sparse matrix using `spdiags` because it is easier to do so but I convert it into a dense matrix because **Castor** don't have a sparse solver yet.
 |
-| In order to take into account the homogeneous Dirichlet condition on the boundary, we use penalization on the index where the boundaries are : index ``i`` such as ``X(i)==0``, ``X(i)==L(0)``, ``Y(i)==0`` and ``Y(i)==L(1)`` .
+| In order to take into account the homogeneous Dirichlet condition on the boundary, penalization  is used on the index where the boundaries are : index ``i`` such as ``X(i)==0``, ``X(i)==L(0)``, ``Y(i)==0`` and ``Y(i)==L(1)`` .
 
 .. code-block:: c++
 
@@ -144,10 +144,12 @@ and the corresponding eigenmode are
         }
     }
 
+See :ref:`label-zeros` .
+
 Eigenmodes
 -----------
 
-Once we have built the Laplacian matrix, we easily get eigenvalues in the ``1`` by ``nx*ny`` vector ``D`` and eigenvectors in the ``nx*ny`` by ``nx*ny`` matrix ``V`` using the ``eig`` function
+Once the Laplacian matrix have been built , eigenvalues are easily acquired  in the ``1`` by ``nx*ny`` vector ``D`` and eigenvectors in the ``nx*ny`` by ``nx*ny`` matrix ``V`` using the ``eig`` function
 
 .. math:: 
 
@@ -161,7 +163,7 @@ Once we have built the Laplacian matrix, we easily get eigenvalues in the ``1`` 
 
 See :ref:`label-eig` .
 
-We are interested in the eigenvalues with an imaginary part null and a real part minimal. To do so eigenvalues and eigenvectors are sorted by ascending eigenvalues.
+The eigenvalues considerated are these with an imaginary part null and a real part minimal. To do so eigenvalues and eigenvectors are sorted by ascending eigenvalues.
 
 .. code-block:: c++
 
@@ -176,13 +178,13 @@ We are interested in the eigenvalues with an imaginary part null and a real part
 
 See :ref:`label-argsort` , :ref:`label-row` . 
 
-Then we just take the real part of the eigenvector corresponding to the eigenmode we want to show, here ``f`` .
+Then for each eigenmodes ``f`` , only the real part of the corresponding eigenvector is taken.
 
 .. code-block:: c++
 
     // Visu
     std::vector<figure> fig(5);
-    for (int f = 0; f < fig.size(); ++f)
+    for (int f = 0; f < fig.size(); f++)
     {
         matrix<double> Z = reshape(real(eval(V(row(V), f))), size(X, 1), size(X, 2));
         mesh(fig[f], X, Y, Z);
@@ -255,7 +257,7 @@ Here you have all the code at once :
 
         // Visu
         std::vector<figure> fig(5);
-        for (int f = 0; f < fig.size(); ++f)
+        for (int f = 0; f < fig.size(); f++)
         {
             matrix<double> Z = reshape(real(eval(V(row(V), f))), size(X, 1), size(X, 2));
             mesh(fig[f], X, Y, Z);
