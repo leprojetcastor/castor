@@ -172,6 +172,9 @@ inline void error(std::string file, int line, std::string function, std::string 
 
 inline void help(std::string name="help", std::vector<std::string> filename=documentationFiles);
 
+template<typename T=double, typename U, typename V>
+matrix<T> linspace(U x1, V x2, std::size_t n=100);
+
 template<typename T>
 std::size_t numel(matrix<T>const& A);
 
@@ -3490,6 +3493,29 @@ matrix<T> gmres(matrix<T>const& A, matrix<T>const& B, double tol, std::size_t ma
 }
 
 //==========================================================================
+// [hann]
+/// Hann window.
+///
+/// hann(N) returns the N-point symmetric Hann window in a matrix.
+///
+/// \code{.cpp}
+///    matrix<> A = hann(7);
+///    disp(A);
+/// \endcode
+///
+// \see .
+template<typename T=double>
+matrix<T> hann(std::size_t n)
+{
+    matrix<T> A = linspace<T>(0,n-1,n);
+    for (std::size_t l=0; l<n; ++l)
+    {
+        A(l) = std::pow(std::sin(M_PI*l/(n-1.)),2);
+    }
+    return A;
+}
+
+//==========================================================================
 // [help]
 /// Display help text in command window.
 ///
@@ -3974,8 +4000,8 @@ std::size_t length(matrix<T>const& A)
 /// \endcode
 ///
 // \see logspace, colon.
-template<typename T=double, typename U, typename V>
-matrix<T> linspace(U x1, V x2, std::size_t n=100)
+template<typename T, typename U, typename V>
+matrix<T> linspace(U x1, V x2, std::size_t n)
 {
     if (n==0) {return matrix<T>();}
     else if (n==1) {return matrix<T>(x2);}

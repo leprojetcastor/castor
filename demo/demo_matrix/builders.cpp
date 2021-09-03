@@ -97,6 +97,9 @@ int main (int argc, char* argv[])
     disp(diag(A,1));
     disp("Lower diagonal :");
     disp(diag(A,-2));
+    
+    disp("Hann window");
+    disp(hann(5));
 
     disp("done !");
     return 0;

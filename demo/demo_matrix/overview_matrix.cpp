@@ -319,6 +319,7 @@ int main (int argc, char* argv[])
     disp(diag(A,-2));
     disp(eye<logical>(size(A)));
     disp(eye(4,3));
+    disp(hann(5));
     disp(linspace(1,0,5));
     disp(logspace(0,3,4));
     disp(ones<logical>(size(A)));
