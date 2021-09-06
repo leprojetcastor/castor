@@ -41,21 +41,55 @@ else()
   message(WARNING "BLAS or LAPACK NOT FOUND: linalg library will not be used")
 endif()
 
-find_package(VTK 8.2.0 EXACT NO_MODULE)
+#find_package(VTK QUIET)
+find_package(VTK COMPONENTS
+  vtkChartsCore
+  vtkCommonColor
+  vtkCommonCore
+  vtkCommonDataModel
+  vtkInteractionStyle
+  vtkRenderingContext2D
+  vtkRenderingContextOpenGL2
+  vtkRenderingCore
+  vtkRenderingFreeType
+  vtkRenderingGL2PSOpenGL2
+  vtkRenderingOpenGL2
+  vtkViewsContext2D
+
+  vtkRenderingAnnotation
+  vtkIOImage
+  vtkIOPLY
+  vtkIOLegacy
+  vtkIOOggTheora
+  vtkFiltersGeometry
+  QUIET
+)
+
+
 if(VTK_FOUND)
   message(STATUS "Find VTK version : ${VTK_VERSION}")
-  message(STATUS "VTK_INCLUDE_DIRS : ${VTK_INCLUDE_DIRS}")
   message(STATUS "VTK_LIBRARIES    : ${VTK_LIBRARIES}")
-  message(STATUS "VTK_USE_FILE     : ${VTK_USE_FILE}")
-  list(REMOVE_ITEM VTK_LIBRARIES /usr/lib/libxml2.dylib)
   add_library(graphics INTERFACE)
   target_include_directories(graphics INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${VTK_INCLUDE_DIRS}>
     $<INSTALL_INTERFACE:include>)
-else()
-  message(WARNING "VTK NOT FOUND: graphics library will not be used")
 endif()
+#find_package(VTK 8.2.0 EXACT NO_MODULE)
+#if(VTK_FOUND)
+#  message(STATUS "Find VTK version : ${VTK_VERSION}")
+#  message(STATUS "VTK_INCLUDE_DIRS : ${VTK_INCLUDE_DIRS}")
+#  message(STATUS "VTK_LIBRARIES    : ${VTK_LIBRARIES}")
+#  message(STATUS "VTK_USE_FILE     : ${VTK_USE_FILE}")
+#  list(REMOVE_ITEM VTK_LIBRARIES /usr/lib/libxml2.dylib)
+#  add_library(graphics INTERFACE)
+#  target_include_directories(graphics INTERFACE
+#    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+#    $<BUILD_INTERFACE:${VTK_INCLUDE_DIRS}>
+#    $<INSTALL_INTERFACE:include>)
+#else()
+#  message(WARNING "VTK NOT FOUND: graphics library will not be used")
+#endif()
 
 add_subdirectory(include)
 add_subdirectory(extern)
