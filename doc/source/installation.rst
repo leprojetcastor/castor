@@ -62,17 +62,13 @@ BLAS and LAPACK may be obtained through multiple channels:
 Installing VTK
 ..............
 
-The installation of VTK can be more complicated, especially since ``VTK 8.x.x`` is required. 
-
 On MacOS, it should be installed using Homebrew with the command 
 
 .. code:: text
 
-    brew install vtk@8.2
+    brew install vtk
 
-Please note that ``brew install vtk`` (assuming ``Homebrew`` is up-to-date) will install a version from the ``9.x.x`` branch (or later) which is currently not compatible. Moreover, since the path to ``VTK 8.2`` will not be found automatically by ``cmake``, it should be given using the ``-DCMAKE_PREFIX_PATH=/path/to/vtk@8.2/`` flag as explained at the beginning of this page.
-
-On Ubuntu, VTK 8.2 must be built from source as the version available in the repositories is currently ``VTK 7.x.x``. The process is described below:
+On Ubuntu, VTK 9.x must be built from source as the version available in the repositories is currently ``VTK 7.x.x``. The process is described below:
 
  - first, download the source code at `https://vtk.org/ <https://vtk.org/>`_ and extract the archive.
 
@@ -122,9 +118,9 @@ You can also create a file ``install_vtk.sh`` (or whatever the name you wish, bu
 
 .. code:: text
 
-    sudo apt install freeglut3-dev
-    wget https://www.vtk.org/files/release/8.2/VTK-8.2.0.tar.gz
-    cd VTK-8.2.0/
+    sudo apt install freeglut3-deva
+    wget https://www.vtk.org/files/release/9.0/VTK-9.0.3.tar.gz
+    cd VTK-9.0.3/
     mkdir build
     cd build
     cmake -DCMAKE_INSTALL_PREFIX=/path/to/your/vtk/install/folder -DCMAKE_BUILD_TYPE=Release ..

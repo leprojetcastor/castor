@@ -5,7 +5,7 @@
 Plotting and much more
 ======================
 
-We describe here some aspects of the **graphics** library available within the **castor** project. It is based on the well-known `VTK library <https://www.vtk.org>`_ which must be installed by the user. Depending on the operating system, binary files *may* be directly available. However, one should pay attention to the fact that it is *not* compatible with versions of VTK belonging to the 7.x or lower branch nor with the most recent 9.x branch (at least for now). For the first case, it is simply because **graphics** calls functions which did not exist in the earlier versions. For the second case, it is not clear as the code compiles but either not all the plots are displayed or they are *frozen*. To our knowledge, any version from the 8.x branch should do the trick. 
+We describe here some aspects of the **graphics** library available within the **castor** project. It is based on the well-known `VTK library <https://www.vtk.org>`_ which must be installed by the user. Depending on the operating system, binary files *may* be directly available. However, one should pay attention to the fact that it is only compatible with version 9.x. 
 
 After installing VTK (see :ref:`label-installation`), the user only needs to include the ``castor/graphics.hpp`` header file.
 
