@@ -4,7 +4,7 @@
  |________________________________________________________________________|
  |   '&`   |                                                              |
  |    #    |   FILE       : matrix.hpp                                    |
- |    #    |   VERSION    : 0.1.0                                         |
+ |    #    |   VERSION    : 1.0.0                                         |
  |   _#_   |   AUTHOR(S)  : Matthieu Aussal & Laurent Series              |
  |  ( # )  |   CREATION   : 01.04.2020                                    |
  |  / 0 \  |   LAST MODIF : 31.10.2020                                    |

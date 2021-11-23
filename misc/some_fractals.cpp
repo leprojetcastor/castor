@@ -1,3 +1,18 @@
+/*
+ +========================================================================+
+ |         (c) 2020 - PROPERTY OF ECOLE POLYTECHNIQUE - LGPL 3.0          |
+ |________________________________________________________________________|
+ |   '&`   |                                                              |
+ |    #    |   FILE       : some_fractals.cpp                             |
+ |    #    |   VERSION    : 1.0.0                                         |
+ |   _#_   |   AUTHOR(S)  : Marc Bakry                                    |
+ |  ( # )  |   CREATION   : 31.08.2020                                    |
+ |  / 0 \  |   LAST MODIF :                                               |
+ | ( === ) |   SYNOPSIS   : Fractals computation and visualization using  |
+ |  `---'  |                Castor                                        |
+ +========================================================================+
+ */
+
 #include <iostream>
 #include <complex>
 #include <functional>

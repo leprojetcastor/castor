@@ -1,14 +1,14 @@
 /*
  +========================================================================+
- |         (c) 2020 - PROPERTY OF ECOLE POLYTECHNIQUE - LGPL 3.0          |
+ |         (c) 2021 - PROPERTY OF ECOLE POLYTECHNIQUE - LGPL 3.0          |
  |________________________________________________________________________|
  |   '&`   |                                                              |
- |    #    |   FILE       : getting_started.cpp                           |
- |    #    |   VERSION    : 0.1.0                                         |
- |   _#_   |   AUTHOR(S)  : Matthieu Aussal & Laurent Series              |
- |  ( # )  |   CREATION   : 01.04.2020                                    |
- |  / 0 \  |   LAST MODIF : 31.10.2020                                    |
- | ( === ) |   SYNOPSIS   : Running first demo for matrix library         |
+ |    #    |   FILE       : main.cpp                                      |
+ |    #    |   VERSION    :                                               |
+ |   _#_   |   AUTHOR(S)  :                                               |
+ |  ( # )  |   CREATION   :                                               |
+ |  / 0 \  |   LAST MODIF :                                               |
+ | ( === ) |   SYNOPSIS   : Working space, to be completed by your project|
  |  `---'  |                                                              |
  +========================================================================+
  */
