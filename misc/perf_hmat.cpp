@@ -3,13 +3,14 @@
  |         (c) 2020 - PROPERTY OF ECOLE POLYTECHNIQUE - LGPL 3.0          |
  |________________________________________________________________________|
  |   '&`   |                                                              |
- |    #    |   FILE       : performances.cpp                              |
- |    #    |   VERSION    : 0.1.0                                         |
+ |    #    |   FILE       : perf_hmat.cpp                                 |
+ |    #    |   VERSION    : 1.0.0                                         |
  |   _#_   |   AUTHOR(S)  : Matthieu Aussal                               |
  |  ( # )  |   CREATION   : 14.02.2021                                    |
  |  / 0 \  |   LAST MODIF : 14.02.2021                                    |
  | ( === ) |   SYNOPSIS   : H-matrix performances and precision test      |
- |  `---'  |                for particular kernel                         |
+ |  `---'  |                for particular kernel.                        |
+ |         |                FOR PERFORMANCES, RELEASE COMPILATION REQUIRED|
  +========================================================================+
  */
 

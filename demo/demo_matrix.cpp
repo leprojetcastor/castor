@@ -3,8 +3,8 @@
  |         (c) 2020 - PROPERTY OF ECOLE POLYTECHNIQUE - LGPL 3.0          |
  |________________________________________________________________________|
  |   '&`   |                                                              |
- |    #    |   FILE       : overview_matrix.cpp                           |
- |    #    |   VERSION    : 0.1.0                                         |
+ |    #    |   FILE       : demo_matrix.cpp                               |
+ |    #    |   VERSION    : 1.0.0                                         |
  |   _#_   |   AUTHOR(S)  : Matthieu Aussal & Laurent Series              |
  |  ( # )  |   CREATION   : 01.04.2020                                    |
  |  / 0 \  |   LAST MODIF : 31.10.2020                                    |
@@ -171,9 +171,6 @@ int main (int argc, char* argv[])
     std::cout << "+================+" << std::endl;
     std::cout << "|      VIEW      |" << std::endl;
     std::cout << "+================+" << std::endl;
-    
-    // disp(A({1,3,5}));
-    // std::cout << (A({1,3,5}));
     
     matrix<float> C = eval(A({1,3,5}));
     disp(C);
@@ -524,7 +521,6 @@ int main (int argc, char* argv[])
     std::cout << "tan      : " << tan(V) << std::endl;
     std::cout << "tand     : " << tand(V*180/M_PI) << std::endl;
     std::cout << "tanh     : " << tanh(V) << std::endl;
-    disp(abs<logical>(V));
 
     // =============================================================== COMPLEX
     std::cout << "+================+" << std::endl;
