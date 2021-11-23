@@ -16,14 +16,14 @@ build:
       - build
 
 
-test:
-  stage: test
-  script: 
-    - ./build/test/test -o test_res.txt --use-colour no
-  artifacts:
-    when: always
-    paths:
-      - test_res.txt
+#test:
+#  stage: test
+#  script: 
+#    - ./build/test/test -o test_res.txt --use-colour no
+#  artifacts:
+#    when: always
+#    paths:
+#      - test_res.txt
 
 deploy:
   stage: deploy

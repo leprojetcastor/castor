@@ -79,6 +79,7 @@ add_subdirectory(include)
 add_subdirectory(extern)
 add_subdirectory(test)
 add_subdirectory(demo)
+add_subdirectory(misc)
 add_subdirectory(getting_started)
 
 ###############################
