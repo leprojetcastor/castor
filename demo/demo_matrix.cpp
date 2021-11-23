@@ -172,9 +172,6 @@ int main (int argc, char* argv[])
     std::cout << "|      VIEW      |" << std::endl;
     std::cout << "+================+" << std::endl;
     
-    // disp(A({1,3,5}));
-    // std::cout << (A({1,3,5}));
-    
     matrix<float> C = eval(A({1,3,5}));
     disp(C);
     C = eval(A(range(0,4)));
@@ -524,7 +521,6 @@ int main (int argc, char* argv[])
     std::cout << "tan      : " << tan(V) << std::endl;
     std::cout << "tand     : " << tand(V*180/M_PI) << std::endl;
     std::cout << "tanh     : " << tanh(V) << std::endl;
-    disp(abs<logical>(V));
 
     // =============================================================== COMPLEX
     std::cout << "+================+" << std::endl;

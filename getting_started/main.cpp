@@ -22,16 +22,16 @@ int main (int argc, char* argv[])
     disp("+=====================+");
     disp("|   GETTING STARTED   |");
     disp("+=====================+");
-    
+
     // Configure documnentation file
     documentationFiles =
     {
         "/usr/local/include/castor/matrix.hpp"  // Full name of your file matrix.hpp
     };
-    
+
     // Documentation of matrix class
     help("matrix");
-    
+
     // Timer
     tic();
     while (toc(0)<0.314159) {}
@@ -51,7 +51,7 @@ int main (int argc, char* argv[])
     // Display
     disp("C = A+B :");
     disp(C);
-    
+
     disp("done !");
     return 0;
 }
