@@ -5,5 +5,5 @@ target_link_libraries(main castor)
 set_target_properties(main PROPERTIES FOLDER "getting_started")
 
 if(VTK_FOUND)
-  vtk_module_autoinit(TARGETS demo_graphics MODULES ${VTK_LIBRARIES})
+  vtk_module_autoinit(TARGETS main MODULES ${VTK_LIBRARIES})
 endif()

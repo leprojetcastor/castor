@@ -76,14 +76,10 @@ target_link_libraries(castor INTERFACE ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${V
 target_compile_features(castor INTERFACE cxx_std_14)
 
 add_subdirectory(include)
-
-add_subdirectory(demo)
-
-add_subdirectory(getting_started)
-
 add_subdirectory(extern)
 add_subdirectory(test)
-
+add_subdirectory(demo)
+add_subdirectory(getting_started)
 
 ###############################
 # installation

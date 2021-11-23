@@ -1,5 +1,5 @@
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES demo_matrix.cpp demo_smatrix demo_hmatrix demo_kissfft 
-                                                    demo_linalg.cpp demo_graphics)
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES demo_matrix.cpp demo_smatrix.cpp demo_hmatrix.cpp 
+                                                    demo_kissfft.cpp demo_linalg.cpp demo_graphics.cpp)
 
 add_executable(demo_matrix demo_matrix.cpp)
 target_link_libraries(demo_matrix castor)
@@ -26,6 +26,7 @@ endif()
 if(VTK_FOUND)
   add_executable(demo_graphics demo_graphics.cpp)
   target_link_libraries(demo_graphics castor)
+  set_target_properties(demo_graphics PROPERTIES FOLDER "demo")
   vtk_module_autoinit(
     TARGETS demo_graphics
     MODULES ${VTK_LIBRARIES}
