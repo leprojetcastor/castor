@@ -6,12 +6,12 @@ tags:
   - Fast prototyping
   - FEM/BEM simulation
 authors:
-  - name: Matthieu Aussal^[matthieu.aussal@polytechnique.edu] # note this makes a footnote saying 'co-first author'
+  - name: Matthieu Aussal^[matthieu.aussal\@polytechnique.edu] # note this makes a footnote saying 'co-first author'
     orcid: 0000-0002-2812-7578
     affiliation: 1 # (Multiple affiliations must be quoted)
-  - name: Marc Bakry^[marc.bakry@polytechnique.edu] # note this makes a footnote saying 'co-first author'
+  - name: Marc Bakry^[marc.bakry\@polytechnique.edu] # note this makes a footnote saying 'co-first author'
     affiliation: 1
-  - name: Laurent Series^[laurent.series@polytechnique.edu]
+  - name: Laurent Series^[laurent.series\@polytechnique.edu]
     affiliation: 2
 affiliations:
  - name: Ecole Polytechnique (CMAP), INRIA, Institut Polytechnique Paris, Route de Saclay 91128, Palaiseau, France
