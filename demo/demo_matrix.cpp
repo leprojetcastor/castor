@@ -3,7 +3,7 @@
  |         (c) 2020 - PROPERTY OF ECOLE POLYTECHNIQUE - LGPL 3.0          |
  |________________________________________________________________________|
  |   '&`   |                                                              |
- |    #    |   FILE       : overview_matrix.cpp                           |
+ |    #    |   FILE       : demo_matrix.cpp                           |
  |    #    |   VERSION    : 0.1.0                                         |
  |   _#_   |   AUTHOR(S)  : Matthieu Aussal & Laurent Series              |
  |  ( # )  |   CREATION   : 01.04.2020                                    |

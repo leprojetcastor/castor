@@ -3,7 +3,7 @@
  |         (c) 2020 - PROPERTY OF ECOLE POLYTECHNIQUE - LGPL 3.0          |
  |________________________________________________________________________|
  |   '&`   |                                                              |
- |    #    |   FILE       : overview_kissfft.cpp                          |
+ |    #    |   FILE       : demo_kissfft.cpp                          |
  |    #    |   VERSION    : 0.1.0                                         |
  |   _#_   |   AUTHOR(S)  : Matthieu Aussal                               |
  |  ( # )  |   CREATION   : 25.11.2020                                    |
