@@ -117,7 +117,7 @@ First, the user creates a `figure`, which is a dynamic container of data to disp
 
 In addition, graphics exports are available in different compression formats (`png`,` jpg`, `tiff`, etc.), as well as video rendering (`ogg`). 
 
-This example shows a basic 2D plotting of a sine function:
+This example shows a basic 2D plotting of a sine function (\autoref{fig:sin}):
 
 ```c++
 #include "castor/matrix.hpp"
@@ -133,7 +133,7 @@ int main (int argc, char* argv[])
     return 0;
 }
 ```
-![Caption for example figure.\label{fig:sin}](plot2d.png)
+![Basic 2D plotting from Castor (using VTK).\label{fig:sin}](plot2d.png)
 
 # Sparse matrices
 
@@ -204,7 +204,7 @@ $$H \mu(\textbf{x}) = \int_\Gamma \partial_{n_x} \partial_{n_y} G(\textbf{x},\te
 
 The operator $H$ is assembled using a $P_1$ finite element discretization on a triangular mesh of the surface $\Gamma$, stored using dense matrices (*matrix.hpp*) or hierarchical matrices (*hmatrix.hpp*).
 
-![Caption for example figure.\label{fig:head}](head.png)
+![Resonance mode at 8kHz of the human pinna (BEM with H-Matrix).\label{fig:head}](head.png)
 
 Finaly, using all the tools provided by Castor to write and solve these equations, we are able to efficiently compute the acoustic diffraction of a harmonic plane wave at 8kHz, on a human head mesh [@symare:2013]). The simulation result (\autoref{fig:head}) highlights the role of the auditory pavilion as a resonator, modifying the timbre of a sound source to allow a listener's brain to precisely locate its direction. 
 
