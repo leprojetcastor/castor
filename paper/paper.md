@@ -24,18 +24,17 @@ bibliography: paper.bib
 
 # Summary
 
-The objective of the *Castor* framework is to propose high-level semantics, inspired by the Matlab language, allowing fast software prototyping in a low-level compiled language. It is nothing more than a matrix management layer using the tools of the standard C++ library (C++14 and later), in different storage formats (full, sparse and hierarchical). Indeed, the use of IDEs such as Xcode, Visual studio, Eclipse, etc. allows today to execute compiled code (C, C++, fortran, etc.) with a flexibility close to the one of interpreted languages (Matlab, Python, Julia, etc.). The *Castor* framework is provided as an open source software under the LGPL 3.0.
+The objective of the *Castor* framework is to propose high-level semantics, inspired by the Matlab language, allowing fast software prototyping in a low-level compiled language. It is nothing more than a matrix management layer using the tools of the standard C++ library (C++14 and later), in different storage formats (full, sparse and hierarchical). Linear algebra operations are built over the BLAS API and graphic rendering is performed in the VTK framework. The *Castor* framework is provided as an open source software under the LGPL 3.0.
 
 # Statement of need
 
-Matlab is a software used worldwide in numerical prototyping, due to its particularly user-friendly semantics and its certified toolboxes. However, some usecases do not allow codes in Matlab format, for example multi-platform portability issues or proprieraty licensing. To start meeting these needs, a header-only template library for matrix management has been developed, based on the standard C++ library, by encapsulating the `std::vector` class. Many tools and algorithms are provided to simplify the development of scientific computing programs:
+Matlab is a software used worldwide in numerical prototyping, due to its particularly user-friendly semantics and its certified toolboxes. However, some usecases do not allow codes in Matlab format, for example multi-platform portability issues or proprieraty licensing. There is many open source libraries dealing with dense / sparse matrices, but none to our knowledge offers the same semantic as Matlab for manipulations and also both for algebra and visualization. To start meeting these needs, a header-only template library for matrix management has been developed, based on the standard C++ library, by encapsulating the `std::vector` class. Many tools and algorithms are provided to simplify the development of scientific computing programs:
  
  - dense, sparse and hierarchical matrices manipulations,
  - linear algebra computations (optimized BLAS library),
  - graphical representations (VTK library).
 
-Compared to standard C++, this high-level semantic/low-level language coupling makes it possible to gain efficiency in the prototyping phase, while ensuring performance for applications. In addition, direct access to data structures allows users to optimize the most critical parts of their code. Finally, a complete documentation is available, as well as continuous integration unit tests. All of this makes it possible to meet the needs of teaching, academic issues and industrial applications at the same time.
-
+Compared to standard C++, this high-level semantic/low-level language coupling makes it possible to gain efficiency in the prototyping phase, while ensuring performance for applications. In addition, direct access to data structures allows users to optimize the most critical parts of their code. Finally, a complete documentation is available, as well as continuous integration unit tests. All of this makes it possible to meet the needs of teaching (notebooks using c++ interpreter such as Cling), academic research and industrial applications at the same time. 
 
 # Dense Matrix  
 
