@@ -36,7 +36,7 @@ Matlab is a software used worldwide in numerical prototyping, due to its particu
 
 Compared to standard C++, this high-level semantic/low-level language coupling makes it possible to gain efficiency in the prototyping phase, while ensuring performance for applications. In addition, direct access to data structures allows users to optimize the most critical parts of their code. Finally, a complete documentation is available, as well as continuous integration unit tests. All of this makes it possible to meet the needs of teaching (notebooks using c++ interpreter such as Cling), academic research and industrial applications at the same time. 
 
-# Statement of field
+# State of the field
 
 For a developer accustomed to the Matlab language, it is natural to turn to prototyping tools such as Numpy or Julia, to produce open-source scientific computing codes. Indeed, these interpreted languages today offer similar semantics and performance, with well-established user communities. To illustrate this similarity, the following codes perform the same tasks, with one implementation in Matlab (left) and another in Julia (right) :
 
