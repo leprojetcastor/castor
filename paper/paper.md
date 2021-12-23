@@ -24,21 +24,21 @@ bibliography: paper.bib
 
 # Summary
 
-The objective of the *Castor* framework is to propose high-level semantics, inspired by the Matlab language, allowing fast software prototyping in a low-level compiled language. It is nothing more than a matrix management layer using the tools of the standard C++ library (C++14 and later), in different storage formats (full, sparse and hierarchical). Linear algebra operations are built over the BLAS API and graphic rendering is performed in the VTK framework. The *Castor* framework is provided as an open source software under the LGPL 3.0, compiled and validated with clang and gcc, in standard C++ 14. 
+The objective of the *Castor* framework is to propose high-level semantics, inspired by the Matlab language, allowing fast software prototyping in a low-level compiled language. It is nothing more than a matrix management layer using the tools of the standard C++ library (C++14 and later), in different storage formats (full, sparse and hierarchical). Linear algebra operations are built over the BLAS API and graphic rendering is performed in the VTK framework. The *Castor* framework is provided as an open source software under the LGPL 3.0, compiled and validated with clang and gcc. 
 
 # Statement of need
 
-Matlab is a software used worldwide in numerical prototyping, due to its particularly user-friendly semantics and its certified toolboxes. However, some usecases do not allow codes in Matlab format, for example multi-platform portability issues or proprieraty licensing. There is many open source libraries dealing with dense / sparse matrices, but none to our knowledge offers the same semantic as Matlab for manipulations and also both for algebra and visualization. To start meeting these needs, a header-only template library for matrix management has been developed, based on the standard C++ 14 library, by encapsulating the `std::vector` class. Many tools and algorithms are provided to simplify the development of scientific computing programs:
+Matlab is a software used worldwide in numerical prototyping, due to its particularly user-friendly semantics and its certified toolboxes. However, many usecases do not allow codes in Matlab format, for example multi-platform portability issues, proprieraty licensing and more generally code interfacing. To start meeting these needs, a header-only template library for matrix management has been developed, based on the standard C++14 and later library, by encapsulating the `std::vector` class. Many tools and algorithms are provided to simplify the development of prototypes:
  
  - dense, sparse and hierarchical matrices manipulations,
  - linear algebra computations (optimized BLAS library),
  - graphical representations (VTK library).
 
-Compared to standard C++, this high-level semantic/low-level language coupling makes it possible to gain efficiency in the prototyping phase, while ensuring performance for applications. In addition, direct access to data structures allows users to optimize the most critical parts of their code. Finally, a complete documentation is available, as well as continuous integration unit tests. All of this makes it possible to meet the needs of teaching (notebooks using c++ interpreter such as Cling), academic research and industrial applications at the same time. 
+This high-level semantic/low-level language coupling makes it possible to gain efficiency in the developpement, while ensuring performance for applications. In addition, direct access to data structures allows users to optimize the most critical parts of their code. Finally, a complete documentation is available, as well as continuous integration unit tests. All of this makes it possible to meet the needs of teaching (notebooks using c++ interpreter such as Cling), academic research and industrial applications at the same time. 
 
 # State of the field
 
-For a developer accustomed to the Matlab language, it is natural to turn to prototyping tools such as Numpy or Julia, to produce open-source scientific computing codes. Indeed, these interpreted languages today offer similar semantics and performance, with well-established user communities. To illustrate this similarity, the following codes perform the same tasks, with one implementation in Matlab (left) and another in Julia (right) :
+For a developer accustomed to the Matlab language, it is natural to turn to prototyping tools such as Numpy or Julia, to produce open-source codes. Indeed, these languages today offer similar semantics and performance, with well-established user communities. To illustrate this similarity, the following codes perform the same tasks, with one implementation in Matlab (left) and another in Julia (right) :
 
 | Matlab                            |     |     |     | Julia                                            |
 | --------------------------------- | --- | --- | --- | ------------------------------------------------ |
@@ -65,7 +65,7 @@ For a developer accustomed to the Matlab language, it is natural to turn to prot
 | `toc`                             |     |     |     |  `@time test();`                                 |
 | `disp("done.");`                  |     |     |     |  `display("done.");`                             |                          
 
-But the use of an interpreter limits the portability of the code and the transition from the prototype phase to production use can become difficult. Indeed, even if there are tools to automatically generate C/C++ code from a high-level language (as *Matlab Coder*), this work is still often done manually. To find high-level semantics in native C ++, we can turn to libraries like Eigen, which offers a matrix API and efficient algebra tools. However, as the comparison below shows, the transcription from a Matlab code to an Eigen-based C++ code is not immediate: 
+Despite the many advantages that these languages have and their high popularity, many codes are still developed natively in Fortran, C or C++, for practical or historical reasons. Even if there are tools to automatically generate C/C++ code from a high-level language (as *Matlab Coder*), this work is often done manually by specialists. To find high-level semantics in native C ++, we can turn to libraries like Eigen, which offers a matrix API and efficient algebra tools. However, as the comparison below shows, the transcription from a Matlab code to an Eigen-based C++ code is not immediate: 
 
 ```
 #include <iostream>
