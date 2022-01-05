@@ -16,9 +16,10 @@ Installing the dependencies
 The **castor** framework depends on two external dependencies : a BLAS/LAPACK implementation in order to use optimized linear algebra, and VTK for the graphical rendering.
 
 The BLAS/LAPACK implementation which has been tested are :
-- MKL 2020.0.166 : `MKL informations <https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl.html>`_, 
-- OpenBlas 0.3.19 : `OpenBLAS informations <https://www.openblas.net/>`_, 
-- vecLib : from accelerate framework in MacOS.
+
+- MKL 2020.0.166 : `MKL informations <https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl.html>`_,   
+- OpenBlas 0.3.19 : `OpenBLAS informations <https://www.openblas.net/>`_,   
+- vecLib : from accelerate framework in MacOS.   
 
 The version of VTK library which has been tested is `9.1.0 <https://vtk.org/download/>`_.
 
