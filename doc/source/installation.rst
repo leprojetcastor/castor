@@ -25,7 +25,7 @@ The version of VTK library which has been tested is `9.1.0 <https://vtk.org/down
 
 The last tool to perform installation is ``CMake``, at least version `3.18  <https://cmake.org/download/>`_.
 
-Note : on macOS it is recommended to install these dependencies with `brew <https://brew.sh/>_`
+**Note** : on macOS it is recommended to install these dependencies with `brew <https://brew.sh/>`_.
 
 From git repository with CMake
 ------------------------------
@@ -68,17 +68,16 @@ This solution has been tested on Windows 10 only (but may work on other version)
 C++ compiler and CMake
 ----------------------
 
-The first step is to install a suitable C++ compiler. In the following instructions we will only use the compiler provided with [Visual Studio](https://visualstudio.microsoft.com/fr/downloads/), version 2019 or later (previous version may work but have not been tested). The Visual Studio framework also provides a customized command prompt named `x64 Native Tools Command Prompt`.
+The first step is to install a suitable C++ compiler. In the following instructions we will only use the compiler provided with `Visual Studio <https://visualstudio.microsoft.com/fr/downloads/>`_, version 2019 or later (previous version may work but have not been tested). The Visual Studio framework also provides a customized command prompt named `x64 Native Tools Command Prompt`.
 
-We will also install the [CMake](https://cmake.org) tools. Go to [https://cmake.org](https://cmake.org) and download the latest binary distribution for Windows. After installing CMake, open the `x64 Native Tools Command Prompt` and execute the command `cmake-gui`. If the command fails, find the install folder of CMake and add the `CMakeInstallFolder\bin` subfolder to the Windows `%PATH%` environment variable, restart the command prompt and try again. The graphical interface of CMake should open (close it for now).
+We will also install the `CMake <https://cmake.org>`_ tools. Download the latest binary distribution for Windows. After installing CMake, open the `x64 Native Tools Command Prompt` and execute the command `cmake-gui`. If the command fails, find the install folder of CMake and add the `CMakeInstallFolder\bin` subfolder to the Windows `%PATH%` environment variable, restart the command prompt and try again. The graphical interface of CMake should open (close it for now).
 
 BLAS/LAPACK library
 -------------------
 
-The simplest way is probably to install [OpenBLAS](https://www.openblas.net) which implements both interfaces. Compiling the library can quickly become painful as a Fortran compiler is required. Thankfully, the developers have made precompiled binaries available. Installing OpenBLAS can be done following these steps:
+The simplest way is probably to install `OpenBLAS <https://www.openblas.net>`_ which implements both interfaces. Compiling the library can quickly become painful as a Fortran compiler is required. Thankfully, the developers have made precompiled binaries available. Installing OpenBLAS can be done following these steps:
 
-1. Go to [https://github.com/xianyi/OpenBLAS/releases](https://github.com/xianyi/OpenBLAS/releases), look for an archive named **OpenBLAS-0.x.x-x64.zip** (or **OpenBLAS-0.x.x-x86.zip** for older architectures) in the section **Assets** corresponding to the version you wish to use and download it.<br>
-**Remark** The demos were tested originally with `OpenBLAS 0.3.12` so any later version should be fine.
+1. Go to `https://github.com/xianyi/OpenBLAS/releases <https://github.com/xianyi/OpenBLAS/releases>`_, look for an archive named **OpenBLAS-0.x.x-x64.zip** (or **OpenBLAS-0.x.x-x86.zip** for older architectures) in the section **Assets** corresponding to the version you wish to use and download it. The demos were tested originally with `OpenBLAS 0.3.12` so any later version should be fine.
 2. Extract the downloaded archive in a folder of your choice (for example, create a folder `openblas`). This folder should now contain three subdirectories:
     - `openblas\bin` should contain a file named `libopenblas.dll`.
     - `openblas\include` should contain the header files, including `cblas.h`.
@@ -87,14 +86,14 @@ The simplest way is probably to install [OpenBLAS](https://www.openblas.net) whi
 
 The BLAS and LAPACK are now ready to use.
 
-**Remark** It is also possible to download the Intel MKL library through the framework `oneAPI/MKL` (see [https://github.com/oneapi-src/oneMKL](https://github.com/oneapi-src/oneMKL) or the [ Intel website](https://www.intel.com/content/www/us/en/developer/tools/oneapi/overview.html)). However, this implementation features different header names and requires a modification of the source files of **castor** (namely replace `cblas.h` by `mkl_cblas.h` wherever it appears). For this reason, we do not insist further.
+**Remark** It is also possible to download the Intel MKL library through the framework https://github.com/oneapi-src/oneMKL or the `Intel website <https://www.intel.com/content/www/us/en/developer/tools/oneapi/overview.html>`_. However, this implementation features different header names and requires a modification of the source files of **castor** (namely replace `cblas.h` by `mkl_cblas.h` wherever it appears). For this reason, we do not insist further.
 
 VTK framework
 -------------
 
 Unfortunately, the developers of the VTK framework do not provide *ready-to-use* binaries meaning that we must compile the sources by ourselves. It is performed as follows:
 
-1. Download the sources of VTK on the main website [https://vtk.org](https://vtk.org). Choose a version of the `9.x.x` branch. Uncompress the archive in a folder of your choice.
+1. Download the sources of VTK on the main website `https://vtk.org <https://vtk.org>`_. Choose a version of the `9.x.x` branch. Uncompress the archive in a folder of your choice.
 2. Open the `x64 Native Tools Command Prompt` and move to the newly created VTK folder (use the `dir pathToFolder` command). Create a *build* folder using `mkdir build` and move to this folder.
 3. Execute `cmake-gui ..` which should open the CMake graphical interface. Click on `Configure`, choose the `ninja` generator and keep the default configuration. Finally, click on `Generate`. CMake will generate the build files.
 4. Go back to the command prompt and execute the command `ninja`. The compilation of VTK begins and *may* take some time (a few minutes to a few dozen of minutes depending on the computer).
@@ -108,10 +107,9 @@ Compile the demos
 
 In this section, we will give the instructions on how to compile the examples of castor. The steps are the following:
 
-1. Download the sources of **castor** from the [main repo](https://gitlab.labos.polytechnique.fr/leprojetcastor/castor.git).
+1. Download the sources of **castor** from the `main repo <https://gitlab.labos.polytechnique.fr/leprojetcastor/castor.git>`_.
 2. Open the `x64 Native Tools Command Prompt` and got to the `castor` folder. Create a `castor\build` directory and move to it.
 3. Execute `cmake-gui ..` and click on the `Configure` button. Choose the `ninja` generator on the list and let all other options by default. This last operation *should fail* as CMake cannot find BLAS/LAPACK nor VTK.
-4. In the list of CMake variables, look for `VTK_DIR` and set it to the `VTK\lib\cmake\vtk-9.x` folder.<br>
-Do the same for the BLAS-related variables. Look for the variable `CBLAS_INCLUDE_DIR` and set it to the `openblas\include`subfolder.
+4. In the list of CMake variables, look for `VTK_DIR` and set it to the `VTK\lib\cmake\vtk-9.x` folder. Do the same for the BLAS-related variables. Look for the variable `CBLAS_INCLUDE_DIR` and set it to the `openblas\include`subfolder.
 5. Click again on `Configure` then on `Generate`.
 6. Finally, execute `ninja` in the command prompt to start building the demo executable. The corresponding file can then be found in the `castor\build\demo` subfolder.
