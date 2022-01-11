@@ -40,12 +40,20 @@ namespace castor
 template<typename R, typename S>
 void tgemm(R alpha, matrix<float>const& A, matrix<float>const& B, S beta, matrix<float>& C)
 {
+    if (size(A,2)!=size(B,1) || size(A,1)!=size(C,1) || size(B,2)!=size(C,2))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
     cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, (int)size(C,1), (int)size(C,2), (int)size(A,2),
                 (float)alpha, &A(0), (int)size(A,2), &B(0), (int)size(B,2), (float)beta, &C(0), (int) size(C,2));
 }
 template<typename R, typename S>
 void tgemm(R alpha, matrix<double>const& A, matrix<double>const& B, S beta, matrix<double>& C)
 {
+    if (size(A,2)!=size(B,1) || size(A,1)!=size(C,1) || size(B,2)!=size(C,2))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, (int)size(C,1), (int)size(C,2), (int)size(A,2),
                 (double)alpha, &A(0), (int)size(A,2), &B(0), (int)size(B,2), (double)beta, &C(0), (int) size(C,2));
 }
@@ -53,6 +61,10 @@ template<typename R, typename S>
 void tgemm(R alpha, matrix<std::complex<float>>const& A,
     matrix<std::complex<float>>const& B, S beta, matrix<std::complex<float>>& C)
 {
+    if (size(A,2)!=size(B,1) || size(A,1)!=size(C,1) || size(B,2)!=size(C,2))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
     std::complex<float> alpha_c = alpha, beta_c = beta;
     cblas_cgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, (int)size(C,1), (int)size(C,2), (int)size(A,2),
                 &alpha_c, &A(0), (int)size(A,2), &B(0), (int)size(B,2), &beta_c, &C(0), (int) size(C,2));
@@ -61,6 +73,10 @@ template<typename R, typename S>
 void tgemm(R alpha, matrix<std::complex<double>>const& A,
     matrix<std::complex<double>>const& B, S beta, matrix<std::complex<double>>& C)
 {
+    if (size(A,2)!=size(B,1) || size(A,1)!=size(C,1) || size(B,2)!=size(C,2))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
     std::complex<double> alpha_z = alpha, beta_z = beta;
     cblas_zgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, (int)size(C,1), (int)size(C,2), (int)size(A,2),
                 &alpha_z, &A(0), (int)size(A,2), &B(0), (int)size(B,2), &beta_z, &C(0), (int) size(C,2));

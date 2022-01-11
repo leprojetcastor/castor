@@ -89,6 +89,21 @@ int main (int argc, char* argv[])
     disp(Sc);
     
     //===============================================================
+    std::cout << "+======================+" << std::endl;
+    std::cout << "|    LOW-RANK MATRIX   |" << std::endl;
+    std::cout << "+======================+" << std::endl;
+    
+    tic();
+    matrix<double> A = rand(Nx,10);
+    matrix<double> B = rand(10,Ny);
+    toc();
+    tic();
+    hmatrix<double> Mh(A,B,tol);
+    toc();
+    disp(Mh);
+    disp( norm(mtimes(A,B)-full(Mh),"inf")/norm(mtimes(A,B),"inf") );
+    
+    //===============================================================
     std::cout << "+==================+" << std::endl;
     std::cout << "|    FULL MATRIX   |" << std::endl;
     std::cout << "+==================+" << std::endl;
@@ -97,7 +112,7 @@ int main (int argc, char* argv[])
     matrix<double> M = ones(Nx,Ny);
     toc();
     tic();
-    hmatrix<double> Mh(X,Y,tol,M);
+    Mh = hmatrix<double>(X,Y,tol,M);
     toc();
     disp(Mh);
     disp( norm(M-full(Mh),"inf")/norm(M,"inf") );
@@ -110,6 +125,16 @@ int main (int argc, char* argv[])
     toc();
     disp(Mh);
     disp( norm(M-full(Mh),"inf")/norm(M,"inf") );
+    
+    matrix<std::size_t> idx = find(rand(1,Nx)<0.5);
+    matrix<std::size_t> jdx = find(rand(1,Ny)<0.5);
+    tic();
+    matrix<double> Mij = eval(M(idx,jdx));
+    toc();
+    tic();
+    matrix<double> Mhij = Mh(idx,jdx);
+    toc();
+    disp( norm(Mij-Mhij,"inf")/norm(Mij,"inf") );
 
     //===============================================================
     std::cout << "+==================+" << std::endl;
@@ -170,7 +195,7 @@ int main (int argc, char* argv[])
     ref = mtimes(M,V);
     sol = mtimes(Mh,V);
     disp( norm(ref-sol,"inf")/norm(ref,"inf") );
-    
+
     // RECOMPRESSION
     ref = mtimes(M,V);
     sol = mtimes(recompress(Mh,1e-1),V);

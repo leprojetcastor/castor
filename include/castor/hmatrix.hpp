@@ -199,6 +199,7 @@ public:
     // CONSTRUCTOR
     hmatrix(){};
     hmatrix(std::size_t m, std::size_t n, double tol, T v=0);
+    hmatrix(matrix<T>const& A, matrix<T>const& B, double tol);
     template<typename S>
     hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol, matrix<T>const& M);
     template<typename S>
@@ -215,6 +216,8 @@ public:
     void full2lowrank();
     void fusion();
     void hfull(matrix<T>& M, matrix<std::size_t> I={}, matrix<std::size_t> J={}) const;
+    void hfull2(matrix<T>& M, matrix<std::size_t> idx, matrix<std::size_t> jdx,
+              matrix<std::size_t> I={}, matrix<std::size_t> J={}) const;
     void hinv();
     void hllowsolve(hmatrix<T>const& Lh);
     void hllowsolve(matrix<T>& B, matrix<std::size_t> I={}) const;
@@ -238,6 +241,7 @@ public:
     hmatrix<T>& operator+=(T b);
     hmatrix<T>& operator*=(T b);
     hmatrix<T>& operator+=(hmatrix<T>const& Bh);
+    matrix<T>   operator()(matrix<std::size_t>const& I, matrix<std::size_t>const& J) const;
     
     // ACCESSORS
     hmatrix<T>const&          getChildren(int i) const {return m_chd[i];};
@@ -280,6 +284,19 @@ hmatrix<T>::hmatrix(std::size_t m, std::size_t n, double tol, T v)
     m_tol    = tol;
     m_dat[0] = matrix<T>(m,1,v);
     m_dat[1] = matrix<T>(1,n,1.);
+}
+
+//==========================================================================
+// [.hmatrix]
+/// Low-rank constructor, fill leaf with tensor product. No tree is needed.
+template<typename T>
+hmatrix<T>::hmatrix(matrix<T>const& A, matrix<T>const& B, double tol)
+{
+    m_typ    = 1;
+    m_siz    = {size(A,1),size(B,2)};
+    m_tol    = tol;
+    m_dat[0] = A;
+    m_dat[1] = B;
 }
 
 //==========================================================================
@@ -543,6 +560,51 @@ void hmatrix<T>::hfull(matrix<T>& M, matrix<std::size_t> I, matrix<std::size_t> 
 }
 
 //==========================================================================
+// [hmatrix.full2]
+/// In-place conversion to dense sub-matrix :
+/// Ah(I,J) -> M.
+template<typename T>
+void hmatrix<T>::hfull2(matrix<T>& M, matrix<std::size_t> idx, matrix<std::size_t> jdx,
+                      matrix<std::size_t> I, matrix<std::size_t> J) const
+{
+    if (isempty(I)) {I = range(0,size(M,1));}
+    if (isempty(J)) {J = range(0,size(M,2));}
+    if (numel(I)!=numel(idx) || numel(J)!=numel(jdx))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Dimensions must agree.");
+    }
+    if (m_typ==0)
+    {
+        for (int h=0; h<4; ++h)
+        {
+            matrix<std::size_t> idxh, jdxh, Ih, Jh, Itmp, Jtmp;
+            std::tie(idxh,Itmp) = argintersect(m_row[h],idx);
+            std::tie(jdxh,Jtmp) = argintersect(m_col[h],jdx);
+            if (!isempty(idxh) && !isempty(jdxh))
+            {
+                Ih = eval(I(Itmp));
+                Jh = eval(J(Jtmp));
+                m_chd[h].hfull2(M,idxh,jdxh,Ih,Jh);
+            }
+        }
+    }
+    else if (m_typ==1)
+    {
+        matrix<T> A = eval(m_dat[0](idx,col(m_dat[0])));
+        matrix<T> B = eval(m_dat[1](row(m_dat[1]),jdx));
+        M(I,J) = mtimes(A,B);
+    }
+    else if (m_typ==2)
+    {
+        M(I,J) = eval(m_dat[0](idx,jdx));
+    }
+    else
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Unavailable case.");
+    }
+}
+
+//==========================================================================
 // [hmatrix.hinv]
 /// In-place hierarchical matrix inversion :
 /// Ah -> Ah^(-1).
@@ -706,7 +768,7 @@ void hmatrix<T>::hlupsolve(matrix<T>& B, matrix<std::size_t> I) const
 }
 
 //==========================================================================
-// [hmatrixhlmtimes]
+// [hmatrix.hlmtimes]
 /// In-place hmatrix-matrix product :
 /// C -> C + Ah * B.
 template<typename T>
@@ -1284,6 +1346,17 @@ void hmatrix<T>::tgehmhm(T alpha, hmatrix<T>const& Ah, hmatrix<T>const& Bh, T be
 //                               OPERATORS                                  //
 //==========================================================================//
 //==========================================================================
+// [operator())]
+/// Access to sub matrix with dense conversion.
+template<typename T>
+matrix<T> hmatrix<T>::operator()(matrix<std::size_t>const& I, matrix<std::size_t>const& J) const
+{
+    matrix<T> A(length(I),length(J));
+    hfull2(A,I,J);
+    return A;
+}
+
+//==========================================================================
 // [operator+=]
 /// In-place addition of hmatrix or scalar :
 /// Ah -> Ah + b,
@@ -1550,6 +1623,10 @@ matrix<T> gmres(hmatrix<T>const& Ah, matrix<T>const& B,
                 std::function<matrix<T>(matrix<T>const&)>const& Am1 = std::function<matrix<T>(matrix<T>const&)>(),
                 matrix<T>const& X0 = matrix<T>())
 {
+    if (size(Ah,1)!=size(B,1))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
     std::function<matrix<T>(matrix<T>const&)> Afct;
     Afct = [&Ah](matrix<T>const& X) {return mtimes(Ah,X);};
     return gmres(Afct,B,tol,maxit,Am1,X0);
@@ -1558,6 +1635,10 @@ template<typename T>
 matrix<T> gmres(hmatrix<T>const& Ah, matrix<T>const& B, double tol, std::size_t maxit,
                 hmatrix<T>const& Ahm1, matrix<T>const& X0 = matrix<T>())
 {
+    if (size(Ah,1)!=size(B,1))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
     std::function<matrix<T>(matrix<T>const&)> Afct, Am1fct;
     Afct   = [&Ah](matrix<T>const& X) {return mtimes(Ah,X);};
     Am1fct = [&Ahm1](matrix<T>const& X) {return mtimes(Ahm1,X);};
@@ -1567,6 +1648,10 @@ template<typename T>
 matrix<T> gmres(hmatrix<T>const& Ah, matrix<T>const& B, double tol, std::size_t maxit,
                 hmatrix<T>const& Lh, hmatrix<T>const& Uh, matrix<T>const& X0 = matrix<T>())
 {
+    if (size(Ah,1)!=size(B,1))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
     std::function<matrix<T>(matrix<T>const&)> Afct, Am1fct;
     Afct   = [&Ah](matrix<T>const& X) {return mtimes(Ah,X);};
     Am1fct = [&Lh,&Uh](matrix<T>const& B)
@@ -1615,6 +1700,10 @@ hmatrix<T> hzeros(matrix<std::size_t>const& S)
 template<typename T>
 inline hmatrix<T> inv(hmatrix<T>const& Ah)
 {
+    if (size(Ah,1)!=size(Ah,2))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
     hmatrix<T> Ahm1 = Ah;
     Ahm1.hinv();
     return Ahm1;
@@ -1625,8 +1714,12 @@ inline hmatrix<T> inv(hmatrix<T>const& Ah)
 /// Solve linear system Ah*X=B where Ah is a hierarchical matrix, using
 /// hierarchical LU factorization.
 template<typename T>
-inline matrix<T> linsolve(hmatrix<T>const& Ah, matrix<T>const& B)
+matrix<T> linsolve(hmatrix<T>const& Ah, matrix<T>const& B)
 {
+    if (size(Ah,1)!=size(B,1))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
     hmatrix<T> Lh, Uh;
     std::tie(Lh,Uh) = lu(Ah);
     matrix<T> X = B;
@@ -1641,6 +1734,10 @@ inline matrix<T> linsolve(hmatrix<T>const& Ah, matrix<T>const& B)
 template<typename T>
 inline auto lu(hmatrix<T>const& Ah, double tol=0)
 {
+    if (size(Ah,1)!=size(Ah,2))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
     hmatrix<T> Lh=Ah, Uh;
     if (tol>0) {Lh.recompress(tol);}
     Lh.hlu(Uh);
@@ -1653,6 +1750,10 @@ inline auto lu(hmatrix<T>const& Ah, double tol=0)
 template<typename T>
 inline matrix<T> mtimes(hmatrix<T>const& Ah, matrix<T>const& B)
 {
+    if (size(Ah,2)!=size(B,1))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
     matrix<T> C(size(Ah,1),size(B,2));
     Ah.hlmtimes(B,C);
     return C;
@@ -1660,6 +1761,10 @@ inline matrix<T> mtimes(hmatrix<T>const& Ah, matrix<T>const& B)
 template<typename T>
 inline matrix<T> mtimes(matrix<T>const& A, hmatrix<T>const& Bh)
 {
+    if (size(A,2)!=size(Bh,1))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
     matrix<T> C(size(A,1),size(Bh,2));
     Bh.hrmtimes(A,C);
     return C;
@@ -1667,6 +1772,10 @@ inline matrix<T> mtimes(matrix<T>const& A, hmatrix<T>const& Bh)
 template<typename T>
 inline hmatrix<T> mtimes(hmatrix<T>const& Ah, hmatrix<T>const& Bh)
 {
+    if (size(Ah,2)!=size(Bh,1))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
     hmatrix<T> Ch(size(Ah,1),size(Bh,2),std::max(Ah.getTolerance(),Bh.getTolerance()));
     tgemm((T)1,Ah,Bh,(T)1,Ch);
     return Ch;
@@ -1716,6 +1825,10 @@ inline auto spydata(hmatrix<T>const& Ah)
 template<typename T>
 inline void tgeabm(T alpha, matrix<T>const& A, matrix<T>const& B, T beta, hmatrix<T>& Ch)
 {
+    if (size(A,2)!=size(B,1) || size(A,1)!=size(Ch,1) || size(B,2)!=size(Ch,2))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
     Ch.tgeabhm(alpha,A,B,beta);
 }
 
@@ -1726,6 +1839,10 @@ inline void tgeabm(T alpha, matrix<T>const& A, matrix<T>const& B, T beta, hmatri
 template<typename T>
 inline void tgemm(T alpha, hmatrix<T>const& Ah, hmatrix<T>const& Bh, T beta, hmatrix<T>& Ch)
 {
+    if (size(Ah,2)!=size(Bh,1) || size(Ah,1)!=size(Ch,1) || size(Bh,2)!=size(Ch,2))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
     Ch.tgehmhm(alpha,Ah,Bh,beta);
 }
 
