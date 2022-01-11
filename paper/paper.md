@@ -6,12 +6,12 @@ tags:
   - Fast prototyping
   - FEM/BEM simulation
 authors:
-  - name: Matthieu Aussal^[matthieu.aussal@polytechnique.edu] # note this makes a footnote saying 'co-first author'
+  - name: Matthieu Aussal^[matthieu.aussal\@polytechnique.edu] # note this makes a footnote saying 'co-first author'
     orcid: 0000-0002-2812-7578
     affiliation: 1 # (Multiple affiliations must be quoted)
-  - name: Marc Bakry^[marc.bakry@polytechnique.edu] # note this makes a footnote saying 'co-first author'
+  - name: Marc Bakry^[marc.bakry\@polytechnique.edu] # note this makes a footnote saying 'co-first author'
     affiliation: 1
-  - name: Laurent Series^[laurent.series@polytechnique.edu]
+  - name: Laurent Series^[laurent.series\@polytechnique.edu]
     affiliation: 2
 affiliations:
  - name: Ecole Polytechnique (CMAP), INRIA, Institut Polytechnique Paris, Route de Saclay 91128, Palaiseau, France
@@ -24,18 +24,123 @@ bibliography: paper.bib
 
 # Summary
 
-The objective of the *Castor* framework is to propose high-level semantics, inspired by the Matlab language, allowing fast software prototyping in a low-level compiled language. It is nothing more than a matrix management layer using the tools of the standard C++ library (C++14 and later), in different storage formats (full, sparse and hierarchical). Indeed, the use of IDEs such as Xcode, Visual studio, Eclipse, etc. allows today to execute compiled code (C, C++, fortran, etc.) with a flexibility close to the one of interpreted languages (Matlab, Python, Julia, etc.). The *Castor* framework is provided as an open source software under the LGPL 3.0.
+The objective of the *Castor* framework is to propose high-level semantics, inspired by the Matlab language, allowing fast software prototyping in a low-level compiled language. It is nothing more than a matrix management layer using the tools of the standard C++ library (C++14 and later), in different storage formats (full, sparse and hierarchical). Linear algebra operations are built over the BLAS API and graphic rendering is performed in the VTK framework. The *Castor* framework is provided as an open source software under the LGPL 3.0, compiled and validated with clang and gcc. 
 
 # Statement of need
 
-Matlab is a software used worldwide in numerical prototyping, due to its particularly user-friendly semantics and its certified toolboxes. However, some usecases do not allow codes in Matlab format, for example multi-platform portability issues or proprieraty licensing. To start meeting these needs, a header-only template library for matrix management has been developed, based on the standard C++ library, by encapsulating the `std::vector` class. Many tools and algorithms are provided to simplify the development of scientific computing programs:
+Matlab is a software used worldwide in numerical prototyping, due to its particularly user-friendly semantics and its certified toolboxes. However, many usecases do not allow codes in Matlab format, for example multi-platform portability issues, proprieraty licensing and more generally code interfacing. To start meeting these needs, a header-only template library for matrix management has been developed, based on the standard C++14 and later library, by encapsulating the `std::vector` class. Many tools and algorithms are provided to simplify the development of prototypes:
  
  - dense, sparse and hierarchical matrices manipulations,
  - linear algebra computations (optimized BLAS library),
  - graphical representations (VTK library).
 
-Compared to standard C++, this high-level semantic/low-level language coupling makes it possible to gain efficiency in the prototyping phase, while ensuring performance for applications. In addition, direct access to data structures allows users to optimize the most critical parts of their code. Finally, a complete documentation is available, as well as continuous integration unit tests. All of this makes it possible to meet the needs of teaching, academic issues and industrial applications at the same time.
+This high-level semantic/low-level language coupling makes it possible to gain efficiency in the developpement, while ensuring performance for applications. In addition, direct access to data structures allows users to optimize the most critical parts of their code. Finally, a complete documentation is available, as well as continuous integration unit tests. All of this makes it possible to meet the needs of teaching (notebooks using c++ interpreter such as Cling), academic research and industrial applications at the same time. 
 
+# State of the field
+
+For a developer accustomed to the Matlab language, it is natural to turn to prototyping tools such as Numpy or Julia, to produce open-source codes. Indeed, these languages today offer similar semantics and performance, with well-established user communities. To illustrate this similarity, the following codes perform the same tasks, with one implementation in Matlab (left) and another in Julia (right) :
+
+| Matlab                            |     |     |     | Julia                                            |
+| --------------------------------- | --- | --- | --- | ------------------------------------------------ |
+|                                   |     |     |     | `using LinearAlgebra`                            |
+| `tic`                             |     |     |     | `function test()`                                |
+|                                   |     |     |     |                                                  |
+| `M = [1 2 3 ; 4 5 6 ; 7 8 9; ...` |     |     |     | `M = [1 2 3 ; 4 5 6 ; 7 8 9     `                |
+| `     10 11 12];`                 |     |     |     | `     10 11 12];`                                |
+| `disp(M);`                        |     |     |     | `display(M);`                                    |
+| `M = (M - 1) .* eye(size(M));`    |     |     |     | `M = (M .- 1) .* `                               |
+|                                   |     |     |     | `    Matrix(I,size(M,1),size(M,2));`             |
+| `M(1,1) = -1;`                    |     |     |     | `M[1,1] = -1;`                                   |
+| `M([2,3],1)  = -1;`               |     |     |     | `M[[2 3],1] .= -1;`                              |
+| `M(4,:) = -1;`                    |     |     |     | `M[4,:] .= -1;`                                  |
+| `disp(M);`                        |     |     |     | `display(M);`                                    |
+|                                   |     |     |     |                                                  |
+| `disp(sum(M,2));`                 |     |     |     | `display(sum(M,dims=2));`                        |
+| `disp(abs(M));`                   |     |     |     | `display(abs.(M))`                               |
+| `disp(sort(M,1));`                |     |     |     | `display(sort(M,dims=1));`                       |
+| `disp(M*M');`                     |     |     |     | `display(M*M');`                                 |
+|                                   |     |     |     |                                                  |
+|                                   |     |     |     | `end`                                            |
+|                                   |     |     |     |                                                  |
+| `toc`                             |     |     |     |  `@time test();`                                 |
+| `disp("done.");`                  |     |     |     |  `display("done.");`                             |                          
+
+Despite the many advantages that these languages have and their high popularity, many codes are still developed natively in Fortran, C or C++, for practical or historical reasons. Even if there are tools to automatically generate C/C++ code from a high-level language (as *Matlab Coder*), this work is often done manually by specialists. To find high-level semantics in native C ++, we can turn to libraries like Eigen, which offers a matrix API and efficient algebra tools. However, as the comparison below shows, the transcription from a Matlab code to an Eigen-based C++ code is not immediate: 
+
+```
+#include <iostream>
+#include <chrono>
+#include <eigen-3.4.0/Eigen/Dense>
+using namespace std::chrono;
+using namespace Eigen;
+int main()
+{
+    auto tic = high_resolution_clock::now();
+    
+    MatrixXd  M(4,3);
+    M << 1, 2, 3,
+    4, 5, 6,
+    7, 8, 9,
+    10, 11, 12;
+    std::cout << M << std::endl;
+    
+    M.array() -= 1;
+    M.array() *= MatrixXd::Identity(M.rows(),M.cols()).array();
+    M(0,0)     = -1;
+    M.block<2,1>(1,0) = -MatrixXd::Ones(2,1);
+    M.row(3)   = -MatrixXd::Ones(1,3);
+    std::cout << M << std::endl;
+
+    std::cout << M.rowwise().sum() << std::endl;
+    std::cout << M.array().abs() << std::endl;    
+    MatrixXd  Ms = M;
+    for(auto col : Ms.colwise())
+    {
+      std::sort(col.begin(), col.end());
+    }
+    std::cout << Ms << std::endl;
+    std::cout << M * M.transpose() << std::endl;
+    
+    auto toc  = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(toc - tic);
+    std::cout << "Elapsed time: " << duration.count()*1e-6 << std::endl;
+    std::cout << "done." << std::endl;
+
+    return 0;
+}
+```
+To complete this example, other references are available on this [link](https://eigen.tuxfamily.org/dox/AsciiQuickReference.txt). This is why all the features of the Castor library have been designed and developed so that the semantics at user level are as close to Matlab as what C ++ allows. Moreover, to gain in portability, the manipulations of full matrices and the main algorithms depend only on the standard library which is available on the majority of OS (Macos, Linux, Windows, Android, etc.). Only advanced linear algebra tools require an external BLAS / LAPACK API, as well as graphical visualization functionality (VTK). The example below illustrates this goal:
+
+| Matlab                            |     |     |     | Castor                            |
+| -------------------------------   | --- | --- | --- | --------------------------------- |
+|                                   |     |     |     | `#include "castor/matrix.hpp"`    |
+|                                   |     |     |     | `using namespace castor;`         | 
+|                                   |     |     |     | `int main (int argc, char* argv[])` |
+|                                   |     |     |     | `{`                               |
+| `tic`                             |     |     |     | `tic();`                          |
+|                                   |     |     |     |                                   |
+| `M = [1 2 3 ; 4 5 6 ; 7 8 9; ...` |     |     |     | `matrix<> M = {{1,2,3},{4,5,6} \` |
+| `     10 11 12];`                 |     |     |     | `              {7,8,9},{10,11,12}};` |
+| `disp(M);`                        |     |     |     | `disp(M);`                        |
+|                                   |     |     |     |                                   |
+| `M = (M - 1) .* eye(size(M));`    |     |     |     | `M = (M - 1) * eye(size(M));`     |
+| `M(1,1) = -1;`                    |     |     |     | `M(0,0) = -1;`                    |
+| `M([2,3],1)  = -1;`               |     |     |     | `M({1,2},0) = -1;`                |
+| `M(4,:) = -1;`                    |     |     |     | `M(3,col(M)) = -1;`               |
+| `disp(M);`                        |     |     |     | `disp(M);`                        |
+|                                   |     |     |     |                                   |
+| `disp(sum(M,2));`                 |     |     |     | `disp(sum(M,2));`                 |
+| `disp(abs(M));`                   |     |     |     | `disp(abs(M));`                   |
+| `disp(sort(M,1));`                |     |     |     | `disp(sort(M,1));`                |
+| `disp(M*M');`                     |     |     |     | `disp(mtimes(M,transpose(M)));`   |
+|                                   |     |     |     |                                   |
+| `toc`                             |     |     |     | `toc();`                          |
+| `disp("done.");`                  |     |     |     | `disp("done.");`                  |
+|                                   |     |     |     |                                   |
+|                                   |     |     |     | `return 0;`                       |
+|                                   |     |     |     | `}`                               |
+**Note:**
+It is important to specify that the Castor library is far from offering today all the functionalities offered by Matlab and its many toolboxes. 
 
 # Dense Matrix  
 
@@ -109,6 +214,14 @@ Matrix 4x4 of type 'd' (128 B):
 -2.7756e-17            0            0   1.0000e+00  
 ```
 
+**Note:**
+The backslash operator (`\`) not being available, the `linsolve` function allows to solve linear systems with:
+
+  - LU decomposition with partial pivoting and row interchanges for square matrices (`[sdcz]gesv`),
+  - QR or LQ factorization for overdetermined or underdetermined linear systems (`[sdcz]gels`).
+
+In addition, an iterative multi-right-hand-side solver `gmres` is available in *matrix.hpp*, without dependency on BLAS and LAPACK. 
+
 # 2D/3D Visualization
 
 The graphic rendering part, provided by *graphics.hpp*, features 2D/3D customizable plotting and basic mesh generation. It is based on the well-known VTK library [@vtk:2000]. Here again, the approach tries to get as close as possible to Matlab semantics.
@@ -117,7 +230,7 @@ First, the user creates a `figure`, which is a dynamic container of data to disp
 
 In addition, graphics exports are available in different compression formats (`png`,` jpg`, `tiff`, etc.), as well as video rendering (`ogg`). 
 
-This example shows a basic 2D plotting of a sine function:
+This example shows a basic 2D plotting of a sine function (\autoref{fig:sin}):
 
 ```c++
 #include "castor/matrix.hpp"
@@ -133,7 +246,7 @@ int main (int argc, char* argv[])
     return 0;
 }
 ```
-![Caption for example figure.\label{fig:sin}](plot2d.png)
+![Basic 2D plotting from Castor (using VTK).\label{fig:sin}](plot2d.png)
 
 # Sparse matrices
 
@@ -204,7 +317,7 @@ $$H \mu(\textbf{x}) = \int_\Gamma \partial_{n_x} \partial_{n_y} G(\textbf{x},\te
 
 The operator $H$ is assembled using a $P_1$ finite element discretization on a triangular mesh of the surface $\Gamma$, stored using dense matrices (*matrix.hpp*) or hierarchical matrices (*hmatrix.hpp*).
 
-![Caption for example figure.\label{fig:head}](head.png)
+![Resonance mode at 8kHz of the human pinna (BEM with H-Matrix).\label{fig:head}](head.png)
 
 Finaly, using all the tools provided by Castor to write and solve these equations, we are able to efficiently compute the acoustic diffraction of a harmonic plane wave at 8kHz, on a human head mesh [@symare:2013]). The simulation result (\autoref{fig:head}) highlights the role of the auditory pavilion as a resonator, modifying the timbre of a sound source to allow a listener's brain to precisely locate its direction. 
 
@@ -216,9 +329,7 @@ Finaly, using all the tools provided by Castor to write and solve these equation
 #include <castor/graphics.hpp>
 #include "fem.hpp"
 #include "bem.hpp"
-
 using namespace castor;
-
 int main (int argc, char* argv[])
 {
     // Load meshes
@@ -242,7 +353,6 @@ int main (int argc, char* argv[])
     femdata<double> u(Stri,Svtx,lagrangeP1,3);
     auto Id = mass<std::complex<double>>(v);
     toc();
-
     // Left hand side : [-H]
     tic();
     auto LHSfct = [&v,&u,&k](matrix<std::size_t> Ix, matrix<std::size_t> Iy)
@@ -252,10 +362,8 @@ int main (int argc, char* argv[])
     hmatrix<std::complex<double>> LHS(v.dof(),u.dof(),tol,LHSfct);
     toc();
     disp(LHS);
-
     // Right hand side : - \int_sigma_x v(x) PW(x,u) dx
     auto B = - rightHandSide<std::complex<double>>(v,dnPWsource,U,k);
-
     // Solve -H = -dnP0
     hmatrix<std::complex<double>> Lh,Uh;
     tic();
@@ -295,3 +403,4 @@ int main (int argc, char* argv[])
 We thank Houssem Haddar for his precious help.
 
 # References
+
