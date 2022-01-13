@@ -126,15 +126,33 @@ int main (int argc, char* argv[])
     disp(Mh);
     disp( norm(M-full(Mh),"inf")/norm(M,"inf") );
     
-    matrix<std::size_t> idx = find(rand(1,Nx)<0.5);
-    matrix<std::size_t> jdx = find(rand(1,Ny)<0.5);
+    //===============================================================
+    std::cout << "+=====================+" << std::endl;
+    std::cout << "|    REDUCED MATRIX   |" << std::endl;
+    std::cout << "+=====================+" << std::endl;
+    
+    matrix<std::size_t> idx = find(rand(1,Nx)<0.4);
+    matrix<std::size_t> jdx = find(rand(1,Ny)<0.4);
     tic();
     matrix<double> Mij = eval(M(idx,jdx));
     toc();
     tic();
     matrix<double> Mhij = Mh(idx,jdx);
     toc();
+    disp(Mhij);
     disp( norm(Mij-Mhij,"inf")/norm(Mij,"inf") );
+    
+    smatrix<double> Sl  = sparse(range(0,length(idx)),idx,ones(size(idx)),length(idx),Nx);
+    smatrix<double> Sr  = sparse(range(0,length(jdx)),jdx,ones(size(jdx)),length(jdx),Ny);
+    tic();
+    matrix<double> Mlr  = mtimes(mtimes(Sl,M),transpose(Sr));
+    toc();
+    tic();
+    hmatrix<double> Mhlr(bintree<double>(mtimes(Sl,X)),
+                         bintree<double>(mtimes(Sr,Y)),Sl,Mh,transpose(Sr));
+    toc();
+    disp(Mhlr);
+    disp( norm(Mlr-full(Mhlr),"inf")/norm(Mlr,"inf") );
 
     //===============================================================
     std::cout << "+==================+" << std::endl;

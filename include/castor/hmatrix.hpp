@@ -211,6 +211,8 @@ public:
     hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, double tol);
     template<typename S>
     hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, double tol, smatrix<T>const& Ms);
+    template<typename S>
+    hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, smatrix<T>const& Ml, hmatrix<T>const& Mh, smatrix<T>const& Mr);
     
     // FUNCTIONS
     void full2lowrank();
@@ -457,6 +459,120 @@ hmatrix<T>::hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, double tol, smatri
     }
 }
 
+//==========================================================================
+// [.hmatrix]
+/// Projector constructor : Ml * Mh * Mr
+template<typename T>
+template<typename S>
+hmatrix<T>::hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, smatrix<T>const& Ml, hmatrix<T>const& Mh, smatrix<T>const& Mr)
+{
+    // Dimensions compatibility
+    if (size(Xb.crd(),1)!=size(Ml,1) || size(Yb.crd(),1)!=size(Mr,2) ||
+        size(Ml,2)!=size(Mh,1) || size(Mh,2)!=size(Mr,1))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Dimensions must agree.");
+    }
+    
+    // Global Indices
+    m_siz = {size(Xb.crd(),1),size(Yb.crd(),1)};
+    m_tol = Mh.getTolerance();
+
+    // Empty leaf
+    if (nnz(Ml)==0 || nnz(Mr)==0)
+    {
+        m_typ       = 1;
+        m_dat[0]    = zeros<T>(m_siz(0),1);
+        m_dat[1]    = zeros<T>(1,m_siz(1));
+    }
+    // Far leaf
+    else if (Mh.getType()==1)
+    {
+        m_typ    = 1;
+        m_dat[0] = mtimes(Ml,Mh.getData(0));
+        m_dat[1] = mtimes(Mh.getData(1),Mr);
+    }
+    // Full leaves
+    else if (Mh.getType()==2 && (Xb.isleaf() || Yb.isleaf()))
+    {
+        m_typ    = 2;
+        m_dat[0] = mtimes(mtimes(Ml,Mh.getData(0)),Mr);
+    }
+    // Full leaf from Mh
+    //   M = (A1) (B1) (C1 C2)
+    //       (A2)
+    else if (Mh.getType()==2)
+    {
+        // Indices of sub matrices
+        matrix<std::size_t> idx, jdx, tmp;
+        std::tie(tmp,jdx) = ind2sub(size(Ml),index(Ml));
+        std::tie(idx,tmp) = ind2sub(size(Mr),index(Mr));
+        idx = unique(idx);
+        jdx = unique(jdx);
+
+        // Sub matrices
+        smatrix<T> A = eval(Ml(row(Ml),jdx));
+        smatrix<T> B = sparse(eval(Mh.getData(0)(jdx,idx)));
+        smatrix<T> C = eval(Mr(idx,col(Mr)));
+
+        // Product
+        smatrix<T> Ms = mtimes(mtimes(A,B),C);
+        (*this) = hmatrix<double>(Xb,Yb,m_tol,Ms);
+    }
+    // Full leaf from tree
+    //   M = (A1 A2) (B1 B2) (C1)
+    //               (B3 B4) (C2)
+    else if (Xb.isleaf() || Yb.isleaf())
+    {
+        // Indices of sub matrices
+        matrix<std::size_t> idx, jdx, tmp;
+        std::tie(tmp,jdx) = ind2sub(size(Ml),index(Ml));
+        std::tie(idx,tmp) = ind2sub(size(Mr),index(Mr));
+        idx = unique(idx);
+        jdx = unique(jdx);
+
+        // Sub matrices
+        matrix<T> Bf = zeros(length(jdx),length(idx));
+        Mh.hfull2(Bf,jdx,idx);
+        smatrix<T> As = eval(Ml(row(Ml),jdx));
+        smatrix<T> Cs = eval(Mr(idx,col(Mr)));
+
+        // Product
+        m_typ = 2;
+        m_dat[0] = mtimes(mtimes(As,Bf),Cs);
+    }
+    // Recursive leaf
+    else if (Mh.getType()==0)
+    {
+        // Prepare blocks
+        m_typ = 0;
+        m_chd.resize(4,hmatrix<T>());
+        for (int h=0; h<4; ++h)
+        {
+            m_row[h] = Xb.ind(h/2);
+            m_col[h] = Yb.ind(h%2);
+            m_chd[h] = hmatrix<T>(length(m_row[h]),length(m_col[h]),0);
+        }
+        
+        // Recursion
+        matrix<std::size_t> g = {0,2,1,3};
+        for (int h=0; h<4; ++h)
+        {
+           for (int i=0; i<4; ++i)
+            {
+                m_chd[h] += hmatrix(Xb.sub(h/2), Yb.sub(h%2),
+                                    eval(Ml(m_row[h],Mh.getRow(g(i)))),
+                                    Mh.getChildren(g(i)),
+                                    eval(Mr(Mh.getColumn(g(i)),m_col[h])));
+            }
+        }
+        fusion();
+    }
+    else
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Unavailable case.");
+    }
+}
+
 
 //==========================================================================//
 //                               FUNCTIONS                                  //
@@ -471,12 +587,29 @@ void hmatrix<T>::full2lowrank()
     {
         matrix<T> A, B;
         bool flag;
-        std::tie(A,B,flag) = aca(m_dat[0],m_tol);
+        // Full
+        if (nnz(m_dat[0])>numel(m_dat[0])/4)
+        {
+            std::tie(A,B,flag) = aca(m_dat[0],m_tol/10);
+        }
+        // "Sparse"
+        else
+        {
+            std::tie(A,B) = qrsvd(m_dat[0],eye<T>(m_siz(1)),m_tol/10);
+            (size(A,2)<min(m_siz)/2)?(flag = true):(flag = false);
+        }
+        // Check and update
         if (flag)
         {
-            m_dat[0] = A;
-            m_dat[1] = B;
-            m_typ    = 1;
+            matrix<T> tmp = m_dat[0] - mtimes(A,B);
+            double errLinf = norm(tmp,"inf")/norm(m_dat[0],"inf");
+            double errL2   = norm(tmp,"2")/norm(m_dat[0],"2");
+            if (errLinf<m_tol && errL2<m_tol)
+            {
+                m_dat[0] = A;
+                m_dat[1] = B;
+                m_typ    = 1;
+            }
         }
     }
 }
@@ -1053,7 +1186,6 @@ void hmatrix<T>::leafptr(std::vector<hmatrix<T>*>& ptr,
     }
 }
 
-
 //==========================================================================
 // [hmatrix.recompress]
 /// Recompression of dense and low-rank leaves with fusion.
@@ -1075,7 +1207,7 @@ void hmatrix<T>::recompress(double tol)
     }
     else if (m_typ==2)
     {
-//        full2lowrank();
+        full2lowrank();
     }
     else
     {
@@ -1858,3 +1990,197 @@ inline hmatrix<T> transpose(hmatrix<T>const& Ah)
 }
 
 }
+
+
+
+
+
+
+
+////==========================================================================
+//// [hmatrix.full2lowrank]
+///// Convert full leaf to low-rank using ACA compression.
+//template<typename T>
+//void hmatrix<T>::full2lowrank()
+//{
+//    if (m_typ==2 && m_tol>0)
+//    {
+//        if (rank(m_dat[0])<min(m_siz)*0.9)
+//        {
+//            m_typ = 1;
+//            std::tie(m_dat[0],m_dat[1]) = qrsvd(m_dat[0],eye(m_siz(1)),m_tol);
+//        }
+//    }
+//}
+
+
+////==========================================================================
+//// [hmatrix.full2lowrank]
+///// Convert full leaf to low-rank using ACA compression.
+//template<typename T>
+//void hmatrix<T>::full2lowrank()
+//{
+//    if (m_typ==2 && m_tol>0)
+//    {
+//        matrix<T> A, B;
+//        bool flag;
+//        std::tie(A,B,flag) = aca(m_dat[0],m_tol);
+//        if (flag)
+//        {
+//            m_dat[0] = A;
+//            m_dat[1] = B;
+//            m_typ    = 1;
+//        }
+//    }
+//}
+
+
+
+
+
+
+
+////==========================================================================
+//// [.hmatrix]
+///// Projector constructor : Ml * Mh * Mr
+//template<typename T>
+//template<typename S>
+//hmatrix<T>::hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, smatrix<T>const& Ml, hmatrix<T>const& Mh, smatrix<T>const& Mr)
+//{
+//
+//    // Dimensions compatibility
+//    if (size(Xb.crd(),1)!=size(Ml,1) || size(Yb.crd(),1)!=size(Mr,2) ||
+//        size(Ml,2)!=size(Mh,1) || size(Mh,2)!=size(Mr,1))
+//    {
+//        error(__FILE__, __LINE__, __FUNCTION__,"Dimensions must agree.");
+//    }
+//
+//    // Global Indices
+//    m_siz = {size(Xb.crd(),1),size(Yb.crd(),1)};
+//    m_tol = Mh.getTolerance();
+//
+//    // Low-rank
+//    if (Mh.getType()==1)
+//    {
+//        m_typ    = 1;
+//        m_dat[0] = mtimes(Ml,Mh.getData(0));
+//        m_dat[1] = mtimes(Mh.getData(1),Mr);
+////        std::tie(m_dat[0],m_dat[1]) = qrsvd(m_dat[0],m_dat[1],m_tol);
+//    }
+//    // Empty leaves
+//    else if (nnz(Ml)==0 || nnz(Mr)==0)
+//    {
+//        m_typ       = 1;
+//        m_dat[0]    = zeros<T>(m_siz(0),1);
+//        m_dat[1]    = zeros<T>(1,m_siz(1));
+//        m_dat[0](0) = M_EPS(T);
+//        m_dat[1](0) = M_EPS(T);
+//    }
+//    // Far leaves
+//    else if (Xb.box().isfar(Yb.box()))
+//    {
+//        // Indices of sub matrices
+//        matrix<std::size_t> idx, jdx, tmp;
+//        std::tie(tmp,jdx) = ind2sub(size(Ml),index(Ml));
+//        std::tie(idx,tmp) = ind2sub(size(Mr),index(Mr));
+//        idx = unique(idx);
+//        jdx = unique(jdx);
+//
+//        // Sub h-matrix with ACA compression
+//        matrix<T> A, B;
+//        bool flag = false;
+//        if (m_siz(0)>=100 && m_siz(1)>=100)
+//        {
+//            std::function<matrix<T>(matrix<std::size_t>,matrix<std::size_t>)> fct;
+//            fct = [&Mh](matrix<std::size_t> I, matrix<std::size_t> J)
+//            {
+//                matrix<T> M(length(I),length(J));
+//                Mh.hsub(M,I,J);
+//                return M;
+//            };
+//            std::tie(A,B,flag) = aca(jdx,idx,fct,m_tol);
+//        }
+//        if (!flag)
+//        {
+//            A = zeros<T>(length(jdx),length(idx));
+//            Mh.hsub(A,jdx,idx);
+//            B = eye(size(A,2));
+//            std::tie(A,B) = qrsvd(A,B,m_tol);
+//        }
+//
+//        // Product
+//        m_typ = 1;
+//        m_dat[0] = mtimes( eval(Ml(row(Ml),jdx)) , A );
+//        m_dat[1] = mtimes( B , eval(Mr(idx,col(Mr))) );
+//        std::tie(m_dat[0],m_dat[1]) = qrsvd(m_dat[0],m_dat[1],m_tol);
+//    }
+//    // Full leaves
+//    else if (Xb.isleaf() || Yb.isleaf())
+//    {
+//        // Indices of sub matrices
+//        matrix<std::size_t> idx, jdx, tmp;
+//        std::tie(tmp,jdx) = ind2sub(size(Ml),index(Ml));
+//        std::tie(idx,tmp) = ind2sub(size(Mr),index(Mr));
+//        idx = unique(idx);
+//        jdx = unique(jdx);
+//
+//        // Sub matrices
+//        matrix<T> Bf = zeros(length(jdx),length(idx));
+//        Mh.hsub(Bf,jdx,idx);
+//        smatrix<T> As = eval(Ml(row(Ml),jdx));
+//        smatrix<T> Cs = eval(Mr(idx,col(Mr)));
+//        m_dat[0] = mtimes(mtimes(As,Bf),Cs);
+//
+//        // Product
+//        m_typ = 2;
+//        m_dat[0] = mtimes(mtimes(As,Bf),Cs);
+////        matrix<T> ref = mtimes(mtimes(full(Ml),Mh),full(Mr));
+////        disp(norm( ref-m_dat[0] , "inf" ));
+//    }
+//    // Recursion
+//    else
+//    {
+//        matrix<std::size_t> I = range(0,size(Mh,1));
+//        matrix<std::size_t> J = range(0,size(Mh,2));
+//        m_chd.resize(4,hmatrix<T>());
+//        for (int h=0; h<4; ++h)
+//        {
+//            m_row[h] = Xb.ind(h/2);
+//            m_col[h] = Yb.ind(h%2);
+//            m_chd[h] = hmatrix<T>(Xb.sub(h/2),Yb.sub(h%2),eval(Ml(m_row[h],I)),Mh,eval(Mr(J,m_col[h])));
+//        }
+//        m_typ = 0;
+//        fusion();
+//    }
+//}
+
+
+
+
+////==========================================================================
+//// [hmatrix.full2lowrank]
+///// Convert full leaf to low-rank using SVD compression.
+//template<typename T>
+//void hmatrix<T>::full2lowrank()
+//{
+//    if (m_typ==2 && m_tol>0)
+//    {
+//        using T2 = decltype(std::abs(m_dat[0](0)));
+//        matrix<T2> S;
+//        matrix<T> U, Vt;
+//        std::size_t rk;
+//        std::tie(S,U,Vt) = svd(m_dat[0],"vect");
+//        rk = sum(S>=S(0)*m_tol);
+//        if (S(numel(S)-1)<max(size(m_dat[0]))*M_EPS(T2) && rk<min(size(m_dat[0]))/4)
+//        {
+//            m_typ    = 1;
+//            m_dat[0] = zeros<T>(size(U,1),rk);
+//            m_dat[1] = zeros<T>(rk,size(Vt,2));
+//            for (std::size_t r=0; r<rk; ++r)
+//            {
+//                for (std::size_t i=0; i<size(U,1); ++i)  {m_dat[0](i,r) = U(i,r)*S(r);}
+//                for (std::size_t j=0; j<size(Vt,2); ++j) {m_dat[1](r,j) = Vt(r,j);}
+//            }
+//        }
+//    }
+//}
