@@ -196,7 +196,7 @@ This example displays the product of $A$ and $A^{-1}$ :
 ```c++
 #include <iostream>
 #include "castor/matrix.hpp"
-#include "castor/linsolve.hpp"
+#include "castor/linalg.hpp"
 using namespace castor;
 int main (int argc, char* argv[])
 {
