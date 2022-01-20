@@ -40,10 +40,10 @@
 #ifndef kiss_fft_log_h
 #define kiss_fft_log_h
 
-#define ERROR 1
-#define WARNING 2
-#define INFO 3
-#define DEBUG 4
+#define KFFT_ERROR 1
+#define KFFT_WARNING 2
+#define KFFT_INFO 3
+#define KFFT_DEBUG 4
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
@@ -57,10 +57,10 @@ fprintf(stderr, __VA_ARGS__); \
 fprintf(stderr, "\n")
 #endif
 
-#define KISS_FFT_ERROR(...) KISS_FFT_LOG_MSG(ERROR, __VA_ARGS__)
-#define KISS_FFT_WARNING(...) KISS_FFT_LOG_MSG(WARNING, __VA_ARGS__)
-#define KISS_FFT_INFO(...) KISS_FFT_LOG_MSG(INFO, __VA_ARGS__)
-#define KISS_FFT_DEBUG(...) KISS_FFT_LOG_MSG(DEBUG, __VA_ARGS__)
+#define KISS_FFT_ERROR(...) KISS_FFT_LOG_MSG(KFFT_ERROR, __VA_ARGS__)
+#define KISS_FFT_WARNING(...) KISS_FFT_LOG_MSG(KFFT_WARNING, __VA_ARGS__)
+#define KISS_FFT_INFO(...) KISS_FFT_LOG_MSG(KFFT_INFO, __VA_ARGS__)
+#define KISS_FFT_DEBUG(...) KISS_FFT_LOG_MSG(KFFT_DEBUG, __VA_ARGS__)
 
 #endif
 
