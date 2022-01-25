@@ -11,7 +11,13 @@ After installing VTK (see :ref:`label-installation`), the user only needs to inc
 
 The path is very close to the one chosen by `Matlab <https://www.mathworks.com/products/matlab.html>`_ or `Matplotlib <https://matplotlib.org/>`_ (for the Python language). First, the user creates a ``figure`` which is a container which will hold the plots. Then,he adds one or multiple plots to the ``figure``. Finally, he asks the system to display the figures (one window per ``figure`` will be created) with the ``drawnow(...)`` function. Each call to ``drawnow`` displays **all** the ``figure`` objects which have been defined since the last call.
 
-**WARNING:** Each call to ``drawnow`` is **blocking**, meaning that it will suspend the execution of the program until all the opened ``figure`` are closed. This behavior cannot be modified as it is due to VTK.
+
+.. warning::
+    Each call to ``drawnow`` is **blocking**, meaning that it will suspend the execution of the program until all the opened ``figure`` are closed. 
+    This behavior cannot be modified as it is due to VTK.
+
+    On Windows and linux, when the opened ``figure`` are closed, the program stops. A workaround consists in to call the `drawnow`` function at the end 
+    of the program.
 
 The **graphics** library features 2D/3D customizable plotting and basic triangular/tetrahedral mesh generation. We detail the use of some of these features below. The demo files may be found in the ``demo/demo_graphics/`` subfolder.
 
