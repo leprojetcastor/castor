@@ -35,5 +35,5 @@ $ git push -u origin my-feature
 
 8. Finally, go to the web page of your fork of the castor repository, and *click 'Pull request'* to send your changes to the maintainers for review. This will send an email to the committers.
 
-If any of the above seems like magic to you, then look up the [Git documentation](https://git-scm.com/doc) on the web. It is recommended to check that your contribution complies with the following rules before submitting a pull request: All public methods should have informative docstrings with sample usage presented, compatible with the documentation process.
+If any of the above seems like magic to you, then look up the [Git documentation](https://git-scm.com/doc) on the web. It is recommended to check that your contribution complies with the following rule before submitting a pull request: all public methods should have informative docstrings with sample usage presented, compatible with the documentation process.
 
