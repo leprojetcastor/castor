@@ -253,10 +253,10 @@ int main (int argc, char* argv[])
 Some matrices have sparse structures, with many (many) zeros that do not need to be stored [@sparse:2011]. There are adapted storage formats for this type of structure (LIL, COO, CSR, etc.), the most natural being to store the indices of rows and columns for each non-zero value, as a list of triplet $\{i,j,v\}$. For the *Castor* framework, a dedicated template class to this kind of matrix has been developed (see `smatrix.hpp`). The storage format is based on a row major sorted linear indexing. Only non-zero values and their sorted linear indices are stored in a list of pairs $\{v,l\}$:  for a $m\times n$ matrix, the following bijection is used to switch with the common bilinear indexation:
 
 $$
-\begin{eqnarray}
-\{i,j\} &\rightarrow& l = i \cdot n + j, \\
-l &\rightarrow& \{i=\frac{l}{n}; j= i\textrm{ mod }n\}.
-\end{eqnarray}
+\begin{align}
+\{i,j\} &\rightarrow l = i \cdot n + j, \\
+l &\rightarrow \{i=\frac{l}{n}; j= i\textrm{ mod }n\}.
+\end{align}
 $$
 
 Accessors to all the elements are provided so that sparse matrices can be manipulated in a similar way as the dense matrices. This operation is performed by dichotomy with a convergence in $log_2 (\text{nnz})$, where $\text{nnz}$ is the number of non-zero elements. Just like dense matrices, numerical values are stored in a templatized `std::vector<T>`. For convenience, we provide classical builders (`sparse`, `speye`, `spdiags`, etc.), standard C++ operators overloading, views, display functions (`disp`, `spy`) and some linear algebra tools (`transpose`, `mtimes`, `gmres`, etc.). 
@@ -304,11 +304,11 @@ To widen the field of applications, the $\mathcal H$-matrix format, so-called hi
 As an application example, an acoustical scattering simulation was carried out using a boundary element method (BEM) tool, implemented with the *Castor* framework (see the *fembem* package [@fembem:21]). We consider a smooth $n$-oriented surface $\Gamma$ of some object $\Omega$, illuminated by an incident plane wave $u_i$ with wave-number $k$. The scattered field $u$ satisfies the Helmholtz equation in $\Omega$, Neumann boundary conditions (*sound-hard*) and the Sommerfeld radiation condition: 
 
 $$
-\begin{eqnarray}
--(\Delta u + k^2 u) &=& 0 \\
--\partial_n u_i     &=& 0 \label{eq1}\tag{1} \\
-\lim\limits_{r \to + \infty} r\textrm{ }(\partial_r u - i k u) &=& 0
-\end{eqnarray}
+\begin{align}
+-(\Delta u + k^2 u) &= 0 \\
+-\partial_n u_i     &= 0 \label{eq1}\tag{1} \\
+\lim\limits_{r \to + \infty} r\textrm{ }(\partial_r u - i k u) &= 0
+\end{align}
 $$
   
 The scattered field $u$ satisfies the integral representation (Neumann interior extension, see [@terasse:2007]):
