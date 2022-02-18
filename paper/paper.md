@@ -34,7 +34,7 @@ Matlab is a software used worldwide in numerical prototyping, due to its particu
  - linear algebra computations [@blaslapack:00],
  - graphical representations [@vtk:2000].
 
-This high-level semantic/low-level language coupling makes it possible to gain efficiency in the developpement, while ensuring performance for applications. In addition, direct access to data structures allows users to optimize the most critical parts of their code. Finally, a complete documentation is available, as well as continuous integration unit tests. All of this makes it possible to meet the needs of teaching (notebooks using c++ interpreter such as Cling), academic research and industrial applications at the same time. 
+This high-level semantic/low-level language coupling makes it possible to gain efficiency in the developpement, while ensuring performance for applications. In addition, direct access to data structures allows users to optimize the most critical parts of their code. Finally, a complete documentation is available, as well as continuous integration unit tests. All of this makes it possible to meet the needs of teaching (notebooks using C++ interpreter such as Cling), academic research and industrial applications at the same time. 
 
 # State of the field
 
@@ -65,9 +65,9 @@ For a developer accustomed to the Matlab language, it is natural to turn to prot
 | `toc`                             |     |     |     |  `@time test();`                                 |
 | `disp("done.");`                  |     |     |     |  `display("done.");`                             |                          
 
-Despite the many advantages that these languages have and their high popularity, many codes are still developed natively in Fortran, C or C++, for practical or historical reasons. Even if there are tools to automatically generate C/C++ code from a high-level language (as *Matlab Coder*), this work is often done manually by specialists. To find high-level semantics in native C ++, we can turn to libraries like Eigen [@eigenweb], which offers a matrix API and efficient algebra tools. However, as the comparison below shows, the transcription from a Matlab code to an Eigen-based C++ code is not immediate: 
+Despite the many advantages that these languages have and their high popularity, many codes are still developed natively in Fortran, C or C++, for practical or historical reasons. Even if there are tools to automatically generate C/C++ code from a high-level language (as *Matlab Coder*), this work is often done manually by specialists. To find high-level semantics in native C++, we can turn to libraries like Eigen [@eigenweb], which offers a matrix API and efficient algebra tools. However, as the comparison below shows, the transcription from a Matlab code to an Eigen-based C++ code is not immediate: 
 
-```
+```c++
 #include <iostream>
 #include <chrono>
 #include <eigen-3.4.0/Eigen/Dense>
@@ -109,7 +109,7 @@ int main()
     return 0;
 }
 ```
-To complete this example, other references are available on this [link](https://eigen.tuxfamily.org/dox/AsciiQuickReference.txt). This is why all the features of the Castor library have been designed and developed so that the semantics at user level are as close to Matlab as what C ++ allows. Moreover, to gain in portability, the manipulations of full matrices and the main algorithms depend only on the standard library which is available on the majority of OS (Macos, Linux, Windows, Android, etc.). Only advanced linear algebra tools require an external BLAS / LAPACK API, as well as graphical visualization functionality (VTK). The example below illustrates this goal:
+To complete this example, other references are available on this [link](https://eigen.tuxfamily.org/dox/AsciiQuickReference.txt). This is why all the features of the Castor library have been designed and developed so that the semantics at user level are as close to Matlab as what C++ allows. Moreover, to gain in portability, the manipulations of full matrices and the main algorithms depend only on the standard library which is available on the majority of OS (Macos, Linux, Windows, Android, etc.). Only advanced linear algebra tools require an external BLAS / LAPACK API, as well as graphical visualization functionality (VTK). The example below illustrates this goal:
 
 | Matlab                            |     |     |     | Castor                            |
 | -------------------------------   | --- | --- | --- | --------------------------------- |
@@ -144,7 +144,7 @@ It is important to specify that the Castor library is far from offering today al
 
 # Dense Matrix  
 
-The dense matrix part of the *Castor* framework implements its own templatized class `matrix<T>` in *matrix.hpp* , where `T` can be fundamental types of C++ as well as `std::complex`. This class is built over a `std::vector<T>` which holds the values [@cpp:14]. Note that the element of a matrix is stored in row-major order and that a vector is considered as a $1\times n$ or $n\times 1$ matrix.
+The dense matrix part of the *Castor* framework implements its own templatized class `matrix<T>` in `matrix.hpp`, where `T` can be fundamental types of C++ as well as `std::complex`. This class is built over a `std::vector<T>` which holds the values [@cpp:14]. Note that the element of a matrix is stored in row-major order and that a vector is considered as a $1\times n$ or $n\times 1$ matrix.
 
 The class `matrix<T>` provides many useful functions and operators such as:
 
@@ -185,9 +185,9 @@ Matrix 3x4 of type 'd' (96 B):
 
 # Linear Algebra
 
-The linear algebra part of the framework, implemented in *linalg.hpp*, provides a set of useful functions to perform linear algebra computations by linking to optimized implementations of the BLAS and LAPACK standards [@blaslapack:00] (OpenBLAS, oneAPI MKL, etc.).
+The linear algebra part of the framework, implemented in `linalg.hpp`, provides a set of useful functions to perform linear algebra computations by linking to optimized implementations of the BLAS and LAPACK standards [@blaslapack:00] (OpenBLAS, oneAPI MKL, etc.).
 
-The BLAS part is a straightforward overlay of the C-BLAS type III API, which is compatible with row-major ordering.  This is achieved by a template specialization of the `tgemm` function, which allows optimized implementations to take control of the computation using `sgemm`, `dgemm`, `cgemm` and `zgemm`. Thanks to this interface, naive implementations proposed in *matrix.hpp* for dense matrix-products `mtimes` and `tgemm` may be improved in term of performance, especially for large matrices. 
+The BLAS part is a straightforward overlay of the C-BLAS type III API, which is compatible with row-major ordering.  This is achieved by a template specialization of the `tgemm` function, which allows optimized implementations to take control of the computation using `sgemm`, `dgemm`, `cgemm` and `zgemm`. Thanks to this interface, naive implementations proposed in `matrix.hpp` for dense matrix-products `mtimes` and `tgemm` may be improved in term of performance, especially for large matrices. 
 
 The LAPACK part is a direct overlay over the Fortran LAPACK API, which uses a column ordering storage convention. This interface brings new high-level functionalities, such as a linear solver (`linsolve`), matrix inversion (`inv`, `pinv`), factorizations (`qr`, `lu`), the search for eigen or singular values decompositions (`eig` ,`svd`), aca compression (`aca`), etc. It uses templatized low-level functions following the naming convention close to the LAPACK one (like `tgesdd`, `tgeqrf`, etc.).
 
@@ -220,11 +220,11 @@ The backslash operator (`\`) not being available, the `linsolve` function allows
   - LU decomposition with partial pivoting and row interchanges for square matrices (`[sdcz]gesv`),
   - QR or LQ factorization for overdetermined or underdetermined linear systems (`[sdcz]gels`).
 
-In addition, an iterative multi-right-hand-side solver `gmres` is available in *matrix.hpp*, without dependency on BLAS and LAPACK. 
+In addition, an iterative multi-right-hand-side solver `gmres` is available in `matrix.hpp`, without dependency on BLAS and LAPACK. 
 
 # 2D/3D Visualization
 
-The graphic rendering part, provided by *graphics.hpp*, features 2D/3D customizable plotting and basic mesh generation. It is based on the well-known VTK library [@vtk:2000]. Here again, the approach tries to get as close as possible to Matlab semantics.
+The graphic rendering part, provided by `graphics.hpp`, features 2D/3D customizable plotting and basic mesh generation. It is based on the well-known VTK library [@vtk:2000]. Here again, the approach tries to get as close as possible to Matlab semantics.
 
 First, the user creates a `figure`, which is a dynamic container of data to display. The `figure` class is composed of a `vtkContextView` class, providing a view with a default interactor style, renderer, etc. Then, graphic representations can be added to the figure, using functions like `plot`, `imagesc`, `plot3`, `mesh`, etc. Options are available to customize the display of the results, such as the plotting style, legend, colorbar and others basic stuff. Finally, the `drawnow` function must be called to display all defined figures. The latters are displayed and manipulated in independent windows.
 
@@ -250,7 +250,7 @@ int main (int argc, char* argv[])
 
 # Sparse matrices
 
-Some matrices have sparse structures, with many (many) zeros that do not need to be stored [@sparse:2011]. There are adapted storage formats for this type of structure (LIL, COO, CSR, etc.), the most natural being to store the indices of rows and columns for each non-zero value, as a list of triplet $\{i,j,v\}$. For the *Castor* framework, a dedicated template class to this kind of matrix has been developed (see *smatrix.hpp*). The storage format is based on a row major sorted linear indexing. Only non-zero values and their sorted linear indices are stored in a list of pairs $\{v,l\}$:  for a $m\times n$ matrix, the following bijection is used to switch with the common bilinear indexation:
+Some matrices have sparse structures, with many (many) zeros that do not need to be stored [@sparse:2011]. There are adapted storage formats for this type of structure (LIL, COO, CSR, etc.), the most natural being to store the indices of rows and columns for each non-zero value, as a list of triplet $\{i,j,v\}$. For the *Castor* framework, a dedicated template class to this kind of matrix has been developed (see `smatrix.hpp`). The storage format is based on a row major sorted linear indexing. Only non-zero values and their sorted linear indices are stored in a list of pairs $\{v,l\}$:  for a $m\times n$ matrix, the following bijection is used to switch with the common bilinear indexation:
 
  - $\{i,j\} \rightarrow l = i \cdot n + j$, 
  - $l \rightarrow \{i=\frac{l}{n}; j= i\textrm{ mod }n\}$. 
@@ -294,7 +294,7 @@ Matrix 2x3 of type 'd' (48 B):
 
 # Hierarchical matrices
 
-To widen the field of applications, the $\mathcal H$-matrix format, so-called hierachical matrices [@hackbush:1999], have been added in *hmatrix.hpp*. They are specially designed for matrices with localized rank defaults. It allows a fully-populated matrix to be assembled and stored in a lighter format by compressing some parts of the original dense matrix using a low-rank representation [@rjasanow:2002]. They are constructed by binary tree subdivisions in a recursive way, with a parallel assembly of the compressed and full leaves (using the OpenMP standard). This format features a complete algebra, from elementary operations to matrix inversion. An example is given in the application section that follows.
+To widen the field of applications, the $\mathcal H$-matrix format, so-called hierachical matrices [@hackbush:1999], have been added in `hmatrix.hpp`. They are specially designed for matrices with localized rank defaults. It allows a fully-populated matrix to be assembled and stored in a lighter format by compressing some parts of the original dense matrix using a low-rank representation [@rjasanow:2002]. They are constructed by binary tree subdivisions in a recursive way, with a parallel assembly of the compressed and full leaves (using the OpenMP standard). This format features a complete algebra, from elementary operations to matrix inversion. An example is given in the application section that follows.
 
 # Application with a FEM/BEM simulation
 As an application example, an acoustical scattering simulation was carried out using a boundary element method (BEM) tool, implemented with the *Castor* framework (see the *fembem* package [@fembem:21]). We consider a smooth $n$-oriented surface $\Gamma$ of some object $\Omega$, illuminated by an incident plane wave $u_i$ with wave-number $k$. The scattered field $u$ satisfies the Helmholtz equation in $\Omega$, Neumann boundary conditions (*sound-hard*) and the Sommerfeld radiation condition: 
@@ -315,7 +315,7 @@ where the hypersingular operator $H$ is defined by:
 
 $$H \mu(\textbf{x}) = \int_\Gamma \partial_{n_x} \partial_{n_y} G(\textbf{x},\textbf{y})\mu(\textbf{y}) d_y.$$
 
-The operator $H$ is assembled using a $P_1$ finite element discretization on a triangular mesh of the surface $\Gamma$, stored using dense matrices (*matrix.hpp*) or hierarchical matrices (*hmatrix.hpp*).
+The operator $H$ is assembled using a $P_1$ finite element discretization on a triangular mesh of the surface $\Gamma$, stored using dense matrices (`matrix.hpp`) or hierarchical matrices (`hmatrix.hpp`).
 
 ![Resonance mode at 8kHz of the human pinna (BEM with H-Matrix).\label{fig:head}](head.png)
 
