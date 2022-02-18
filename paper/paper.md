@@ -253,10 +253,10 @@ int main (int argc, char* argv[])
 Some matrices have sparse structures, with many (many) zeros that do not need to be stored [@sparse:2011]. There are adapted storage formats for this type of structure (LIL, COO, CSR, etc.), the most natural being to store the indices of rows and columns for each non-zero value, as a list of triplet $\{i,j,v\}$. For the *Castor* framework, a dedicated template class to this kind of matrix has been developed (see `smatrix.hpp`). The storage format is based on a row major sorted linear indexing. Only non-zero values and their sorted linear indices are stored in a list of pairs $\{v,l\}$:  for a $m\times n$ matrix, the following bijection is used to switch with the common bilinear indexation:
 
 $$
-\begin{align}
+\begin{aligned}
 \{i,j\} &\rightarrow l = i \cdot n + j, \\
 l &\rightarrow \{i=\frac{l}{n}; j= i\textrm{ mod }n\}.
-\end{align}
+\end{aligned}
 $$
 
 Accessors to all the elements are provided so that sparse matrices can be manipulated in a similar way as the dense matrices. This operation is performed by dichotomy with a convergence in $log_2 (\text{nnz})$, where $\text{nnz}$ is the number of non-zero elements. Just like dense matrices, numerical values are stored in a templatized `std::vector<T>`. For convenience, we provide classical builders (`sparse`, `speye`, `spdiags`, etc.), standard C++ operators overloading, views, display functions (`disp`, `spy`) and some linear algebra tools (`transpose`, `mtimes`, `gmres`, etc.). 
@@ -304,31 +304,31 @@ To widen the field of applications, the $\mathcal H$-matrix format, so-called hi
 As an application example, an acoustical scattering simulation was carried out using a boundary element method (BEM) tool, implemented with the *Castor* framework (see the *fembem* package [@fembem:21]). We consider a smooth $n$-oriented surface $\Gamma$ of some object $\Omega$, illuminated by an incident plane wave $u_i$ with wave-number $k$. The scattered field $u$ satisfies the Helmholtz equation in $\Omega$, Neumann boundary conditions (*sound-hard*) and the Sommerfeld radiation condition: 
 
 $$
-\begin{align}
+\begin{aligned}
 -(\Delta u + k^2 u) &= 0 \\
--\partial_n u_i     &= 0 \label{eq1}\tag{1} \\
+-\partial_n u_i     &= 0 \\
 \lim\limits_{r \to + \infty} r\textrm{ }(\partial_r u - i k u) &= 0
-\end{align}
+\end{aligned}
 $$
   
 The scattered field $u$ satisfies the integral representation (Neumann interior extension, see [@terasse:2007]):
 
 $$
-\label{eq2}\tag{2}
-u(\textbf{x}) = - \int_\Gamma \partial_{n_y} G(\textbf{x},\textbf{y})\mu(\textbf{y}) d_y  \quad \forall  \textbf{x} \in \mathbb{R}^3 \setminus \overline \Omega,
+\label{eq1}\tag{1}
+u(\textbf{x}) = - \left( \frac{1}{2}\mu(\textbf{x}) + \int_\Gamma \partial_{n_y} G(\textbf{x},\textbf{y})\mu(\textbf{y}) d_y \right) \quad \forall  \textbf{x} \in \mathbb{R}^3 \setminus \overline \Omega,
 $$
 
 for some density $\mu$, with the Green kernel $G(\textbf{x},\textbf{y}) = \displaystyle\frac{e^{i k |x - y|}}{4 \pi |x - y| }$. Using the boundary conditions we obtain :
 
 $$ 
-\label{eq3}\tag{3}
+\label{eq2}\tag{2}
 - H\mu(\textbf{x})  = - \partial_n u_i(\textbf{x}) \quad \forall \textbf{x} \in \Gamma,
 $$
 
 where the hypersingular operator $H$ is defined by:
 
 $$ 
-\label{eq4}\tag{4}
+\label{eq3}\tag{3}
 H \mu(\textbf{x}) = \int_\Gamma \partial_{n_x} \partial_{n_y} G(\textbf{x},\textbf{y})\mu(\textbf{y}) d_y.
 $$
 
@@ -371,7 +371,7 @@ int main (int argc, char* argv[])
     auto Id = mass<std::complex<double>>(v);
     toc();
     
-    // Left hand side '-H', equation (4), H-Matrix storage
+    // Left hand side '-H', equation (3), H-Matrix storage
     tic();
     auto LHSfct = [&v,&u,&k](matrix<std::size_t> Ix, matrix<std::size_t> Iy)
     {
@@ -381,10 +381,10 @@ int main (int argc, char* argv[])
     toc();
     disp(LHS);
     
-    // Right hand side '-dnUi', equation (3), full storage 
+    // Right hand side '-dnUi', equation (2), full storage 
     auto B = - rightHandSide<std::complex<double>>(v,dnPWsource,U,k);
     
-    // Solve '-H = -dnUi', equation (3), H-matrix preconditionner
+    // Solve '-H = -dnUi', equation (2), H-matrix preconditionner
     // associated to iterative solver
     hmatrix<std::complex<double>> Lh,Uh;
     tic();
@@ -394,7 +394,7 @@ int main (int argc, char* argv[])
     disp(Uh);
     auto mu = gmres(LHS,B,tol,100,Lh,Uh);
     
-    // Boundary radiation, equation (2)
+    // Boundary radiation, equation (1)
     tic();
     auto Dbndfct = [&v,&u,&k,&Id](matrix<std::size_t> Ix, matrix<std::size_t> Iy)
     {
