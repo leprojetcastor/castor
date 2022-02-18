@@ -315,7 +315,7 @@ The scattered field $u$ satisfies the integral representation (Neumann interior 
 
 $$
 \label{eq1}\tag{1}
-u(\textbf{x}) = - \left( \frac{1}{2}\mu(\textbf{x}) + \int_\Gamma \partial_{n_y} G(\textbf{x},\textbf{y})\mu(\textbf{y}) d_y \right) \quad \forall  \textbf{x} \in \mathbb{R}^3 \setminus \overline \Omega,
+u(\textbf{x}) = - \left( \frac{1}{2}\mu(\textbf{x}) + \int_\Gamma \partial_{n_y} G(\textbf{x},\textbf{y})\mu(\textbf{y}) d_y \right) \quad \forall  \textbf{x} \in \Gamma^+,
 $$
 
 for some density $\mu$, with the Green kernel $G(\textbf{x},\textbf{y}) = \displaystyle\frac{e^{i k |x - y|}}{4 \pi |x - y| }$. Using the boundary conditions we obtain :
