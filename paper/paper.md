@@ -336,7 +336,7 @@ The operator $H$ is assembled using a $P_1$ finite element discretization on a t
 
 ![Resonance mode at 8kHz of the human pinna (BEM with H-Matrix).\label{fig:head}](head.png)
 
-Finaly, using all the tools provided by Castor to write and solve these equations, we are able to efficiently compute the acoustic diffraction of a harmonic plane wave at 8kHz, on a human head mesh [@symare:2013]). The simulation result (\autoref{fig:head}) highlights the role of the auditory pavilion as a resonator, modifying the timbre of a sound source to allow a listener's brain to precisely locate its direction. 
+Finally, using all the tools provided by Castor to write and solve these equations, we are able to efficiently compute the acoustic diffraction of a harmonic plane wave at 8kHz, on a human head mesh [@symare:2013]). The simulation result (\autoref{fig:head}) highlights the role of the auditory pavilion as a resonator, modifying the timbre of a sound source to allow a listener's brain to precisely locate its direction. 
 
 ```c++
 #include <castor/matrix.hpp>
