@@ -1,5 +1,5 @@
 ---
-title: 'Castor: A C++ library to code "à la matlab"'
+title: 'Castor: A C++ library to code "à la Matlab"'
 tags:
   - C++
   - Scientific computing
@@ -45,11 +45,13 @@ For a developer accustomed to the Matlab language, it is natural to turn to prot
 |                                   |     |     |     | `using LinearAlgebra`                            |
 | `tic`                             |     |     |     | `function test()`                                |
 |                                   |     |     |     |                                                  |
-| `M = [1 2 3 ; 4 5 6 ; 7 8 9; ...` |     |     |     | `M = [1 2 3 ; 4 5 6 ; 7 8 9     `                |
+| `M = [ 1  2  3 ;`                 |     |     |     | `M = [ 1  2  3 ;`                                |
+| `      4  5  6 ;`                 |     |     |     | `      4  5  6 ;`                                |
+| `      7  8  9 ;`                 |     |     |     | `      7  8  9 ;`                                |
 | `     10 11 12];`                 |     |     |     | `     10 11 12];`                                |
 | `disp(M);`                        |     |     |     | `display(M);`                                    |
 | `M = (M - 1) .* eye(size(M));`    |     |     |     | `M = (M .- 1) .* `                               |
-|                                   |     |     |     | `    Matrix(I,size(M,1),size(M,2));`             |
+|                                   |     |     |     | `    Matrix(I,size(M));`                         |
 | `M(1,1) = -1;`                    |     |     |     | `M[1,1] = -1;`                                   |
 | `M([2,3],1)  = -1;`               |     |     |     | `M[[2 3],1] .= -1;`                              |
 | `M(4,:) = -1;`                    |     |     |     | `M[4,:] .= -1;`                                  |
@@ -78,10 +80,10 @@ int main()
     auto tic = high_resolution_clock::now();
     
     MatrixXd  M(4,3);
-    M << 1, 2, 3,
-    4, 5, 6,
-    7, 8, 9,
-    10, 11, 12;
+    M << 1,  2,  3,
+         4,  5,  6,
+         7,  8,  9,
+        10, 11, 12;
     std::cout << M << std::endl;
     
     M.array() -= 1;
@@ -115,12 +117,14 @@ To complete this example, other references are available on this [link](https://
 | -------------------------------   | --- | --- | --- | --------------------------------- |
 |                                   |     |     |     | `#include "castor/matrix.hpp"`    |
 |                                   |     |     |     | `using namespace castor;`         | 
-|                                   |     |     |     | `int main (int argc, char* argv[])` |
+|                                   |     |     |     | `int main (int argc, char* argv[])`|
 |                                   |     |     |     | `{`                               |
 | `tic`                             |     |     |     | `tic();`                          |
 |                                   |     |     |     |                                   |
-| `M = [1 2 3 ; 4 5 6 ; 7 8 9; ...` |     |     |     | `matrix<> M = {{1,2,3},{4,5,6} \` |
-| `     10 11 12];`                 |     |     |     | `              {7,8,9},{10,11,12}};` |
+| `M = [ 1  2  3 ;`                 |     |     |     | `M = {{ 1,  2,  3},`              |
+| `      4  5  6 ;`                 |     |     |     | `     { 4,  5,  6},`              |
+| `      7  8  9 ;`                 |     |     |     | `     { 7,  8,  9},`              |
+| `     10 11 12];`                 |     |     |     | `     {10, 11, 12}};`             |
 | `disp(M);`                        |     |     |     | `disp(M);`                        |
 |                                   |     |     |     |                                   |
 | `M = (M - 1) .* eye(size(M));`    |     |     |     | `M = (M - 1) * eye(size(M));`     |
