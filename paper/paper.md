@@ -81,9 +81,9 @@ int main()
     
     MatrixXd  M(4,3);
     M << 1,  2,  3,
-         4,  5,  6,
-         7,  8,  9,
-        10, 11, 12;
+        4,  5,  6,
+        7,  8,  9,
+       10, 11, 12;
     std::cout << M << std::endl;
     
     M.array() -= 1;
@@ -254,7 +254,7 @@ int main (int argc, char* argv[])
 
 # Sparse matrices
 
-Some matrices have sparse structures, with many (many) zeros that do not need to be stored [@sparse:2011]. There are adapted storage formats for this type of structure (LIL, COO, CSR, etc.), the most natural being to store the indices of rows and columns for each non-zero value, as a list of triplet $\{i,j,v\}$. For the *Castor* framework, a dedicated template class to this kind of matrix has been developed (see `smatrix.hpp`). The storage format is based on a row major sorted linear indexing. Only non-zero values and their sorted linear indices are stored in a list of pairs $\{v,l\}$:  for a $m\times n$ matrix, the following bijection is used to switch with the common bilinear indexation:
+Some matrices have sparse structures, with many (many) zeros that do not need to be stored [@sparse:1973]. There are adapted storage formats for this type of structure (LIL, COO, CSR, etc.), the most natural being to store the indices of rows and columns for each non-zero value, as a list of triplet $\{i,j,v\}$. For the *Castor* framework, a dedicated template class to this kind of matrix has been developed (see `smatrix.hpp`). The storage format is based on a row major sorted linear indexing. Only non-zero values and their sorted linear indices are stored in a list of pairs $\{v,l\}$:  for a $m\times n$ matrix, the following bijection is used to switch with the common bilinear indexation:
 
 $$
 \begin{aligned}
