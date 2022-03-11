@@ -28,17 +28,17 @@ The objective of the *Castor* framework is to propose high-level semantics, insp
 
 # Statement of need
 
-Matlab is a software used worldwide in numerical prototyping, due to its particularly user-friendly semantics and its certified toolboxes. However, many usecases do not allow codes in Matlab format, for example multi-platform portability issues, proprieraty licensing and more generally code interfacing. To start meeting these needs, a header-only template library for matrix management has been developed, based on the standard C++14 and later library, by encapsulating the `std::vector` class. Many tools and algorithms are provided to simplify the development of prototypes:
+Matlab is a software used worldwide in numerical prototyping, due to its particularly user-friendly semantics and its certified toolboxes. However, many use cases do not allow codes in Matlab format, for example multi-platform portability issues, proprieraty licensing and more generally code interfacing. To start meeting these needs, a header-only template library for matrix management has been developed, based on the standard C++14 and later library, by encapsulating the `std::vector` class. Many tools and algorithms are provided to simplify the development of prototypes:
  
  - dense, sparse and hierarchical matrices manipulations,
  - linear algebra computations [@blaslapack:00],
  - graphical representations [@vtk:2000].
 
-This high-level semantic/low-level language coupling makes it possible to gain efficiency in the developpement, while ensuring performance for applications. In addition, direct access to data structures allows users to optimize the most critical parts of their code. Finally, a complete documentation is available, as well as continuous integration unit tests. All of this makes it possible to meet the needs of teaching (notebooks using C++ interpreter such as Cling), academic research and industrial applications at the same time. 
+This high-level semantic/low-level language coupling makes it possible to gain efficiency in the developpement, while ensuring performance for applications. In addition, direct access to data structures allows users to optimize the most critical parts of their code. Finally, a complete documentation is available, as well as continuous integration unit tests. All of this makes it possible to meet the needs of teaching (notebooks using a C++ interpreter such as Cling), academic research and industrial applications at the same time. 
 
 # State of the field
 
-For a developer accustomed to the Matlab language, it is natural to turn to prototyping tools such as Numpy or Julia, to produce open-source codes. Indeed, these languages today offer similar semantics and performance, with well-established user communities. To illustrate this similarity, the following codes perform the same tasks, with one implementation in Matlab [@MATLAB:2010] (left) and another in Julia [@bezanson2012julia] (right) :
+For a developer accustomed to the Matlab language, it is natural to turn to prototyping tools such as Numpy or Julia, to produce open-source codes. Indeed, these tools today offer similar semantics and performance, with well-established user communities. To illustrate this similarity, the following codes perform the same tasks, with one implementation in Matlab [@MATLAB:2010] (left) and another in Julia [@bezanson2012julia] (right) :
 
 | Matlab                            |     |     |     | Julia                                            |
 | --------------------------------- | --- | --- | --- | ------------------------------------------------ |
@@ -67,7 +67,7 @@ For a developer accustomed to the Matlab language, it is natural to turn to prot
 | `toc`                             |     |     |     |  `@time test();`                                 |
 | `disp("done.");`                  |     |     |     |  `display("done.");`                             |                          
 
-Despite the many advantages that these languages have and their high popularity, many codes are still developed natively in Fortran, C or C++, for practical or historical reasons. Even if there are tools to automatically generate C/C++ code from a high-level language (as *Matlab Coder*), this work is often done manually by specialists. To find high-level semantics in native C++, we can turn to libraries like Eigen [@eigenweb], which offers a matrix API and efficient algebra tools. However, as the comparison below shows, the transcription from a Matlab code to an Eigen-based C++ code is not immediate: 
+Despite the many advantages that these languages have and their high popularity, many codes are still developed natively in Fortran, C, and C++, for practical or historical reasons. Even if there are tools to automatically generate C/C++ code from a high-level language (as *Matlab Coder*), this work is often done manually by specialists. To find high-level semantics in native C++, we can turn to libraries like Eigen [@eigenweb], which offers a matrix API and efficient algebra tools. However, as the comparison below shows, the transcription from a Matlab code to an Eigen-based C++ code is not immediate: 
 
 ```c++
 #include <iostream>
@@ -111,7 +111,7 @@ int main()
     return 0;
 }
 ```
-To complete this example, other references are available on this [link](https://eigen.tuxfamily.org/dox/AsciiQuickReference.txt). This is why all the features of the Castor library have been designed and developed so that the semantics at user level are as close to Matlab as what C++ allows. Moreover, to gain in portability, the manipulations of full matrices and the main algorithms depend only on the standard library which is available on the majority of OS (Macos, Linux, Windows, Android, etc.). Only advanced linear algebra tools require an external BLAS / LAPACK API, as well as graphical visualization functionality (VTK). The example below illustrates this goal:
+To complete this example, other references are available on this [link](https://eigen.tuxfamily.org/dox/AsciiQuickReference.txt). This is why all the features of the Castor library have been designed and developed so that the semantics at user level are as close to Matlab as what C++ allows. Moreover, to gain in portability, the manipulations of full matrices and the main algorithms depend only on the standard library which is available on the most majority of operating systems (Macos, Linux, Windows, Android, etc.). Only advanced linear algebra tools require an external BLAS / LAPACK API, as well as graphical visualization functionality (VTK). The example below illustrates this goal:
 
 | Matlab                            |     |     |     | Castor                            |
 | -------------------------------   | --- | --- | --- | --------------------------------- |
@@ -263,7 +263,7 @@ l &\rightarrow \{i=\frac{l}{n}; j= i\textrm{ mod }n\}.
 \end{aligned}
 $$
 
-Accessors to all the elements are provided so that sparse matrices can be manipulated in a similar way as the dense matrices. This operation is performed by dichotomy with a convergence in $log_2 (\text{nnz})$, where $\text{nnz}$ is the number of non-zero elements. Just like dense matrices, numerical values are stored in a templatized `std::vector<T>`. For convenience, we provide classical builders (`sparse`, `speye`, `spdiags`, etc.), standard C++ operators overloading, views, display functions (`disp`, `spy`) and some linear algebra tools (`transpose`, `mtimes`, `gmres`, etc.). 
+Accessors to all the elements are provided so that sparse matrices can be manipulated in a similar way as the dense matrices. This operation is performed by dichotomy with a convergence in $\log_2 (\text{nnz})$, where $\text{nnz}$ is the number of non-zero elements. Just like dense matrices, numerical values are stored in a templatized `std::vector<T>`. For convenience, we provide classical builders (`sparse`, `speye`, `spdiags`, etc.), standard C++ operators overloading, views, display functions (`disp`, `spy`) and some linear algebra tools (`transpose`, `mtimes`, `gmres`, etc.). 
 
 This example displays the sum of two sparse matrices, with implicit cast and sparse to dense conversion :
 
@@ -340,7 +340,7 @@ The operator $H$ is assembled using a $P_1$ finite element discretization on a t
 
 ![Resonance mode at 8kHz of the human pinna (BEM with H-Matrix).\label{fig:head}](head.png)
 
-Finally, using all the tools provided by Castor to write and solve these equations, we are able to efficiently compute the acoustic diffraction of a harmonic plane wave at 8kHz, on a human head mesh [@symare:2013]). The simulation result (\autoref{fig:head}) highlights the role of the auditory pavilion as a resonator, modifying the timbre of a sound source to allow a listener's brain to precisely locate its direction. 
+Finally, using all the tools provided by Castor to write and solve these equations, we are able to efficiently compute the acoustic diffraction of a harmonic plane wave at 8kHz, on a human head mesh [@symare:2013]. As shown in \autoref{fig:head}, the simulation result highlights the role of the auditory pavilion as a resonator, modifying the timbre of a sound source to allow a listener's brain to precisely locate its direction. 
 
 ```c++
 #include <castor/matrix.hpp>
