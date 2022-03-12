@@ -111,7 +111,7 @@ int main()
     return 0;
 }
 ```
-To complete this example, other references are available on this [link](https://eigen.tuxfamily.org/dox/AsciiQuickReference.txt). This is why all the features of the Castor library have been designed and developed so that the semantics at user level are as close to Matlab as what C++ allows. Moreover, to gain in portability, the manipulations of full matrices and the main algorithms depend only on the standard library which is available on the most majority of operating systems (Macos, Linux, Windows, Android, etc.). Only advanced linear algebra tools require an external BLAS / LAPACK API, as well as graphical visualization functionality (VTK). The example below illustrates this goal:
+To complete this example, other references are available on this [link](https://eigen.tuxfamily.org/dox/AsciiQuickReference.txt). This is why all the features of the Castor library have been designed and developed so that the semantics at user level are as close to Matlab as what C++ allows. Moreover, to gain in portability, the manipulations of full matrices and the main algorithms depend only on the standard library which is available on the most majority of operating systems (MacOS, Linux, Windows, Android, etc.). Only advanced linear algebra tools require an external BLAS / LAPACK API, as well as graphical visualization functionality (VTK). The example below illustrates this goal:
 
 | Matlab                            |     |     |     | Castor                            |
 | -------------------------------   | --- | --- | --- | --------------------------------- |
