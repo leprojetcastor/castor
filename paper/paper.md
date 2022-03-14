@@ -50,8 +50,8 @@ For a developer accustomed to the Matlab language, it is natural to turn to prot
 | `      7  8  9 ;`                 |     |     |     | `      7  8  9 ;`                                |
 | `     10 11 12];`                 |     |     |     | `     10 11 12];`                                |
 | `disp(M);`                        |     |     |     | `display(M);`                                    |
-| `M = (M - 1) .* eye(size(M));`    |     |     |     | `M = (M .- 1) .* `                               |
-|                                   |     |     |     | `    Matrix(I,size(M));`                         |
+| `M = (M - 1) .* ...`              |     |     |     | `M = (M .- 1) .* `                               |
+| `    eye(size(M));`               |     |     |     | `    Matrix(I,size(M));`                         |
 | `M(1,1) = -1;`                    |     |     |     | `M[1,1] = -1;`                                   |
 | `M([2,3],1)  = -1;`               |     |     |     | `M[[2 3],1] .= -1;`                              |
 | `M(4,:) = -1;`                    |     |     |     | `M[4,:] .= -1;`                                  |
