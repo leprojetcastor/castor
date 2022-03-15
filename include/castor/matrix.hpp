@@ -4541,9 +4541,10 @@ template<typename T>
 std::size_t nnz(matrix<T>const& A)
 {
     std::size_t nz = 0;
+    T z = 0;
     for (std::size_t l=0; l<numel(A); ++l)
     {
-        if (A(l)!=0) {++nz;}
+        if (A(l)!=z) {++nz;}
     }
     return nz;
 }

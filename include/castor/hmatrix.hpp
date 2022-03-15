@@ -199,6 +199,7 @@ public:
     // CONSTRUCTOR
     hmatrix(){};
     hmatrix(std::size_t m, std::size_t n, double tol, T v=0);
+    hmatrix(matrix<T>const& A, matrix<T>const& B, double tol);
     template<typename S>
     hmatrix(matrix<S>const& X, matrix<S>const& Y, double tol, matrix<T>const& M);
     template<typename S>
@@ -210,11 +211,15 @@ public:
     hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, double tol);
     template<typename S>
     hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, double tol, smatrix<T>const& Ms);
+    template<typename S>
+    hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, smatrix<T>const& Ml, hmatrix<T>const& Mh, smatrix<T>const& Mr);
     
     // FUNCTIONS
     void full2lowrank();
     void fusion();
     void hfull(matrix<T>& M, matrix<std::size_t> I={}, matrix<std::size_t> J={}) const;
+    void hfull2(matrix<T>& M, matrix<std::size_t> idx, matrix<std::size_t> jdx,
+              matrix<std::size_t> I={}, matrix<std::size_t> J={}) const;
     void hinv();
     void hllowsolve(hmatrix<T>const& Lh);
     void hllowsolve(matrix<T>& B, matrix<std::size_t> I={}) const;
@@ -238,6 +243,7 @@ public:
     hmatrix<T>& operator+=(T b);
     hmatrix<T>& operator*=(T b);
     hmatrix<T>& operator+=(hmatrix<T>const& Bh);
+    matrix<T>   operator()(matrix<std::size_t>const& I, matrix<std::size_t>const& J) const;
     
     // ACCESSORS
     hmatrix<T>const&          getChildren(int i) const {return m_chd[i];};
@@ -280,6 +286,19 @@ hmatrix<T>::hmatrix(std::size_t m, std::size_t n, double tol, T v)
     m_tol    = tol;
     m_dat[0] = matrix<T>(m,1,v);
     m_dat[1] = matrix<T>(1,n,1.);
+}
+
+//==========================================================================
+// [.hmatrix]
+/// Low-rank constructor, fill leaf with tensor product. No tree is needed.
+template<typename T>
+hmatrix<T>::hmatrix(matrix<T>const& A, matrix<T>const& B, double tol)
+{
+    m_typ    = 1;
+    m_siz    = {size(A,1),size(B,2)};
+    m_tol    = tol;
+    m_dat[0] = A;
+    m_dat[1] = B;
 }
 
 //==========================================================================
@@ -440,6 +459,120 @@ hmatrix<T>::hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, double tol, smatri
     }
 }
 
+//==========================================================================
+// [.hmatrix]
+/// Projector constructor : Ml * Mh * Mr
+template<typename T>
+template<typename S>
+hmatrix<T>::hmatrix(bintree<S>const& Xb, bintree<S>const& Yb, smatrix<T>const& Ml, hmatrix<T>const& Mh, smatrix<T>const& Mr)
+{
+    // Dimensions compatibility
+    if (size(Xb.crd(),1)!=size(Ml,1) || size(Yb.crd(),1)!=size(Mr,2) ||
+        size(Ml,2)!=size(Mh,1) || size(Mh,2)!=size(Mr,1))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Dimensions must agree.");
+    }
+    
+    // Global Indices
+    m_siz = {size(Xb.crd(),1),size(Yb.crd(),1)};
+    m_tol = Mh.getTolerance();
+
+    // Empty leaf
+    if (nnz(Ml)==0 || nnz(Mr)==0)
+    {
+        m_typ       = 1;
+        m_dat[0]    = zeros<T>(m_siz(0),1);
+        m_dat[1]    = zeros<T>(1,m_siz(1));
+    }
+    // Far leaf
+    else if (Mh.getType()==1)
+    {
+        m_typ    = 1;
+        m_dat[0] = mtimes(Ml,Mh.getData(0));
+        m_dat[1] = mtimes(Mh.getData(1),Mr);
+    }
+    // Full leaves
+    else if (Mh.getType()==2 && (Xb.isleaf() || Yb.isleaf()))
+    {
+        m_typ    = 2;
+        m_dat[0] = mtimes(mtimes(Ml,Mh.getData(0)),Mr);
+    }
+    // Full leaf from Mh
+    //   M = (A1) (B1) (C1 C2)
+    //       (A2)
+    else if (Mh.getType()==2)
+    {
+        // Indices of sub matrices
+        matrix<std::size_t> idx, jdx, tmp;
+        std::tie(tmp,jdx) = ind2sub(size(Ml),index(Ml));
+        std::tie(idx,tmp) = ind2sub(size(Mr),index(Mr));
+        idx = unique(idx);
+        jdx = unique(jdx);
+
+        // Sub matrices
+        smatrix<T> A = eval(Ml(row(Ml),jdx));
+        smatrix<T> B = sparse(eval(Mh.getData(0)(jdx,idx)));
+        smatrix<T> C = eval(Mr(idx,col(Mr)));
+
+        // Product
+        smatrix<T> Ms = mtimes(mtimes(A,B),C);
+        (*this) = hmatrix<double>(Xb,Yb,m_tol,Ms);
+    }
+    // Full leaf from tree
+    //   M = (A1 A2) (B1 B2) (C1)
+    //               (B3 B4) (C2)
+    else if (Xb.isleaf() || Yb.isleaf())
+    {
+        // Indices of sub matrices
+        matrix<std::size_t> idx, jdx, tmp;
+        std::tie(tmp,jdx) = ind2sub(size(Ml),index(Ml));
+        std::tie(idx,tmp) = ind2sub(size(Mr),index(Mr));
+        idx = unique(idx);
+        jdx = unique(jdx);
+
+        // Sub matrices
+        matrix<T> Bf = zeros(length(jdx),length(idx));
+        Mh.hfull2(Bf,jdx,idx);
+        smatrix<T> As = eval(Ml(row(Ml),jdx));
+        smatrix<T> Cs = eval(Mr(idx,col(Mr)));
+
+        // Product
+        m_typ = 2;
+        m_dat[0] = mtimes(mtimes(As,Bf),Cs);
+    }
+    // Recursive leaf
+    else if (Mh.getType()==0)
+    {
+        // Prepare blocks
+        m_typ = 0;
+        m_chd.resize(4,hmatrix<T>());
+        for (int h=0; h<4; ++h)
+        {
+            m_row[h] = Xb.ind(h/2);
+            m_col[h] = Yb.ind(h%2);
+            m_chd[h] = hmatrix<T>(length(m_row[h]),length(m_col[h]),0);
+        }
+        
+        // Recursion
+        matrix<std::size_t> g = {0,2,1,3};
+        for (int h=0; h<4; ++h)
+        {
+           for (int i=0; i<4; ++i)
+            {
+                m_chd[h] += hmatrix(Xb.sub(h/2), Yb.sub(h%2),
+                                    eval(Ml(m_row[h],Mh.getRow(g(i)))),
+                                    Mh.getChildren(g(i)),
+                                    eval(Mr(Mh.getColumn(g(i)),m_col[h])));
+            }
+        }
+        fusion();
+    }
+    else
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Unavailable case.");
+    }
+}
+
 
 //==========================================================================//
 //                               FUNCTIONS                                  //
@@ -454,12 +587,29 @@ void hmatrix<T>::full2lowrank()
     {
         matrix<T> A, B;
         bool flag;
-        std::tie(A,B,flag) = aca(m_dat[0],m_tol);
+        // Full
+        if (nnz(m_dat[0])>numel(m_dat[0])/4)
+        {
+            std::tie(A,B,flag) = aca(m_dat[0],m_tol/10);
+        }
+        // "Sparse"
+        else
+        {
+            std::tie(A,B) = qrsvd(m_dat[0],eye<T>(m_siz(1)),m_tol/10);
+            (size(A,2)<min(m_siz)/2)?(flag = true):(flag = false);
+        }
+        // Check and update
         if (flag)
         {
-            m_dat[0] = A;
-            m_dat[1] = B;
-            m_typ    = 1;
+            matrix<T> tmp = m_dat[0] - mtimes(A,B);
+            double errLinf = norm(tmp,"inf")/norm(m_dat[0],"inf");
+            double errL2   = norm(tmp,"2")/norm(m_dat[0],"2");
+            if (errLinf<m_tol && errL2<m_tol)
+            {
+                m_dat[0] = A;
+                m_dat[1] = B;
+                m_typ    = 1;
+            }
         }
     }
 }
@@ -536,6 +686,51 @@ void hmatrix<T>::hfull(matrix<T>& M, matrix<std::size_t> I, matrix<std::size_t> 
     }
     else if (m_typ==1) {M(I,J) = mtimes(m_dat[0],m_dat[1]);}
     else if (m_typ==2) {M(I,J) = m_dat[0];}
+    else
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Unavailable case.");
+    }
+}
+
+//==========================================================================
+// [hmatrix.full2]
+/// In-place conversion to dense sub-matrix :
+/// Ah(I,J) -> M.
+template<typename T>
+void hmatrix<T>::hfull2(matrix<T>& M, matrix<std::size_t> idx, matrix<std::size_t> jdx,
+                      matrix<std::size_t> I, matrix<std::size_t> J) const
+{
+    if (isempty(I)) {I = range(0,size(M,1));}
+    if (isempty(J)) {J = range(0,size(M,2));}
+    if (numel(I)!=numel(idx) || numel(J)!=numel(jdx))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Dimensions must agree.");
+    }
+    if (m_typ==0)
+    {
+        for (int h=0; h<4; ++h)
+        {
+            matrix<std::size_t> idxh, jdxh, Ih, Jh, Itmp, Jtmp;
+            std::tie(idxh,Itmp) = argintersect(m_row[h],idx);
+            std::tie(jdxh,Jtmp) = argintersect(m_col[h],jdx);
+            if (!isempty(idxh) && !isempty(jdxh))
+            {
+                Ih = eval(I(Itmp));
+                Jh = eval(J(Jtmp));
+                m_chd[h].hfull2(M,idxh,jdxh,Ih,Jh);
+            }
+        }
+    }
+    else if (m_typ==1)
+    {
+        matrix<T> A = eval(m_dat[0](idx,col(m_dat[0])));
+        matrix<T> B = eval(m_dat[1](row(m_dat[1]),jdx));
+        M(I,J) = mtimes(A,B);
+    }
+    else if (m_typ==2)
+    {
+        M(I,J) = eval(m_dat[0](idx,jdx));
+    }
     else
     {
         error(__FILE__, __LINE__, __FUNCTION__,"Unavailable case.");
@@ -706,7 +901,7 @@ void hmatrix<T>::hlupsolve(matrix<T>& B, matrix<std::size_t> I) const
 }
 
 //==========================================================================
-// [hmatrixhlmtimes]
+// [hmatrix.hlmtimes]
 /// In-place hmatrix-matrix product :
 /// C -> C + Ah * B.
 template<typename T>
@@ -991,7 +1186,6 @@ void hmatrix<T>::leafptr(std::vector<hmatrix<T>*>& ptr,
     }
 }
 
-
 //==========================================================================
 // [hmatrix.recompress]
 /// Recompression of dense and low-rank leaves with fusion.
@@ -1013,7 +1207,7 @@ void hmatrix<T>::recompress(double tol)
     }
     else if (m_typ==2)
     {
-//        full2lowrank();
+        full2lowrank();
     }
     else
     {
@@ -1284,6 +1478,17 @@ void hmatrix<T>::tgehmhm(T alpha, hmatrix<T>const& Ah, hmatrix<T>const& Bh, T be
 //                               OPERATORS                                  //
 //==========================================================================//
 //==========================================================================
+// [operator())]
+/// Access to sub matrix with dense conversion.
+template<typename T>
+matrix<T> hmatrix<T>::operator()(matrix<std::size_t>const& I, matrix<std::size_t>const& J) const
+{
+    matrix<T> A(length(I),length(J));
+    hfull2(A,I,J);
+    return A;
+}
+
+//==========================================================================
 // [operator+=]
 /// In-place addition of hmatrix or scalar :
 /// Ah -> Ah + b,
@@ -1550,6 +1755,10 @@ matrix<T> gmres(hmatrix<T>const& Ah, matrix<T>const& B,
                 std::function<matrix<T>(matrix<T>const&)>const& Am1 = std::function<matrix<T>(matrix<T>const&)>(),
                 matrix<T>const& X0 = matrix<T>())
 {
+    if (size(Ah,1)!=size(B,1))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
     std::function<matrix<T>(matrix<T>const&)> Afct;
     Afct = [&Ah](matrix<T>const& X) {return mtimes(Ah,X);};
     return gmres(Afct,B,tol,maxit,Am1,X0);
@@ -1558,6 +1767,10 @@ template<typename T>
 matrix<T> gmres(hmatrix<T>const& Ah, matrix<T>const& B, double tol, std::size_t maxit,
                 hmatrix<T>const& Ahm1, matrix<T>const& X0 = matrix<T>())
 {
+    if (size(Ah,1)!=size(B,1))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
     std::function<matrix<T>(matrix<T>const&)> Afct, Am1fct;
     Afct   = [&Ah](matrix<T>const& X) {return mtimes(Ah,X);};
     Am1fct = [&Ahm1](matrix<T>const& X) {return mtimes(Ahm1,X);};
@@ -1567,6 +1780,10 @@ template<typename T>
 matrix<T> gmres(hmatrix<T>const& Ah, matrix<T>const& B, double tol, std::size_t maxit,
                 hmatrix<T>const& Lh, hmatrix<T>const& Uh, matrix<T>const& X0 = matrix<T>())
 {
+    if (size(Ah,1)!=size(B,1))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
     std::function<matrix<T>(matrix<T>const&)> Afct, Am1fct;
     Afct   = [&Ah](matrix<T>const& X) {return mtimes(Ah,X);};
     Am1fct = [&Lh,&Uh](matrix<T>const& B)
@@ -1615,6 +1832,10 @@ hmatrix<T> hzeros(matrix<std::size_t>const& S)
 template<typename T>
 inline hmatrix<T> inv(hmatrix<T>const& Ah)
 {
+    if (size(Ah,1)!=size(Ah,2))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
     hmatrix<T> Ahm1 = Ah;
     Ahm1.hinv();
     return Ahm1;
@@ -1625,8 +1846,12 @@ inline hmatrix<T> inv(hmatrix<T>const& Ah)
 /// Solve linear system Ah*X=B where Ah is a hierarchical matrix, using
 /// hierarchical LU factorization.
 template<typename T>
-inline matrix<T> linsolve(hmatrix<T>const& Ah, matrix<T>const& B)
+matrix<T> linsolve(hmatrix<T>const& Ah, matrix<T>const& B)
 {
+    if (size(Ah,1)!=size(B,1))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
     hmatrix<T> Lh, Uh;
     std::tie(Lh,Uh) = lu(Ah);
     matrix<T> X = B;
@@ -1641,6 +1866,10 @@ inline matrix<T> linsolve(hmatrix<T>const& Ah, matrix<T>const& B)
 template<typename T>
 inline auto lu(hmatrix<T>const& Ah, double tol=0)
 {
+    if (size(Ah,1)!=size(Ah,2))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
     hmatrix<T> Lh=Ah, Uh;
     if (tol>0) {Lh.recompress(tol);}
     Lh.hlu(Uh);
@@ -1653,6 +1882,10 @@ inline auto lu(hmatrix<T>const& Ah, double tol=0)
 template<typename T>
 inline matrix<T> mtimes(hmatrix<T>const& Ah, matrix<T>const& B)
 {
+    if (size(Ah,2)!=size(B,1))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
     matrix<T> C(size(Ah,1),size(B,2));
     Ah.hlmtimes(B,C);
     return C;
@@ -1660,6 +1893,10 @@ inline matrix<T> mtimes(hmatrix<T>const& Ah, matrix<T>const& B)
 template<typename T>
 inline matrix<T> mtimes(matrix<T>const& A, hmatrix<T>const& Bh)
 {
+    if (size(A,2)!=size(Bh,1))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
     matrix<T> C(size(A,1),size(Bh,2));
     Bh.hrmtimes(A,C);
     return C;
@@ -1667,6 +1904,10 @@ inline matrix<T> mtimes(matrix<T>const& A, hmatrix<T>const& Bh)
 template<typename T>
 inline hmatrix<T> mtimes(hmatrix<T>const& Ah, hmatrix<T>const& Bh)
 {
+    if (size(Ah,2)!=size(Bh,1))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
     hmatrix<T> Ch(size(Ah,1),size(Bh,2),std::max(Ah.getTolerance(),Bh.getTolerance()));
     tgemm((T)1,Ah,Bh,(T)1,Ch);
     return Ch;
@@ -1716,6 +1957,10 @@ inline auto spydata(hmatrix<T>const& Ah)
 template<typename T>
 inline void tgeabm(T alpha, matrix<T>const& A, matrix<T>const& B, T beta, hmatrix<T>& Ch)
 {
+    if (size(A,2)!=size(B,1) || size(A,1)!=size(Ch,1) || size(B,2)!=size(Ch,2))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
     Ch.tgeabhm(alpha,A,B,beta);
 }
 
@@ -1726,6 +1971,10 @@ inline void tgeabm(T alpha, matrix<T>const& A, matrix<T>const& B, T beta, hmatri
 template<typename T>
 inline void tgemm(T alpha, hmatrix<T>const& Ah, hmatrix<T>const& Bh, T beta, hmatrix<T>& Ch)
 {
+    if (size(Ah,2)!=size(Bh,1) || size(Ah,1)!=size(Ch,1) || size(Bh,2)!=size(Ch,2))
+    {
+        error(__FILE__, __LINE__, __FUNCTION__,"Matrix dimensions must agree.");
+    }
     Ch.tgehmhm(alpha,Ah,Bh,beta);
 }
 
@@ -1741,3 +1990,4 @@ inline hmatrix<T> transpose(hmatrix<T>const& Ah)
 }
 
 }
+

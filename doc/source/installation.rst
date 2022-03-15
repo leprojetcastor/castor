@@ -3,16 +3,34 @@
 Installation
 ============
 
-The simplest way to get the **castor** library is to download the `latest version of header files <https://gitlab.labos.polytechnique.fr/leprojetcastor/castor/-/jobs/artifacts/master/download?job=deploy>`_ and include them during the compilation of your c++ program using the library, see :ref:`label-compilation` in the :ref:`label-basic` section.
+The simplest way to get the dense matrix part of the framework **castor** is to download the `latest version of header files <https://gitlab.labos.polytechnique.fr/leprojetcastor/castor/-/jobs/artifacts/master/download?job=deploy>`_ and include `matrix.hpp` during the compilation of your c++ program using the library, see :ref:`label-compilation` in the :ref:`label-basic` section.
 
-For a complete installation integrating check dependencies and examples compilation, we describe below the procedure for **MacOS** and **Linux** distributions like Ubuntu. For the installation on **Windows**, see the dedicated section :ref:`label-install-windows`.
+For a complete installation integrating check dependencies and examples compilation, we describe below the procedure.
+
+**MacOS** (11 and 12) and **Ubuntu** (20.04)
+++++++++++++++++++++++++++++++++++++++++++++
+
+Installing the dependencies
+---------------------------
+
+The **castor** framework depends on two external dependencies : a BLAS/LAPACK implementation in order to use optimized linear algebra, and VTK for the graphical rendering.
+
+The BLAS/LAPACK implementation which has been tested are :
+
+- MKL 2020.0.166 : `MKL informations <https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl.html>`_,   
+- OpenBlas 0.3.19 : `OpenBLAS informations <https://www.openblas.net/>`_,   
+- vecLib : from accelerate framework in MacOS.   
+
+The version of VTK library which has been tested is `9.1.0 <https://vtk.org/download/>`_.
+
+The last tool to perform installation is ``CMake``, at least version `3.18  <https://cmake.org/download/>`_.
+
+**Note** : on macOS it is recommended to install these dependencies with `brew <https://brew.sh/>`_.
 
 From git repository with CMake
-++++++++++++++++++++++++++++++
+------------------------------
 
 You can install the **castor** library from source with ``CMake``. The source files of the library is available here `<https://gitlab.labos.polytechnique.fr/leprojetcastor/castor>`_.
-
-On Linux and macOS platforms :
 
 .. code::
 
@@ -31,163 +49,67 @@ The linear algebra part and the visualization part of the library depend respect
 
     $ cmake -DCMAKE_INSTALL_PREFIX=path/to/install/directory -DCMAKE_PREFIX_PATH="/path/to/optimized/blas;/path/to/vtk/" ..   
 
-Installing the dependencies
-+++++++++++++++++++++++++++
+Xcode project for macOS
+-----------------------
 
-Installing BLAS and LAPACK
-..........................
+To create a Xcode project with ``CMake``, add option `-G Xcode` in the `cmake` command :
+ 
+.. code::
 
-BLAS and LAPACK may be obtained through multiple channels:
+    $ cmake -G Xcode -DCMAKE_INSTALL_PREFIX=path/to/install/directory 
 
- - the first possibility it to download the binaries for `OpenBLAS <https://www.openblas.net/>`_. On Ubuntu, they can be obtained with 
+This project is created in the `build` directory.
 
-    .. code:: text
+Windows (10)
+++++++++++++
 
-        sudo apt install libopenblas-dev
+This solution has been tested on Windows 10 only (but may work on other version). Since there is no *built_in* available package manager, the different components will be installed *by-hands* using only *Windows-like* tools.
 
-    and on MacOS with
+C++ compiler and CMake
+----------------------
 
-    .. code::
+The first step is to install a suitable C++ compiler. In the following instructions we will only use the compiler provided with `Visual Studio <https://visualstudio.microsoft.com/fr/downloads/>`_, version 2019 or later (previous version may work but have not been tested). The Visual Studio framework also provides a customized command prompt named `x64 Native Tools Command Prompt`.
 
-        brew install openblas
+We will also install the `CMake <https://cmake.org>`_ tools. Download the latest binary distribution for Windows. After installing CMake, open the `x64 Native Tools Command Prompt` and execute the command `cmake-gui`. If the command fails, find the install folder of CMake and add the `CMakeInstallFolder\bin` subfolder to the Windows `%PATH%` environment variable, restart the command prompt and try again. The graphical interface of CMake should open (close it for now).
 
- - the second possibility is to download the ``Intel MKL`` framework which is proprietary but freely available for non-commercial use. Binaries can be obtained directly from the Intel website (but it will require the creation of an account) or using `Anaconda <https://www.anaconda.com/>`_. One of the advantages of the ``MKL`` is that it is deeply optimized for those using Intel CPUs. For AMD CPU users, it is a bit trickier and we refer to `https://danieldk.eu/Posts/2020-08-31-MKL-Zen.html <https://danieldk.eu/Posts/2020-08-31-MKL-Zen.html>`_.
+BLAS/LAPACK library
+-------------------
 
+The simplest way is probably to install `OpenBLAS <https://www.openblas.net>`_ which implements both interfaces. Compiling the library can quickly become painful as a Fortran compiler is required. Thankfully, the developers have made precompiled binaries available. Installing OpenBLAS can be done following these steps:
 
-**Remark:** on MacOS, the ``vecLib`` framework shipped with the Apple Command Line Tools is an optimized implementation of BLAS and LAPACK. ``vecLib`` will be detected automatically by ``cmake`` if no other BLAS/LAPACK implementations are found.
+1. Go to `https://github.com/xianyi/OpenBLAS/releases <https://github.com/xianyi/OpenBLAS/releases>`_, look for an archive named **OpenBLAS-0.x.x-x64.zip** (or **OpenBLAS-0.x.x-x86.zip** for older architectures) in the section **Assets** corresponding to the version you wish to use and download it. The demos were tested originally with `OpenBLAS 0.3.12` so any later version should be fine.
+2. Extract the downloaded archive in a folder of your choice (for example, create a folder `openblas`). This folder should now contain three subdirectories:
+    - `openblas\bin` should contain a file named `libopenblas.dll`.
+    - `openblas\include` should contain the header files, including `cblas.h`.
+    - `openblas\lib` should contain `.lib` files (including `libopenblas.lib`) and a `openblas\lib\cmake` subfolder.
+3. Add the subfolder `openblas\bin` to Windows environment variable `%PATH%`.
 
+The BLAS and LAPACK are now ready to use.
 
-.. _label-install-vtk:
+**Remark** It is also possible to download the Intel MKL library through the framework https://github.com/oneapi-src/oneMKL or the `Intel website <https://www.intel.com/content/www/us/en/developer/tools/oneapi/overview.html>`_. However, this implementation features different header names and requires a modification of the source files of **castor** (namely replace `cblas.h` by `mkl_cblas.h` wherever it appears). For this reason, we do not insist further.
 
-Installing VTK
-..............
+VTK framework
+-------------
 
-On MacOS, it should be installed using Homebrew with the command 
+Unfortunately, the developers of the VTK framework do not provide *ready-to-use* binaries meaning that we must compile the sources by ourselves. It is performed as follows:
 
-.. code:: text
+1. Download the sources of VTK on the main website `https://vtk.org <https://vtk.org>`_. Choose a version of the `9.x.x` branch. Uncompress the archive in a folder of your choice.
+2. Open the `x64 Native Tools Command Prompt` and move to the newly created VTK folder (use the `dir pathToFolder` command). Create a *build* folder using `mkdir build` and move to this folder.
+3. Execute `cmake-gui ..` which should open the CMake graphical interface. Click on `Configure`, choose the `ninja` generator and keep the default configuration. Finally, click on `Generate`. CMake will generate the build files.
+4. Go back to the command prompt and execute the command `ninja`. The compilation of VTK begins and *may* take some time (a few minutes to a few dozen of minutes depending on the computer).
+5. Once the compilation is over, execute `ninja install` which will install the library in the default directory `C:\Program Files (x86)\VTK`.
+6. The last step is to add the subfolder `C:\Program Files (x86)\VTK\bin` to the Windows `%PATH%` environment variable.
 
-    brew install vtk
+The installation of VTK is now completed.
 
-On Ubuntu, VTK 9.x must be built from source as the version available in the repositories is currently ``VTK 7.x.x``. The process is described below:
+Compile the demos
+-----------------
 
- - first, download the source code at `https://vtk.org/ <https://vtk.org/>`_ and extract the archive.
+In this section, we will give the instructions on how to compile the examples of castor. The steps are the following:
 
- - open a terminal and install ``freeglut3-dev``.
-
-    .. code:: text
-
-        sudo apt install freeglut3-dev
-
- - go to the main directory of VTK, create a ``build`` directory and go to the newly created directory.
-
-    .. code:: text
-
-        cd /path/to/VTK/main
-        mkdir build && cd build
-
-
- - call the following ``cmake`` command.
-
-    .. code:: text
-
-        cmake -DCMAKE_BUILD_TYPE=Release ..
-
-    If you wish to change the default install directory, add the following flag to the command above: ``-DCMAKE_INSTALL_PREFIX=/your/path/``. In order to use VTK, you will need to give ``/your/path/`` when configuring your project with ``cmake -DCMAKE-DCMAKE_PREFIX_PATH=/your/path/ ..``, see above.
-
-    **Remark:** if you are not familiar with this process, do not modify the default installation folder.
-
- - compile and install.
-
-    .. code:: text
-
-        make
-        sudo make install
-
-    **Remark:** if you have a CPU with ``N`` cores (not *threads*), you can accelerate the compilation of VTK with
-
-    .. code:: text
-
-        make -jN
-        sudo make install
-
-    **Remark n**:math:`^{o} 2` **:** the compilation (the ``make -jN`` command) will take some time, so you can go grab yourself a cup of tea or coffee...
-
-The binaries and the headers are, normally, placed respectively in the ``/usr/local/lib/`` and ``/usr/local/include`` folders and should be found automatically by ``cmake``.
-
-You can also create a file ``install_vtk.sh`` (or whatever the name you wish, but with the ``.sh`` extension) with the following content
-
-.. code:: text
-
-    sudo apt install freeglut3-deva
-    wget https://www.vtk.org/files/release/9.0/VTK-9.0.3.tar.gz
-    cd VTK-9.0.3/
-    mkdir build
-    cd build
-    cmake -DCMAKE_INSTALL_PREFIX=/path/to/your/vtk/install/folder -DCMAKE_BUILD_TYPE=Release ..
-    make -jN
-    sudo make install
-
-where the ``-DCMAKE_INSTALL_PREFIX=...`` option may be omitted if you want to use the default installation folder and ``N`` is set to the number of CPU *cores*. Then, simply call
-
-.. code:: text
-
-    bash install_vtk.sh
-
-to start the installation process.
-
-.. _label-install-windows:
-
-Installing on Windows 10
-++++++++++++++++++++++++
-
-There is *a priori* no easy solution on Windows 10. One possibility is to use *only* the Visual Studio tools (freely available for non-commercial use). The blocking point is the compilation of BLAS/LAPACK as it requires a Fortran compiler which is a complicated topic. Consequently, a possibility would be to use the Intel MKL library (also freely available for non-commercial use, but requires a registration). In order to build VTK, one can follow the recommandations `here <https://vtk.org/Wiki/VTK/Building/Windows>`_. The **castor** framework *could* then be installed in a similar fashion as VTK using ``cmake`` or ``cmake-gui``. 
-
-The solution above has not yet been fully tested and we will rather use the `MSYS2 tools <https://www.msys2.org/>`_. MSYS2 will allow the Unix/MacOS user to work with a familiar self-contained environment within Windows. After installation, start a MSYS2 terminal (for a standard installation, the executable file is ``C:\msys64\mingw64.exe``) and update the database with the following commands:
-
-.. code:: text
-
-    pacman -Syu
-    pacman -Su
-
-First, install the build tools, ``GCC``, ``git`` and ``cmake``:
-
-.. code:: text
-
-    pacman -S base-devel
-    pacman -S mingw-w64-x86_64-gcc
-    pacman -S git 
-    pacman -S mingw-w64-x86_64-cmake
-
-It may take a *lot of time*. Now, install the dependencies ``OpenBLAS`` and ``VTK 8.2``:
-
-.. code:: text
-
-    pacman -S mingw-w64-x86_64-openblas
-    pacman -S mingw-w64-x86_64-vtk
-
-Note that the current version of ``VTK`` is 8.2. If it is not the case, you will need to compile it from source. Fortunately, it happens in the same fashion as for the Ubuntu case, see :ref:`label-install-vtk`. We are now ready to install **castor**. First, clone the repository, and create a ``build directory``:
-
-.. code:: text
-
-    git clone https://gitlab.labos.polytechnique.fr/leprojetcastor/castor.git
-    cd castor
-    mkdir build && cd build
-
-Now, let us generate the build files. ``VTK`` should normally be found  automatically but it may not be the case for ``OpenBLAS``. The following command should work:
-
-.. code:: text
-
-    cmake -G"MSYS Makefiles" -DBLAS_LIBRARIES="/mingw64/lib/libopenblas.a" -DLAPACK_LIBRARIES="/mingw64/lib/libopenblas.a" -DCBLAS_INCLUDE_DIR="/mingw64/include/OpenBLAS" ..
-
-**Remark:** The ``-G"MSYS Makefiles"`` is mandatory. Otherwise, ``cmake`` could try to generate a Visual Studio project.
-
-Once the previous command completede successfully, compile the examples and install the **castor** headers:
-
-.. code:: text
-
-    make
-    make install
-
-The executable files for the examples can be found in the ``castor/build/demo/demo_*`` subfolders. The folder containing the headers is copied in the ``/mingw64/include/`` sub-directory.
-
-**Remark:** if you have questions or remarks about the installation procedure on Windows, please contact Marc Bakry (contact info at :ref:`label-developpers`).
+1. Download the sources of **castor** from the `main repo <https://gitlab.labos.polytechnique.fr/leprojetcastor/castor.git>`_.
+2. Open the `x64 Native Tools Command Prompt` and got to the `castor` folder. Create a `castor\build` directory and move to it.
+3. Execute `cmake-gui ..` and click on the `Configure` button. Choose the `ninja` generator on the list and let all other options by default. This last operation *should fail* as CMake cannot find BLAS/LAPACK nor VTK.
+4. In the list of CMake variables, look for `VTK_DIR` and set it to the `VTK\lib\cmake\vtk-9.x` folder. Do the same for the BLAS-related variables. Look for the variable `CBLAS_INCLUDE_DIR` and set it to the `openblas\include`subfolder.
+5. Click again on `Configure` then on `Generate`.
+6. Finally, execute `ninja` in the command prompt to start building the demo executable. The corresponding file can then be found in the `castor\build\demo` subfolder.
