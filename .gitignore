@@ -3,6 +3,8 @@ build/
 xcode/
 xml/
 .vscode/
+.idea
+cmake-build*
 
 # Desktop Services Store (macOS)
 .DS_Store
