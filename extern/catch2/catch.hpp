@@ -69,9 +69,13 @@
 #ifdef __APPLE__
 # include <TargetConditionals.h>
 # if TARGET_OS_OSX == 1
-#  define CATCH_PLATFORM_MAC
+#  if TARGET_CPU_X86_64 == 1
+#   define CATCH_PLATFORM_APPLE_x86_64
+#  elif TARGET_CPU_ARM64 == 1
+#   define CATCH_PLATFORM_APPLE_ARM64
+# endif
 # elif TARGET_OS_IPHONE == 1
-#  define CATCH_PLATFORM_IPHONE
+#  define CATCH_PLATFORM_APPLE_ARM64
 # endif
 
 #elif defined(linux) || defined(__linux) || defined(__linux__)
@@ -7905,11 +7909,11 @@ namespace Catch {
     bool isDebuggerActive();
 }
 
-#ifdef CATCH_PLATFORM_MAC
+#ifdef CATCH_PLATFORM_APPLE_x86_64
 
     #define CATCH_TRAP() __asm__("int $3\n" : : ) /* NOLINT */
 
-#elif defined(CATCH_PLATFORM_IPHONE)
+#elif defined(CATCH_PLATFORM_APPLE_ARM64)
 
     // use inline assembler
     #if defined(__i386__) || defined(__x86_64__)
@@ -10169,7 +10173,7 @@ namespace {
 
     bool useColourOnPlatform() {
         return
-#if defined(CATCH_PLATFORM_MAC) || defined(CATCH_PLATFORM_IPHONE)
+#if defined(CATCH_PLATFORM_APPLE_x86_64) || defined(CATCH_PLATFORM_APPLE_ARM64)
             !isDebuggerActive() &&
 #endif
 #if !(defined(__DJGPP__) && defined(__STRICT_ANSI__))
@@ -10346,7 +10350,7 @@ namespace Catch {
 // end catch_debug_console.cpp
 // start catch_debugger.cpp
 
-#if defined(CATCH_PLATFORM_MAC) || defined(CATCH_PLATFORM_IPHONE)
+#if defined(CATCH_PLATFORM_APPLE_x86_64) || defined(CATCH_PLATFORM_APPLE_ARM64)
 
 #  include <cassert>
 #  include <sys/types.h>
@@ -15595,7 +15599,7 @@ namespace Catch {
 
 namespace {
 
-#ifdef CATCH_PLATFORM_MAC
+#ifdef CATCH_PLATFORM_APPLE_x86_64
     const char* failedString() { return "FAILED"; }
     const char* passedString() { return "PASSED"; }
 #else
